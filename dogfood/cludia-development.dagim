@@ -74,3 +74,8 @@ node review-cludia-inference-repair-implementation-dogfood-output: Review cludia
 node commit-approved-cludia-inference-repair-slice-dogfood: Commit approved cludia inference repair slice and dogfood results
   complete
   parent review-cludia-inference-repair-implementation-dogfood-output  # Review cludia inference repair implementation and dogfood output
+
+node implement-cludia-defeat-authoring-removal: Implement cludia defeat authoring and removal
+
+node dogfood-all-cludia-defeat-scopes-counterpoint-removal: Dogfood all cludia defeat scopes and counterpoint removal
+  parent implement-cludia-defeat-authoring-removal  # Implement cludia defeat authoring and removal

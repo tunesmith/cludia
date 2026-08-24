@@ -69,3 +69,12 @@ lemma[value] L9:cludia-should-implement-statement-search-before-inference-repair
 premise[fact] P20:statement-search-review-checkpoint-2026-08-24-cludia ::T "At the statement-search review checkpoint on 2026-08-24, Cludia could search statement IDs, slugs, and text by case-insensitive substring while preserving document order."
 
 premise[fact] P21:inference-repair-review-checkpoint-2026-08-24-cludia ::T "At the inference-repair review checkpoint on 2026-08-24, Cludia could add a source, remove a source while preserving at least two, and remove a junctor without leaving an undercut dangling."
+
+premise[fact] P22:commit-d1a2f3b-cludia-could-capture-query-derive-repair ::T "At commit d1a2f3b, Cludia could capture, query, derive, and repair affirmative reasoning but could not author or remove defeats."
+
+premise[value] P23:full-investigation-must-preserve-material-challenges-premises-inferences ::T "A full investigation must preserve material challenges to premises, inferences, and other challenges."
+
+premise[fact] P24:cludia-v1-requires-premise-undermines-inference-undercuts-counterpoints ::T "Cludia v1 requires premise undermines, inference undercuts, and counterpoints targeting counterpoints as first-class defeat scopes."
+
+lemma[value] L10:defeat-authoring-removal-are-required-before-cludia-can "Defeat authoring and removal are required before Cludia can support a full investigation."
+  <- AND#J10(P22, P23, P24)
