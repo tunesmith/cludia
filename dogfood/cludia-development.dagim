@@ -48,6 +48,15 @@ node commit-approved-cludia-connected-component-listing-slice: Commit approved c
   parent review-cludia-connected-component-listing-implementation  # Review cludia connected-component listing implementation and...
 
 node implement-cludia-statement-search: Implement cludia statement search
+  complete
 
 node dogfood-cludia-statement-search-tracked-discovery-workspace: Dogfood cludia statement search on the tracked discovery workspace
+  complete
   parent implement-cludia-statement-search  # Implement cludia statement search
+
+node review-cludia-statement-search-implementation-dogfood-output: Review cludia statement search implementation and dogfood output
+  complete
+
+node commit-approved-cludia-statement-search-slice-dogfood: Commit approved cludia statement search slice and dogfood results
+  complete
+  parent review-cludia-statement-search-implementation-dogfood-output  # Review cludia statement search implementation and dogfood output

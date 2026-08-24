@@ -100,6 +100,7 @@ bin/cludia list inquiry.arg --state isolated
 bin/cludia show inquiry.arg P1 --relations
 bin/cludia components inquiry.arg
 bin/cludia component inquiry.arg P1 --json
+bin/cludia search inquiry.arg "implementation milestone" --json
 ```
 
 Every command shown above also supports `--json`. `init` refuses to overwrite
@@ -111,6 +112,9 @@ every reasoning island in deterministic document order; `component` returns the
 complete typed island containing a statement, statement slug, or junctor.
 Support and defeat incidence both connect elements for grouping without
 conflating their logical meanings.
+
+`search` performs a case-insensitive substring match over statement IDs, slugs,
+and text. Results preserve document order and report which fields matched.
 
 Local dogfooding workspaces may live under the ignored `personal/` directory so
 private inquiry data is not committed accidentally.
