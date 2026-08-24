@@ -158,3 +158,46 @@ func TestFailedEditLeavesWorkspaceUnchanged(t *testing.T) {
 		t.Fatalf("workspace changed after failed edit: %v", readErr)
 	}
 }
+
+func TestEditChangesTruthAndKindWithoutChangingIdentity(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "workspace.arg")
+	var stdout, stderr bytes.Buffer
+	if err := run([]string{"init", path, "--title", "Title", "--text", "Original"}, &stdout, &stderr); err != nil {
+		t.Fatal(err)
+	}
+	before := argfile.ParseFile(path).Document.Statements[0]
+	stdout.Reset()
+	stderr.Reset()
+	if err := run([]string{"edit", path, "P1", "--truth", "F", "--kind", "value", "--json"}, &stdout, &stderr); err != nil {
+		t.Fatalf("edit truth/kind: %v", err)
+	}
+	var output mutationOutput
+	if err := json.Unmarshal(stdout.Bytes(), &output); err != nil {
+		t.Fatal(err)
+	}
+	if output.Statement.ID != before.ID || output.Statement.Slug != before.Slug || output.Statement.Text != before.Text || output.Statement.Truth != argument.TruthFalse || output.Statement.Kind != argument.KindValue {
+		t.Fatalf("edited statement = %#v, before %#v", output.Statement, before)
+	}
+}
+
+func TestEditRejectsExplicitTrueLemma(t *testing.T) {
+	path := twoPremiseWorkspace(t)
+	var stdout, stderr bytes.Buffer
+	if err := run([]string{"derive", path, "--source", "P1", "--source", "P2", "--target-text", "Lemma"}, &stdout, &stderr); err != nil {
+		t.Fatal(err)
+	}
+	before, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	stdout.Reset()
+	stderr.Reset()
+	err = run([]string{"edit", path, "L1", "--truth", "T", "--json"}, &stdout, &stderr)
+	if !errors.Is(err, errValidationFailed) {
+		t.Fatalf("edit lemma truth error = %v", err)
+	}
+	after, readErr := os.ReadFile(path)
+	if readErr != nil || !bytes.Equal(before, after) {
+		t.Fatalf("workspace changed after invalid truth edit: %v", readErr)
+	}
+}

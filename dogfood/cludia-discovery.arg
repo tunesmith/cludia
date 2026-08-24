@@ -87,5 +87,7 @@ premise[value] P27:full-investigation-must-be-able-correct-statement-truth ::T "
 
 premise[fact] P28:cludia-v1-requires-truth-kind-changes-plus-statement ::T "Cludia v1 requires truth and kind changes plus statement deletion with a dry-run plan of incident relations and resulting components."
 
-lemma[value] L11:statement-truth-kind-editing-plus-dry-run-deletion "Statement truth and kind editing plus dry-run deletion are the next required investigation slice."
+lemma[value] L11:statement-truth-kind-editing-plus-dry-run-deletion "At the post-fbfbeb5 checkpoint, missing statement truth/kind editing and structural deletion warranted the next investigation slice."
   <- AND#J11(P26, P27, P28)
+
+premise[fact] P29:statement-lifecycle-review-checkpoint-2026-08-24-cludia ::T "At the statement-lifecycle review checkpoint on 2026-08-24, Cludia could edit statement text, truth, and kind and dry-run or execute deletion with incident-relation and component reporting."

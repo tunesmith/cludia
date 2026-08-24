@@ -35,8 +35,8 @@ expected profiles, and ordinary Concludia fixtures round-trip.
 Status: first usable slice (`init`, `add`, `edit`, `list`, `show`, `search`,
 `components`, `component`, `derive`, `add-source`, `remove-source`, and
 `remove-junctor`, plus all three defeat scopes and leaf counterpoint removal)
-implemented on 2026-08-24; statement truth/kind editing, deletion, and rooted
-read/export remain.
+implemented on 2026-08-24; statement truth/kind editing and dry-run deletion are
+also implemented. Rooted read and Concludia export remain.
 
 - Add/list/show/search/edit statements.
 - List components and isolated statements.

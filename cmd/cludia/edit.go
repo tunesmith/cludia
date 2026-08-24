@@ -16,17 +16,23 @@ func runEdit(args []string, stdout, stderr io.Writer) error {
 	fs := flag.NewFlagSet("edit", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 	jsonOutput := fs.Bool("json", false, "output versioned JSON")
-	text := fs.String("text", "", "replacement statement text")
+	var text, truthName, kindName optionalStringFlag
+	fs.Var(&text, "text", "replacement statement text")
+	fs.Var(&truthName, "truth", "replacement truth: T, F, or U")
+	fs.Var(&kindName, "kind", "replacement kind: fact or value")
 	fs.Usage = func() { writeEditUsage(fs.Output()) }
-	if err := fs.Parse(flagsFirst(args, map[string]bool{"text": true})); err != nil {
+	if err := fs.Parse(flagsFirst(args, map[string]bool{"text": true, "truth": true, "kind": true})); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
 			return nil
 		}
 		return err
 	}
-	if fs.NArg() != 2 || strings.TrimSpace(*text) == "" {
+	if fs.NArg() != 2 || !text.set && !truthName.set && !kindName.set {
 		fs.Usage()
-		return fmt.Errorf("edit expects a file and statement and requires --text")
+		return fmt.Errorf("edit expects a file and statement and at least one of --text, --truth, or --kind")
+	}
+	if text.set && strings.TrimSpace(text.value) == "" {
+		return fmt.Errorf("--text must not be empty")
 	}
 
 	doc, profile, diagnostics := loadValidated(fs.Arg(0))
@@ -48,7 +54,31 @@ func runEdit(args []string, stdout, stderr io.Writer) error {
 	next := doc.Clone()
 	edited, _ := next.Statement(statement.ID)
 	previous := *edited
-	edited.Text = strings.TrimSpace(*text)
+	if text.set {
+		edited.Text = strings.TrimSpace(text.value)
+	}
+	if truthName.set {
+		truth, ok := parseTruth(truthName.value)
+		if !ok {
+			diagnostics := diagnosticError("truth_invalid", fmt.Sprintf("invalid truth %q; expected T, F, or U", truthName.value), edited.ID)
+			if err := writeFailure(stdout, *jsonOutput, profile, diagnostics); err != nil {
+				return err
+			}
+			return errValidationFailed
+		}
+		edited.Truth = truth
+	}
+	if kindName.set {
+		kind, ok := parseKind(kindName.value)
+		if !ok {
+			diagnostics := diagnosticError("kind_invalid", fmt.Sprintf("invalid kind %q; expected fact or value", kindName.value), edited.ID)
+			if err := writeFailure(stdout, *jsonOutput, profile, diagnostics); err != nil {
+				return err
+			}
+			return errValidationFailed
+		}
+		edited.Kind = kind
+	}
 	validated := validation.Validate(next, profile)
 	if !validated.OK() {
 		if err := writeFailure(stdout, *jsonOutput, profile, validated.Diagnostics); err != nil {
@@ -56,7 +86,8 @@ func runEdit(args []string, stdout, stderr io.Writer) error {
 		}
 		return errValidationFailed
 	}
-	if edited.Text != previous.Text {
+	changed := *edited != previous
+	if changed {
 		if err := argfile.SaveAtomic(fs.Arg(0), next); err != nil {
 			return err
 		}
@@ -66,7 +97,7 @@ func runEdit(args []string, stdout, stderr io.Writer) error {
 		diagnostics = []diagnostic.Diagnostic{}
 	}
 	changes := []changeOutput{}
-	if edited.Text != previous.Text {
+	if changed {
 		changes = append(changes, changeOutput{Operation: "updated", ElementType: "statement", ID: edited.ID})
 	}
 	output := mutationOutput{
@@ -78,6 +109,6 @@ func runEdit(args []string, stdout, stderr io.Writer) error {
 }
 
 func writeEditUsage(w io.Writer) {
-	fmt.Fprintln(w, "Usage: cludia edit [--json] FILE STATEMENT --text TEXT")
-	fmt.Fprintln(w, "Replace statement text without changing its stable id or slug.")
+	fmt.Fprintln(w, "Usage: cludia edit [--json] FILE STATEMENT [--text TEXT] [--truth T|F|U] [--kind fact|value]")
+	fmt.Fprintln(w, "Change statement text, truth, or kind without changing its stable id or slug.")
 }

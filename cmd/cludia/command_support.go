@@ -12,6 +12,20 @@ import (
 	"github.com/tunesmith/cludia/internal/validation"
 )
 
+type optionalStringFlag struct {
+	value string
+	set   bool
+}
+
+func (f *optionalStringFlag) String() string {
+	return f.value
+}
+
+func (f *optionalStringFlag) Set(value string) error {
+	f.value, f.set = value, true
+	return nil
+}
+
 type changeOutput struct {
 	Operation   string `json:"operation"`
 	ElementType string `json:"element_type"`

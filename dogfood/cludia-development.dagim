@@ -90,6 +90,15 @@ node commit-cludia-defeat-authoring-slice-dogfood-results: Commit cludia defeat 
   parent self-review-cludia-defeat-authoring-removal  # Self-review cludia defeat authoring and removal
 
 node implement-cludia-statement-truth-kind-editing-deletion: Implement cludia statement truth kind editing and deletion
+  complete
 
 node dogfood-cludia-statement-lifecycle-operations: Dogfood cludia statement lifecycle operations
+  complete
   parent implement-cludia-statement-truth-kind-editing-deletion  # Implement cludia statement truth kind editing and deletion
+
+node self-review-cludia-statement-lifecycle-operations: Self-review cludia statement lifecycle operations
+  complete
+
+node commit-cludia-statement-lifecycle-slice-dogfood-results: Commit cludia statement lifecycle slice and dogfood results
+  complete
+  parent self-review-cludia-statement-lifecycle-operations  # Self-review cludia statement lifecycle operations

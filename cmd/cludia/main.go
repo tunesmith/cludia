@@ -90,6 +90,8 @@ func run(args []string, stdout, stderr io.Writer) error {
 		return runCounterpoint(args[1:], stdout, stderr)
 	case "remove-counterpoint":
 		return runRemoveCounterpoint(args[1:], stdout, stderr)
+	case "delete":
+		return runDelete(args[1:], stdout, stderr)
 	case "validate", "check":
 		return runValidate(args[1:], stdout, stderr)
 	case "help":
@@ -219,6 +221,7 @@ func writeTopLevelUsage(w io.Writer) {
 	fmt.Fprintln(w, "  cludia undercut [--json] FILE JUNCTOR --text TEXT")
 	fmt.Fprintln(w, "  cludia counterpoint [--json] FILE COUNTERPOINT --text TEXT")
 	fmt.Fprintln(w, "  cludia remove-counterpoint [--dry-run] [--json] FILE COUNTERPOINT")
+	fmt.Fprintln(w, "  cludia delete [--dry-run] [--json] FILE STATEMENT")
 	fmt.Fprintln(w, "  cludia validate [--profile PROFILE] [--json] FILE")
 	fmt.Fprintln(w, "  cludia check [--profile PROFILE] [--json] FILE")
 	fmt.Fprintln(w, "  cludia version")

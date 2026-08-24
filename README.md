@@ -89,7 +89,11 @@ bin/cludia add inquiry.arg \
   --text "Cludia supports direct CLI use and conversational agent use."
 
 bin/cludia edit inquiry.arg P1 \
-  --text "Marlow completed Cludia's first format-core milestone."
+  --text "Marlow completed Cludia's first format-core milestone." \
+  --truth T \
+  --kind fact
+
+bin/cludia delete inquiry.arg P3 --dry-run
 
 bin/cludia derive inquiry.arg \
   --source P1 \
@@ -134,6 +138,13 @@ Defeat authoring uses `undermine` for premise scope, `undercut` for a specific
 junctor and target, and `counterpoint` for a counterpoint of a counterpoint.
 `remove-counterpoint` is leaf-first, supports `--dry-run`, and refuses to remove
 a statement that still has dependent counterpoints or support relations.
+
+`edit` can change statement text, truth, and kind while preserving stable ID and
+slug. `delete` supports `--dry-run`, removes all incident relations rather than
+silently changing an inference's sources, reports component changes and newly
+isolated statements, delegates counterpoint deletion to `remove-counterpoint`,
+and refuses to detach any counterpoint targeting the statement or an incident
+junctor.
 
 Local dogfooding workspaces may live under the ignored `personal/` directory so
 private inquiry data is not committed accidentally.
