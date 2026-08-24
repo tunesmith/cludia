@@ -1,0 +1,17 @@
+argument broken-window-workspace "The Broken Window Inquiry"
+meta profile="workspace", version="0.1.0", root="crossed-wall"
+
+premise[fact] P1:footprints-at-wall ::T "The footprints terminate at the garden wall."
+premise[fact] P2:no-returning-prints ::T "No footprints lead back from the garden wall."
+undermine CP3:rain-erasure ::T "Rain before the scene was documented may have erased footprints leading away from the wall." -> premise P2
+counterpoint CP4:rain-after-photos ::T "Weather records and scene photographs show that the rain began only after the footprints were documented." -> counterpoint CP3
+
+premise[fact] P3:only-exits ::T "From the place where the footprints terminate, the only physically possible exits were crossing the wall or retracing the footprint path."
+
+lemma[fact] L1:crossed-wall "The intruder crossed the garden wall."
+  <- AND#J1(P1, P2)
+  <- AND#J2(P1, P2, P3)
+undercut CP1:vehicle-pickup ::T "The two premises alone do not exclude a vehicle collecting the intruder beside the wall." -> inference J1:target L1
+counterpoint CP2:no-vehicle-access ::T "A locked barrier prevented any vehicle from reaching the place where the footprints terminate." -> counterpoint CP1
+
+premise[fact] P4:broken-inside ::T "The house window was broken from inside."

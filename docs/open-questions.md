@@ -1,0 +1,99 @@
+# Open Questions
+
+This file records choices intentionally left unresolved. They should not be
+answered accidentally through implementation details.
+
+## Naming
+
+- Chosen: the permanent project and repository name is `Cludia` (`cludia` in
+  filesystem and repository contexts).
+- Binary name.
+- Workspace profile identifier.
+
+The binary name and `profile="workspace"` remain provisional. The profile
+identifies validation semantics, not the product, so the two names need not
+match.
+
+## Format ownership and versioning
+
+- Does Concludia remain the owner of the common `.arg` specification, or should
+  a stable shared format eventually live in a neutral package/repository?
+- How is the syntax version declared independently from the content artifact's
+  current `meta version`?
+- Should a shared conformance corpus be copied, vendored, or released as a
+  separate module?
+
+The v1 implementation should avoid forcing these decisions while maintaining
+explicit compatibility fixtures.
+
+## Future strict treatment of direct supports
+
+Chosen v1 behavior:
+
+- read and preserve current one-source/direct support;
+- do not create it in focused authoring.
+
+Deferred Concludia question:
+
+- Should a future strict profile reject direct support entirely?
+
+Any removal requires Concludia migration and compatibility analysis and is not
+a Cludia v1 task.
+
+## `OR` authoring
+
+V1 reads and preserves `OR` but does not need to create it. Dogfooding should
+determine whether users need focused `OR` creation or whether multiple complete
+`AND` justifications into one target are sufficient.
+
+## Structured provenance
+
+V1 has no source-document, citation, or passage model. Before adding one,
+dogfooding should determine whether source information belongs:
+
+- in statement text;
+- as optional per-statement metadata;
+- as distinct source and citation objects;
+- in an adjacent evidence-management tool.
+
+If added, source truth and statement truth must not be conflated.
+
+## Built-in generative assistance
+
+V1 uses an external LLM. Possible future product-owned capabilities include
+retrieval, embeddings, candidate combination discovery, missing-premise audits,
+and background suggestions.
+
+Before crossing that boundary, decide:
+
+- what deterministic value cannot be provided by an external agent;
+- privacy and local-model requirements;
+- provider and credential policy;
+- whether generated output remains a proposal queue or becomes a command;
+- reproducibility and cost expectations.
+
+## Web technology
+
+The web UI is deliberately unspecified until CLI dogfooding. It should be local
+first and share the domain core. Possible implementations include a local Go
+server with a browser UI or a separately built frontend served by the Go
+binary.
+
+The eventual choice should optimize semantic parity and iteration speed rather
+than native packaging.
+
+## Defeat evaluation
+
+V1 stores and traverses defeats and rejects cycles. It does not introduce a new
+truth-propagation or acceptance calculus.
+
+Future work must decide whether the tool should:
+
+- merely display the Concludia-compatible defeat structure;
+- reproduce Concludia's acceptance semantics locally;
+- delegate evaluation to Concludia at export/import time.
+
+## License and distribution
+
+The license, module path, installation method, and release process remain
+deferred. They should be chosen before the first public release.
