@@ -91,6 +91,11 @@ bin/cludia add inquiry.arg \
 bin/cludia edit inquiry.arg P1 \
   --text "Marlow completed Cludia's first format-core milestone."
 
+bin/cludia derive inquiry.arg \
+  --source P1 \
+  --source P2 \
+  --target-text "Cludia's first two implementation increments are complete."
+
 bin/cludia list inquiry.arg --state isolated
 bin/cludia show inquiry.arg P1 --relations
 ```
@@ -101,6 +106,9 @@ atomically.
 
 Local dogfooding workspaces may live under the ignored `personal/` directory so
 private inquiry data is not committed accidentally.
+
+Tracked project dogfooding artifacts live under `dogfood/`. The initial pair is
+the Cludia reasoning workspace and its corresponding Dagim implementation plan.
 
 The `check` command is an alias for `validate`. A file declaring
 `meta profile="workspace"` selects the workspace profile by default; otherwise
@@ -124,6 +132,8 @@ choice.
 - [docs/decisions/](docs/decisions/) contains architectural decision records.
 - [examples/](examples/) contains a disconnected workspace and its exported
   Concludia closure.
+- [dogfood/](dogfood/) contains tracked reasoning and implementation-planning
+  artifacts maintained through the Cludia and Dagim CLIs.
 
 ## Relationship to neighboring projects
 

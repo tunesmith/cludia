@@ -64,6 +64,8 @@ func run(args []string, stdout, stderr io.Writer) error {
 		return runAdd(args[1:], stdout, stderr)
 	case "edit":
 		return runEdit(args[1:], stdout, stderr)
+	case "derive":
+		return runDerive(args[1:], stdout, stderr)
 	case "list":
 		return runList(args[1:], stdout, stderr)
 	case "show":
@@ -184,6 +186,7 @@ func writeTopLevelUsage(w io.Writer) {
 	fmt.Fprintln(w, "  cludia init [--json] FILE --title TITLE --text TEXT")
 	fmt.Fprintln(w, "  cludia add [--json] FILE --text TEXT")
 	fmt.Fprintln(w, "  cludia edit [--json] FILE STATEMENT --text TEXT")
+	fmt.Fprintln(w, "  cludia derive [--json] FILE --source STATEMENT --source STATEMENT (--target STATEMENT | --target-text TEXT)")
 	fmt.Fprintln(w, "  cludia list [--state all|isolated] [--json] FILE")
 	fmt.Fprintln(w, "  cludia show [--relations] [--json] FILE ELEMENT")
 	fmt.Fprintln(w, "  cludia validate [--profile PROFILE] [--json] FILE")

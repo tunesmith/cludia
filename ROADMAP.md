@@ -32,8 +32,9 @@ expected profiles, and ordinary Concludia fixtures round-trip.
 
 ## Milestone 2: Complete file CLI
 
-Status: first usable slice (`init`, `add`, `edit`, `list`, and `show`) implemented
-on 2026-08-24; construction, deletion, and defeat mutations remain.
+Status: first usable slice (`init`, `add`, `edit`, `list`, `show`, and `derive`)
+implemented on 2026-08-24; broader construction, deletion, and defeat mutations
+remain.
 
 - Add/list/show/search/edit statements.
 - List components and isolated statements.

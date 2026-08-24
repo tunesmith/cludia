@@ -169,6 +169,10 @@ Counterpoint roles MUST remain counterpoints during role reconciliation.
 Automatic role changes MUST be reported in mutation results and MUST preserve
 stable statement identity.
 
+When promotion to `lemma` makes an explicit premise truth token unavailable in
+the shared syntax, the durable truth value MUST normalize to `U` and the
+statement update MUST be reported with the role change.
+
 ## 6. Required capabilities
 
 Exact command spelling is provisional, but v1 MUST provide the following
