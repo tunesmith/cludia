@@ -41,3 +41,27 @@ lemma[value] L5:cludia-next-implementation-slice-should-add-connected-component 
   <- AND#J5(P11, P12)
 
 premise[fact] P13:component-listing-review-checkpoint-2026-08-24-cludia ::T "At the component-listing review checkpoint on 2026-08-24, Cludia could list every connected component and inspect the complete component containing a statement, slug, or junctor."
+
+premise[fact] P14:between-commit-c6aa570-component-listing-checkpoint-no-previously ::T "Between commit c6aa570 and the component-listing checkpoint, no previously implemented Cludia CLI capability was removed."
+
+lemma[fact] L6:component-listing-checkpoint-cludia-supported-workspace-creation "At the component-listing checkpoint, Cludia supported workspace creation, statement capture and editing, listing, inspection, validation, multi-premise AND derivation, and component discovery."
+  <- AND#J6(P10, P13, P14)
+
+premise[fact] P15:commit-b516a86-locating-statements-wording-required-reading-externally ::T "At commit b516a86, locating statements by wording required reading or externally filtering the complete list output because Cludia had no search command."
+
+premise[value] P16:workspaces-grow-next-read-query-priority-should-eliminate ::T "As workspaces grow, the next read/query priority should eliminate whole-workspace scanning for a known word, phrase, ID, or slug."
+
+lemma[value] L7:statement-search-justified-cludia-next-read-query-slice "Statement search is justified as Cludia's next read/query slice."
+  <- AND#J7(P15, P16)
+
+premise[fact] P17:commit-b516a86-cludia-could-create-inference-but-could ::T "At commit b516a86, Cludia could create an AND inference but could not add or remove its sources or remove the junctor."
+
+premise[value] P18:after-inference-creation-works-authors-should-be-able ::T "After inference creation works, authors should be able to repair a persisted inference when an audit reveals a missing or unnecessary premise."
+
+lemma[value] L8:inference-repair-justified-cludia-next-construction-slice "Inference repair is justified as Cludia's next construction slice."
+  <- AND#J8(P17, P18)
+
+premise[value] P19:among-required-missing-features-next-slice-should-prioritize ::T "Among required missing features, the next slice should prioritize friction already encountered in dogfooding."
+
+lemma[value] L9:cludia-should-implement-statement-search-before-inference-repair "Cludia should implement statement search before inference repair."
+  <- AND#J9(P15, P17, P19)
