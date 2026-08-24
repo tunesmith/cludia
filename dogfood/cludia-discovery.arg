@@ -102,3 +102,12 @@ lemma[value] L12:rooted-structure-reading-atomic-concludia-export-are-final "At 
   <- AND#J12(P30, P31, P32)
 
 premise[fact] P33:rooted-export-review-checkpoint-2026-08-24-cludia ::T "At the rooted-export review checkpoint on 2026-08-24, Cludia could read complete rooted support and defeat closures and atomically export strict Concludia artifacts without overwriting existing files."
+
+premise[fact] P34:commit-677babe-cludia-supported-defeat-authoring-removal-statement ::T "At commit 677babe, Cludia supported defeat authoring and removal, statement truth and kind editing, structural deletion, rooted closure reading, and strict atomic Concludia export."
+
+premise[fact] P35:commit-677babe-every-durable-v1-capability-required-specification ::T "At commit 677babe, every durable v1 capability required by specification sections 6.1 through 6.4 was accessible through the Cludia CLI with structured output."
+
+premise[value] P36:after-all-required-v1-investigation-operations-are-available ::T "After all required v1 investigation operations are available and validated, the next priority should be a real full-investigation pilot rather than speculative feature expansion."
+
+lemma[value] L13:cludia-ready-full-investigation-pilot-separate-workspace "Cludia is ready for a full-investigation pilot in a separate workspace."
+  <- AND#J13(P34, P35, P36)

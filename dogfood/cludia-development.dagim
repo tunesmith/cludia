@@ -116,3 +116,5 @@ node self-review-cludia-rooted-read-concludia-export: Self-review cludia rooted 
 node commit-cludia-rooted-read-export-slice-dogfood-results: Commit cludia rooted read export slice and dogfood results
   complete
   parent self-review-cludia-rooted-read-concludia-export  # Self-review cludia rooted read and Concludia export
+
+node run-full-investigation-pilot-separate-cludia-workspace: Run a full investigation pilot in a separate Cludia workspace

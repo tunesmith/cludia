@@ -50,7 +50,7 @@ editing and has equivalent structured output.
 
 ## Milestone 3: Rooted Concludia export
 
-Status: implemented on 2026-08-24; pending final self-review and commit.
+Status: implemented, self-reviewed, and committed on 2026-08-24.
 
 - Compute the complete rooted support closure.
 - Include every attached recursive defeat chain.
@@ -62,6 +62,8 @@ Exit criterion: `broken-window-workspace.arg` exports reproducibly to the
 Concludia example and fails atomically when the requested structure is invalid.
 
 ## Milestone 4: Conversational dogfooding
+
+Status: ready to begin with a separate full-investigation pilot workspace.
 
 - Use the CLI through ordinary LLM conversations on real non-sensitive
   workspaces.
