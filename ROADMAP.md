@@ -17,6 +17,8 @@ transcript.
 
 ## Milestone 1: Go format core
 
+Status: implemented on 2026-08-24; pending review and commit.
+
 - Create the Go module and command entry point.
 - Implement shared `.arg` parsing for statements, metadata, `AND`, `OR`, direct
   supports, and all defeat scopes.

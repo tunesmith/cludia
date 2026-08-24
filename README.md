@@ -25,8 +25,9 @@ after conversational dogfooding identifies the right visual operations.
 
 ## Status
 
-This repository currently contains the design packet, not an implementation.
-It is the permanent project home from which implementation will begin.
+This repository is the permanent project home. It contains the initial Go
+format core and validation CLI; the complete mutation workflow described below
+is not yet implemented.
 
 The principal decisions are:
 
@@ -62,6 +63,22 @@ cludia export case.arg --root crossed-wall --output crossed-wall.arg
 The expected human workflow is conversational: an LLM reads the corpus through
 `--json`, proposes a conclusion and audits missing premises in conversation,
 then performs a mutation only after the user approves it.
+
+## Development
+
+Installation is unnecessary. Validate the supplied workspace from a checkout:
+
+```bash
+go run ./cmd/cludia validate examples/broken-window-workspace.arg
+go run ./cmd/cludia validate examples/broken-window-workspace.arg --json
+go run ./cmd/cludia validate examples/broken-window-conclusion.arg \
+  --profile concludia
+```
+
+The `check` command is an alias for `validate`. A file declaring
+`meta profile="workspace"` selects the workspace profile by default; otherwise
+validation defaults to the Concludia profile. `--profile` overrides either
+choice.
 
 ## Documents
 

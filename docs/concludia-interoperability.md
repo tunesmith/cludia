@@ -130,6 +130,17 @@ If Concludia and the new tool evolve separately, a small shared conformance
 corpus is preferable to copying implementation assumptions between Scala and
 Go.
 
+### Current supported-counterpoint validation edge
+
+Concludia's current validator permits a counterpoint to have upstream support,
+but a counterpoint targeted by another counterpoint must be a support leaf.
+Consequently, a supported counterpoint that is itself counterpointed is valid
+workspace structure but currently fails the strict Concludia profile. Cludia
+must preserve the structure and report
+`concludia_defeat_target_not_leaf`; it must not drop either the support or the
+recursive counterpoint. This interoperability edge must be resolved before
+Milestone 3 can promise successful export for that combination.
+
 ## Future integration
 
 Possible later integrations include:

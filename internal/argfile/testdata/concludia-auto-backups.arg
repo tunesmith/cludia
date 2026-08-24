@@ -1,0 +1,27 @@
+argument ARG-2025-12-auto-backups "Why most people should enable automatic backups"
+meta author="gpt-5.2", created="2025-12-27", version="0.1.0", alias="auto-backups", root="low-cost-risk-reduction"
+
+premise[fact] P1:data-loss ::T "Unintentional data loss happens (device failure, loss/theft, deletion, ransomware)."
+premise[fact] P2:important-files ::T "Most people have at least some files that would be costly or impossible to recreate."
+
+lemma[fact] L1:meaningful-risk "For most people, there is a meaningful risk of permanently losing important files."
+  <- AND(data-loss, important-files)
+
+premise[fact] P3:backup-restore ::T "Keeping a separate backup copy lets you restore files after many kinds of data loss."
+premise[fact] P4:automatic ::T "Automatic backups can run without ongoing effort once set up."
+
+lemma[fact] L2:reduces-risk "Automatic backups can significantly reduce the risk of permanently losing important files."
+  <- AND#backup-effect(backup-restore, automatic)
+
+premise[fact] P5:low-cost ::U "For most people, enabling automatic backups is low cost compared to the potential loss."
+
+lemma[value] L3:low-cost-risk-reduction "Enabling automatic backups is a low-cost way to reduce a meaningful risk of high-impact harm."
+  <- AND(meaningful-risk, reduces-risk, low-cost)
+
+premise[value] P6:precautionary-principle ::T "If an action is low-cost and reduces a meaningful risk of high-impact harm, people should do it."
+
+conclusion[value] C1:enable-backups "Therefore, most people should enable automatic backups for their important files."
+  <- AND(low-cost-risk-reduction, precautionary-principle)
+
+undercut CP1:restore-verification ::T "Automatic backups only reduce risk if the backups are actually restorable; some backup setups fail silently." -> inference backup-effect:target reduces-risk
+counterpoint CP2:verify-restores ::T "Most modern backup tools make restores verifiable (and users can periodically test restores), so this critique does not block the claim." -> counterpoint restore-verification

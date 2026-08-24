@@ -181,3 +181,10 @@ Opening and saving without an explicit transforming operation must preserve:
 If exact trivia preservation such as comments or whitespace is not supported,
 the first implementation must state that canonical rewrite behavior clearly
 and test semantic round-trip equivalence.
+
+The initial Go implementation uses canonical rewrite behavior. It preserves all
+modeled statements, metadata entries, source order, `AND` and `OR` junctors,
+legacy direct supports, and defeat scopes, but normalizes whitespace, statement
+role aliases, and reference spelling and does not preserve comments. It must
+reject syntax it cannot represent instead of silently dropping it. Semantic
+round-trip equivalence is covered by fixtures.
