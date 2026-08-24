@@ -76,5 +76,7 @@ premise[value] P23:full-investigation-must-preserve-material-challenges-premises
 
 premise[fact] P24:cludia-v1-requires-premise-undermines-inference-undercuts-counterpoints ::T "Cludia v1 requires premise undermines, inference undercuts, and counterpoints targeting counterpoints as first-class defeat scopes."
 
-lemma[value] L10:defeat-authoring-removal-are-required-before-cludia-can "Defeat authoring and removal are required before Cludia can support a full investigation."
+lemma[value] L10:defeat-authoring-removal-are-required-before-cludia-can "At the post-d1a2f3b checkpoint, the inability to author defeats warranted defeat authoring and removal before a full investigation."
   <- AND#J10(P22, P23, P24)
+
+premise[fact] P25:defeat-authoring-review-checkpoint-2026-08-24-cludia ::T "At the defeat-authoring review checkpoint on 2026-08-24, Cludia could author and remove premise undermines, inference undercuts, and counterpoints targeting counterpoints."

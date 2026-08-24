@@ -82,6 +82,14 @@ func run(args []string, stdout, stderr io.Writer) error {
 		return runRemoveSource(args[1:], stdout, stderr)
 	case "remove-junctor":
 		return runRemoveJunctor(args[1:], stdout, stderr)
+	case "undermine":
+		return runUndermine(args[1:], stdout, stderr)
+	case "undercut":
+		return runUndercut(args[1:], stdout, stderr)
+	case "counterpoint":
+		return runCounterpoint(args[1:], stdout, stderr)
+	case "remove-counterpoint":
+		return runRemoveCounterpoint(args[1:], stdout, stderr)
 	case "validate", "check":
 		return runValidate(args[1:], stdout, stderr)
 	case "help":
@@ -207,6 +215,10 @@ func writeTopLevelUsage(w io.Writer) {
 	fmt.Fprintln(w, "  cludia add-source [--json] FILE JUNCTOR --source STATEMENT")
 	fmt.Fprintln(w, "  cludia remove-source [--dry-run] [--json] FILE JUNCTOR --source STATEMENT")
 	fmt.Fprintln(w, "  cludia remove-junctor [--dry-run] [--json] FILE JUNCTOR")
+	fmt.Fprintln(w, "  cludia undermine [--json] FILE PREMISE --text TEXT")
+	fmt.Fprintln(w, "  cludia undercut [--json] FILE JUNCTOR --text TEXT")
+	fmt.Fprintln(w, "  cludia counterpoint [--json] FILE COUNTERPOINT --text TEXT")
+	fmt.Fprintln(w, "  cludia remove-counterpoint [--dry-run] [--json] FILE COUNTERPOINT")
 	fmt.Fprintln(w, "  cludia validate [--profile PROFILE] [--json] FILE")
 	fmt.Fprintln(w, "  cludia check [--profile PROFILE] [--json] FILE")
 	fmt.Fprintln(w, "  cludia version")

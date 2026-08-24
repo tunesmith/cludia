@@ -100,6 +100,11 @@ bin/cludia add-source inquiry.arg J1 --source P3
 bin/cludia remove-source inquiry.arg J1 --source P3 --dry-run
 bin/cludia remove-junctor inquiry.arg J1 --dry-run
 
+bin/cludia undermine inquiry.arg P1 --text "The observation may be unreliable."
+bin/cludia undercut inquiry.arg J1 --text "The sources leave another possibility open."
+bin/cludia counterpoint inquiry.arg CP1 --text "The challenge is answered by later evidence."
+bin/cludia remove-counterpoint inquiry.arg CP2 --dry-run
+
 bin/cludia list inquiry.arg --state isolated
 bin/cludia show inquiry.arg P1 --relations
 bin/cludia components inquiry.arg
@@ -124,6 +129,11 @@ Focused inference repair uses `add-source`, `remove-source`, and
 `remove-junctor`. Source editing applies only to `AND` junctors and must leave at
 least two distinct sources. Removal commands support `--dry-run`; junctor
 removal refuses to orphan an attached inference undercut.
+
+Defeat authoring uses `undermine` for premise scope, `undercut` for a specific
+junctor and target, and `counterpoint` for a counterpoint of a counterpoint.
+`remove-counterpoint` is leaf-first, supports `--dry-run`, and refuses to remove
+a statement that still has dependent counterpoints or support relations.
 
 Local dogfooding workspaces may live under the ignored `personal/` directory so
 private inquiry data is not committed accidentally.
