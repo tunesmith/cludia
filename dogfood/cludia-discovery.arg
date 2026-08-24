@@ -37,5 +37,7 @@ premise[fact] P11:commit-c6aa570-discovery-workspace-contained-three-connected-r
 
 premise[value] P12:when-dogfooding-requires-agent-reconstruct-existing-reasoning-components ::T "When dogfooding requires an agent to reconstruct existing reasoning components manually, the next query slice should expose those components directly."
 
-lemma[value] L5:cludia-next-implementation-slice-should-add-connected-component "Cludia's next implementation slice should add connected-component listing."
+lemma[value] L5:cludia-next-implementation-slice-should-add-connected-component "At the post-c6aa570 checkpoint, the inspection gap warranted implementing connected-component listing as Cludia's next slice."
   <- AND#J5(P11, P12)
+
+premise[fact] P13:component-listing-review-checkpoint-2026-08-24-cludia ::T "At the component-listing review checkpoint on 2026-08-24, Cludia could list every connected component and inspect the complete component containing a statement, slug, or junctor."

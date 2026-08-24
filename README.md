@@ -98,11 +98,19 @@ bin/cludia derive inquiry.arg \
 
 bin/cludia list inquiry.arg --state isolated
 bin/cludia show inquiry.arg P1 --relations
+bin/cludia components inquiry.arg
+bin/cludia component inquiry.arg P1 --json
 ```
 
 Every command shown above also supports `--json`. `init` refuses to overwrite
 an existing file, and `add` validates the complete result before saving it
 atomically.
+
+Components are computed views rather than durable objects. `components` lists
+every reasoning island in deterministic document order; `component` returns the
+complete typed island containing a statement, statement slug, or junctor.
+Support and defeat incidence both connect elements for grouping without
+conflating their logical meanings.
 
 Local dogfooding workspaces may live under the ignored `personal/` directory so
 private inquiry data is not committed accidentally.

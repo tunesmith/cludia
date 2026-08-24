@@ -70,6 +70,10 @@ func run(args []string, stdout, stderr io.Writer) error {
 		return runList(args[1:], stdout, stderr)
 	case "show":
 		return runShow(args[1:], stdout, stderr)
+	case "components":
+		return runComponents(args[1:], stdout, stderr)
+	case "component":
+		return runComponent(args[1:], stdout, stderr)
 	case "validate", "check":
 		return runValidate(args[1:], stdout, stderr)
 	case "help":
@@ -189,6 +193,8 @@ func writeTopLevelUsage(w io.Writer) {
 	fmt.Fprintln(w, "  cludia derive [--json] FILE --source STATEMENT --source STATEMENT (--target STATEMENT | --target-text TEXT)")
 	fmt.Fprintln(w, "  cludia list [--state all|isolated] [--json] FILE")
 	fmt.Fprintln(w, "  cludia show [--relations] [--json] FILE ELEMENT")
+	fmt.Fprintln(w, "  cludia components [--json] FILE")
+	fmt.Fprintln(w, "  cludia component [--json] FILE ELEMENT")
 	fmt.Fprintln(w, "  cludia validate [--profile PROFILE] [--json] FILE")
 	fmt.Fprintln(w, "  cludia check [--profile PROFILE] [--json] FILE")
 	fmt.Fprintln(w, "  cludia version")
