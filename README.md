@@ -109,6 +109,10 @@ bin/cludia undercut inquiry.arg J1 --text "The sources leave another possibility
 bin/cludia counterpoint inquiry.arg CP1 --text "The challenge is answered by later evidence."
 bin/cludia remove-counterpoint inquiry.arg CP2 --dry-run
 
+bin/cludia root inquiry.arg L1 --json
+bin/cludia export inquiry.arg --root L1 --output conclusion.arg \
+  --id conclusion-id --title "Published conclusion" --json
+
 bin/cludia list inquiry.arg --state isolated
 bin/cludia show inquiry.arg P1 --relations
 bin/cludia components inquiry.arg
@@ -145,6 +149,12 @@ silently changing an inference's sources, reports component changes and newly
 isolated statements, delegates counterpoint deletion to `remove-counterpoint`,
 and refuses to detach any counterpoint targeting the statement or an incident
 junctor.
+
+`root` computes the complete upstream support closure and attached recursive
+defeat chains for a selected non-counterpoint statement, reconciles roles, and
+reports whether the result passes the strict Concludia profile. `export` writes
+that artifact atomically only when strict validation succeeds and refuses to
+overwrite an existing output file.
 
 Local dogfooding workspaces may live under the ignored `personal/` directory so
 private inquiry data is not committed accidentally.

@@ -36,7 +36,7 @@ Status: first usable slice (`init`, `add`, `edit`, `list`, `show`, `search`,
 `components`, `component`, `derive`, `add-source`, `remove-source`, and
 `remove-junctor`, plus all three defeat scopes and leaf counterpoint removal)
 implemented on 2026-08-24; statement truth/kind editing and dry-run deletion are
-also implemented. Rooted read and Concludia export remain.
+also implemented. The complete file CLI milestone is implemented.
 
 - Add/list/show/search/edit statements.
 - List components and isolated statements.
@@ -49,6 +49,8 @@ Exit criterion: every v1 durable operation is usable without manual file
 editing and has equivalent structured output.
 
 ## Milestone 3: Rooted Concludia export
+
+Status: implemented on 2026-08-24; pending final self-review and commit.
 
 - Compute the complete rooted support closure.
 - Include every attached recursive defeat chain.

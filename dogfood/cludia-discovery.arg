@@ -98,5 +98,7 @@ premise[value] P31:completed-investigation-must-be-able-inspect-publish-exactly 
 
 premise[fact] P32:cludia-v1-requires-rooted-traversal-include-every-incoming ::T "Cludia v1 requires rooted traversal to include every incoming justification and recursive defeat chain, reconcile roles, and pass strict Concludia validation before atomic export."
 
-lemma[value] L12:rooted-structure-reading-atomic-concludia-export-are-final "Rooted structure reading and atomic Concludia export are the final required investigation-completion slice."
+lemma[value] L12:rooted-structure-reading-atomic-concludia-export-are-final "At the post-92c72a7 checkpoint, missing rooted closure reading and strict atomic export warranted the final investigation-completion slice."
   <- AND#J12(P30, P31, P32)
+
+premise[fact] P33:rooted-export-review-checkpoint-2026-08-24-cludia ::T "At the rooted-export review checkpoint on 2026-08-24, Cludia could read complete rooted support and defeat closures and atomically export strict Concludia artifacts without overwriting existing files."
