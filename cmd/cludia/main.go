@@ -58,6 +58,16 @@ func run(args []string, stdout, stderr io.Writer) error {
 		return fmt.Errorf("expected a command")
 	}
 	switch args[0] {
+	case "init":
+		return runInit(args[1:], stdout, stderr)
+	case "add":
+		return runAdd(args[1:], stdout, stderr)
+	case "edit":
+		return runEdit(args[1:], stdout, stderr)
+	case "list":
+		return runList(args[1:], stdout, stderr)
+	case "show":
+		return runShow(args[1:], stdout, stderr)
 	case "validate", "check":
 		return runValidate(args[1:], stdout, stderr)
 	case "help":
@@ -171,6 +181,11 @@ func writeHumanValidation(w io.Writer, output validateOutput) {
 
 func writeTopLevelUsage(w io.Writer) {
 	fmt.Fprintln(w, "Usage:")
+	fmt.Fprintln(w, "  cludia init [--json] FILE --title TITLE --text TEXT")
+	fmt.Fprintln(w, "  cludia add [--json] FILE --text TEXT")
+	fmt.Fprintln(w, "  cludia edit [--json] FILE STATEMENT --text TEXT")
+	fmt.Fprintln(w, "  cludia list [--state all|isolated] [--json] FILE")
+	fmt.Fprintln(w, "  cludia show [--relations] [--json] FILE ELEMENT")
 	fmt.Fprintln(w, "  cludia validate [--profile PROFILE] [--json] FILE")
 	fmt.Fprintln(w, "  cludia check [--profile PROFILE] [--json] FILE")
 	fmt.Fprintln(w, "  cludia version")

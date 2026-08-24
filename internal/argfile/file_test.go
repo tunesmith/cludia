@@ -63,6 +63,24 @@ func TestSerializeRejectsMultilineDefeatWithoutDroppingTarget(t *testing.T) {
 	}
 }
 
+func TestCreateAtomicRefusesToOverwrite(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "case.arg")
+	const original = "do not replace\n"
+	if err := os.WriteFile(path, []byte(original), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := CreateAtomic(path, minimalDocument()); err == nil {
+		t.Fatal("CreateAtomic overwrote an existing path")
+	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(data) != original {
+		t.Fatalf("existing file changed: %q", data)
+	}
+}
+
 func minimalDocument() *argument.Document {
 	return &argument.Document{
 		ID: "case", Title: "Case",

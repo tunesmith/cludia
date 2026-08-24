@@ -4,13 +4,25 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
-	"unicode"
 )
 
 var (
 	idPattern   = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9_-]*$`)
 	slugPattern = regexp.MustCompile(`^[a-z][a-z0-9-]*$`)
 )
+
+const (
+	maxSlugWords    = 8
+	maxSlugLength   = 72
+	maxSlugTokenLen = 24
+)
+
+var slugStopWords = map[string]bool{
+	"a": true, "an": true, "and": true, "as": true, "at": true,
+	"by": true, "for": true, "from": true, "in": true, "is": true,
+	"of": true, "on": true, "or": true, "the": true, "to": true,
+	"with": true,
+}
 
 func ValidID(id string) bool {
 	return idPattern.MatchString(id)
@@ -21,21 +33,54 @@ func ValidSlug(slug string) bool {
 }
 
 func Slugify(text string) string {
-	var b strings.Builder
-	lastDash := false
+	text = strings.ReplaceAll(text, "’s", "")
+	text = strings.ReplaceAll(text, "'s", "")
+	var tokens []string
+	var token strings.Builder
 	for _, r := range strings.ToLower(strings.TrimSpace(text)) {
 		switch {
 		case r >= 'a' && r <= 'z', r >= '0' && r <= '9':
-			b.WriteRune(r)
-			lastDash = false
-		case unicode.IsSpace(r) || r == '-' || r == '_':
-			if b.Len() > 0 && !lastDash {
-				b.WriteByte('-')
-				lastDash = true
+			token.WriteRune(r)
+		default:
+			if token.Len() > 0 {
+				tokens = append(tokens, token.String())
+				token.Reset()
 			}
 		}
 	}
-	return strings.Trim(b.String(), "-")
+	if token.Len() > 0 {
+		tokens = append(tokens, token.String())
+	}
+	filtered := make([]string, 0, len(tokens))
+	for _, value := range tokens {
+		if !slugStopWords[value] {
+			filtered = append(filtered, value)
+		}
+	}
+	if len(filtered) > 0 {
+		tokens = filtered
+	}
+	return compactSlug(tokens)
+}
+
+func compactSlug(tokens []string) string {
+	result := make([]string, 0, min(len(tokens), maxSlugWords))
+	length := 0
+	for _, token := range tokens {
+		if len(token) > maxSlugTokenLen {
+			token = token[:maxSlugTokenLen]
+		}
+		additional := len(token)
+		if len(result) > 0 {
+			additional++
+		}
+		if len(result) >= maxSlugWords || length+additional > maxSlugLength {
+			break
+		}
+		result = append(result, token)
+		length += additional
+	}
+	return strings.Join(result, "-")
 }
 
 func NextStatementID(doc *Document, role Role) string {

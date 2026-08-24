@@ -104,6 +104,15 @@ func (d *Document) Statement(idOrSlug string) (*Statement, bool) {
 	return nil, false
 }
 
+func (d *Document) Junctor(id string) (*Junctor, bool) {
+	for i := range d.Junctors {
+		if d.Junctors[i].ID == id {
+			return &d.Junctors[i], true
+		}
+	}
+	return nil, false
+}
+
 func (d *Document) Clone() *Document {
 	if d == nil {
 		return nil

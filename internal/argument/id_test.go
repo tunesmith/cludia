@@ -38,3 +38,15 @@ func TestCloneDoesNotShareSlices(t *testing.T) {
 		t.Fatal("Clone shares mutable slices with original")
 	}
 }
+
+func TestSlugifyProducesBoundedConversationalSlug(t *testing.T) {
+	text := "Marlow, an LLM agent, completed Cludia's first implementation milestone on 2026-08-24."
+	got := Slugify(text)
+	want := "marlow-llm-agent-completed-cludia-first-implementation-milestone"
+	if got != want {
+		t.Fatalf("Slugify = %q, want %q", got, want)
+	}
+	if len(got) > maxSlugLength {
+		t.Fatalf("slug length = %d, max %d", len(got), maxSlugLength)
+	}
+}

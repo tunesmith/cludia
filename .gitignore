@@ -9,6 +9,8 @@
 
 # Go build and test artifacts
 /cludia
+/bin/
+/personal/
 *.test
 coverage.out
 .gocache/

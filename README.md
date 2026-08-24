@@ -69,11 +69,38 @@ then performs a mutation only after the user approves it.
 Installation is unnecessary. Validate the supplied workspace from a checkout:
 
 ```bash
-go run ./cmd/cludia validate examples/broken-window-workspace.arg
-go run ./cmd/cludia validate examples/broken-window-workspace.arg --json
-go run ./cmd/cludia validate examples/broken-window-conclusion.arg \
+go build -o bin/cludia ./cmd/cludia
+
+bin/cludia validate examples/broken-window-workspace.arg
+bin/cludia validate examples/broken-window-workspace.arg --json
+bin/cludia validate examples/broken-window-conclusion.arg \
   --profile concludia
 ```
+
+`bin/` is ignored and intended for local builds. To begin a workspace and add
+more disconnected premises:
+
+```bash
+bin/cludia init inquiry.arg \
+  --title "How should people work with Cludia?" \
+  --text "Marlow completed Cludia's first implementation milestone."
+
+bin/cludia add inquiry.arg \
+  --text "Cludia supports direct CLI use and conversational agent use."
+
+bin/cludia edit inquiry.arg P1 \
+  --text "Marlow completed Cludia's first format-core milestone."
+
+bin/cludia list inquiry.arg --state isolated
+bin/cludia show inquiry.arg P1 --relations
+```
+
+Every command shown above also supports `--json`. `init` refuses to overwrite
+an existing file, and `add` validates the complete result before saving it
+atomically.
+
+Local dogfooding workspaces may live under the ignored `personal/` directory so
+private inquiry data is not committed accidentally.
 
 The `check` command is an alias for `validate`. A file declaring
 `meta profile="workspace"` selects the workspace profile by default; otherwise

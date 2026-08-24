@@ -38,8 +38,9 @@ not silently redefine the format or semantics in implementation.
 
 ## Working from a checkout
 
-- Installation should not be necessary; use `go run ./cmd/<binary> ...` once
-  code exists.
+- Installation should not be necessary. Use `go run ./cmd/cludia ...` or build
+  the ignored local executable with `go build -o bin/cludia ./cmd/cludia`.
+- `personal/` contains ignored local inquiry data and must not be committed.
 - Prefer `--json` when the tool is being used by a script or agent.
 - Evaluate behavior through the CLI rather than editing `.arg` fixtures by hand
   unless the task is specifically about parsing or serialization.
@@ -54,6 +55,9 @@ go test ./...
 go vet ./...
 go build ./cmd/...
 ```
+
+After completing a usable CLI slice, also build `bin/cludia` for local
+dogfooding.
 
 Format changes must also run compatibility and round-trip fixtures for:
 
