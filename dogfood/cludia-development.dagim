@@ -1,0 +1,12 @@
+# dagim v1
+
+node implement-cludia-derive-multi-premise-inference-authoring: Implement cludia derive for multi-premise AND inference authoring
+
+node persist-cludia-discovery-milestone-summary-inference-p1-p2: Persist the Cludia discovery milestone-summary inference from P1 and P2
+  parent implement-cludia-derive-multi-premise-inference-authoring  # Implement cludia derive for multi-premise AND inference...
+
+node persist-cludia-discovery-capability-gap-inference-p3-p4: Persist the Cludia discovery capability-gap inference from P3 and P4
+  parent implement-cludia-derive-multi-premise-inference-authoring  # Implement cludia derive for multi-premise AND inference...
+
+node persist-cludia-discovery-next-slice-conclusion-capability: Persist the Cludia discovery next-slice conclusion from the capability-gap lemma, P5, and P6
+  parent persist-cludia-discovery-capability-gap-inference-p3-p4  # Persist the Cludia discovery capability-gap inference from P3...

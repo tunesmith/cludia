@@ -1,0 +1,14 @@
+argument how-should-people-work-cludia "How should people work with Cludia?"
+meta profile="workspace", version="0.1.0"
+
+premise[fact] P1:marlow-llm-agent-completed-cludia-first-implementation-milestone ::T "Marlow, an LLM agent, completed Cludia's first implementation milestone on 2026-08-24."
+
+premise[fact] P2:marlow-has-completed-second-milestone ::T "Marlow completed the first usable slice of Cludia's second roadmap milestone."
+
+premise[fact] P3:cludia-cli-can-now-create-workspaces-capture-edit ::T "Cludia's CLI can now create workspaces, capture and edit statements, list contents, and inspect statements and junctors."
+
+premise[fact] P4:cludia-cli-cannot-yet-create-inferences-connecting-existing ::T "Cludia's CLI cannot yet create inferences connecting existing statements."
+
+premise[value] P5:once-statement-capture-inspection-are-usable-next-implementation ::T "Once statement capture and inspection are usable, the next implementation priority should be the missing operation needed to persist reasoning."
+
+premise[fact] P6:cludia-focused-authoring-model-persists-reasoning-multi-premise ::T "Cludia's focused authoring model persists reasoning as multi-premise AND inferences."
