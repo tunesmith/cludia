@@ -80,3 +80,12 @@ lemma[value] L10:defeat-authoring-removal-are-required-before-cludia-can "At the
   <- AND#J10(P22, P23, P24)
 
 premise[fact] P25:defeat-authoring-review-checkpoint-2026-08-24-cludia ::T "At the defeat-authoring review checkpoint on 2026-08-24, Cludia could author and remove premise undermines, inference undercuts, and counterpoints targeting counterpoints."
+
+premise[fact] P26:commit-fbfbeb5-cludia-could-author-remove-defeats-but ::T "At commit fbfbeb5, Cludia could author and remove defeats but could only edit statement text and could not delete a statement."
+
+premise[value] P27:full-investigation-must-be-able-correct-statement-truth ::T "A full investigation must be able to correct a statement's truth or kind and remove capture mistakes with a structural preview."
+
+premise[fact] P28:cludia-v1-requires-truth-kind-changes-plus-statement ::T "Cludia v1 requires truth and kind changes plus statement deletion with a dry-run plan of incident relations and resulting components."
+
+lemma[value] L11:statement-truth-kind-editing-plus-dry-run-deletion "Statement truth and kind editing plus dry-run deletion are the next required investigation slice."
+  <- AND#J11(P26, P27, P28)
