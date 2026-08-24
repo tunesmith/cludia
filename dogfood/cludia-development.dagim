@@ -60,3 +60,17 @@ node review-cludia-statement-search-implementation-dogfood-output: Review cludia
 node commit-approved-cludia-statement-search-slice-dogfood: Commit approved cludia statement search slice and dogfood results
   complete
   parent review-cludia-statement-search-implementation-dogfood-output  # Review cludia statement search implementation and dogfood output
+
+node implement-cludia-inference-repair-operations: Implement cludia inference repair operations
+  complete
+
+node dogfood-cludia-inference-repair-disposable-workspace: Dogfood cludia inference repair on a disposable workspace
+  complete
+  parent implement-cludia-inference-repair-operations  # Implement cludia inference repair operations
+
+node review-cludia-inference-repair-implementation-dogfood-output: Review cludia inference repair implementation and dogfood output
+  complete
+
+node commit-approved-cludia-inference-repair-slice-dogfood: Commit approved cludia inference repair slice and dogfood results
+  complete
+  parent review-cludia-inference-repair-implementation-dogfood-output  # Review cludia inference repair implementation and dogfood output

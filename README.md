@@ -96,6 +96,10 @@ bin/cludia derive inquiry.arg \
   --source P2 \
   --target-text "Cludia's first two implementation increments are complete."
 
+bin/cludia add-source inquiry.arg J1 --source P3
+bin/cludia remove-source inquiry.arg J1 --source P3 --dry-run
+bin/cludia remove-junctor inquiry.arg J1 --dry-run
+
 bin/cludia list inquiry.arg --state isolated
 bin/cludia show inquiry.arg P1 --relations
 bin/cludia components inquiry.arg
@@ -115,6 +119,11 @@ conflating their logical meanings.
 
 `search` performs a case-insensitive substring match over statement IDs, slugs,
 and text. Results preserve document order and report which fields matched.
+
+Focused inference repair uses `add-source`, `remove-source`, and
+`remove-junctor`. Source editing applies only to `AND` junctors and must leave at
+least two distinct sources. Removal commands support `--dry-run`; junctor
+removal refuses to orphan an attached inference undercut.
 
 Local dogfooding workspaces may live under the ignored `personal/` directory so
 private inquiry data is not committed accidentally.

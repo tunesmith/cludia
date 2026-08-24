@@ -58,7 +58,7 @@ premise[fact] P17:commit-b516a86-cludia-could-create-inference-but-could ::T "At
 
 premise[value] P18:after-inference-creation-works-authors-should-be-able ::T "After inference creation works, authors should be able to repair a persisted inference when an audit reveals a missing or unnecessary premise."
 
-lemma[value] L8:inference-repair-justified-cludia-next-construction-slice "Inference repair is justified as Cludia's next construction slice."
+lemma[value] L8:inference-repair-justified-cludia-next-construction-slice "At the post-b516a86 checkpoint, the inability to modify persisted AND inferences warranted inference repair as Cludia's next construction slice."
   <- AND#J8(P17, P18)
 
 premise[value] P19:among-required-missing-features-next-slice-should-prioritize ::T "Among required missing features, the next slice should prioritize friction already encountered in dogfooding."
@@ -67,3 +67,5 @@ lemma[value] L9:cludia-should-implement-statement-search-before-inference-repair
   <- AND#J9(P15, P17, P19)
 
 premise[fact] P20:statement-search-review-checkpoint-2026-08-24-cludia ::T "At the statement-search review checkpoint on 2026-08-24, Cludia could search statement IDs, slugs, and text by case-insensitive substring while preserving document order."
+
+premise[fact] P21:inference-repair-review-checkpoint-2026-08-24-cludia ::T "At the inference-repair review checkpoint on 2026-08-24, Cludia could add a source, remove a source while preserving at least two, and remove a junctor without leaving an undercut dangling."

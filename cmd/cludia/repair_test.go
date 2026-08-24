@@ -1,0 +1,181 @@
+package main
+
+import (
+	"bytes"
+	"encoding/json"
+	"errors"
+	"os"
+	"path/filepath"
+	"testing"
+
+	"github.com/tunesmith/cludia/internal/argfile"
+)
+
+func TestAddSourceUpdatesANDJunctor(t *testing.T) {
+	path := repairWorkspace(t)
+	var stdout, stderr bytes.Buffer
+	if err := run([]string{"add-source", path, "J1", "--source", "P3", "--json"}, &stdout, &stderr); err != nil {
+		t.Fatalf("add-source: %v\nstderr: %s", err, stderr.String())
+	}
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(stdout.Bytes(), &raw); err != nil {
+		t.Fatalf("decode JSON: %v", err)
+	}
+	assertExactKeys(t, raw, "schema_version", "action", "dry_run", "profile", "document", "junctor", "previous_junctor", "source_added", "changes", "diagnostics")
+	var output junctorMutationOutput
+	if err := json.Unmarshal(stdout.Bytes(), &output); err != nil {
+		t.Fatalf("decode typed JSON: %v", err)
+	}
+	if output.SourceAdded != "P3" || len(output.PreviousJunctor.Sources) != 2 || output.Junctor == nil || len(output.Junctor.Sources) != 3 {
+		t.Fatalf("add-source output = %#v", output)
+	}
+	parsed := argfile.ParseFile(path)
+	if len(parsed.Document.Junctors[0].Sources) != 3 {
+		t.Fatalf("saved junctor = %#v", parsed.Document.Junctors[0])
+	}
+}
+
+func TestAddSourceCycleFailureLeavesWorkspaceUnchanged(t *testing.T) {
+	path := repairWorkspace(t)
+	before, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var stdout, stderr bytes.Buffer
+	err = run([]string{"add-source", path, "J1", "--source", "L1", "--json"}, &stdout, &stderr)
+	if !errors.Is(err, errValidationFailed) {
+		t.Fatalf("add-source error = %v", err)
+	}
+	after, readErr := os.ReadFile(path)
+	if readErr != nil || !bytes.Equal(before, after) {
+		t.Fatalf("workspace changed after failed add-source: %v", readErr)
+	}
+}
+
+func TestRemoveSourceDryRunAndMutation(t *testing.T) {
+	path := repairWorkspace(t)
+	var stdout, stderr bytes.Buffer
+	if err := run([]string{"add-source", path, "J1", "--source", "P3"}, &stdout, &stderr); err != nil {
+		t.Fatal(err)
+	}
+	before, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	stdout.Reset()
+	stderr.Reset()
+	if err := run([]string{"remove-source", "--json", path, "J1", "--source", "P2", "--dry-run"}, &stdout, &stderr); err != nil {
+		t.Fatalf("remove-source dry-run: %v", err)
+	}
+	var dryRun junctorMutationOutput
+	if err := json.Unmarshal(stdout.Bytes(), &dryRun); err != nil {
+		t.Fatalf("decode dry-run: %v", err)
+	}
+	if !dryRun.DryRun || dryRun.SourceRemoved != "P2" || dryRun.Junctor == nil || len(dryRun.Junctor.Sources) != 2 {
+		t.Fatalf("dry-run output = %#v", dryRun)
+	}
+	afterDryRun, err := os.ReadFile(path)
+	if err != nil || !bytes.Equal(before, afterDryRun) {
+		t.Fatalf("dry-run changed file: %v", err)
+	}
+	stdout.Reset()
+	stderr.Reset()
+	if err := run([]string{"remove-source", path, "J1", "--source", "P2", "--json"}, &stdout, &stderr); err != nil {
+		t.Fatalf("remove-source: %v", err)
+	}
+	parsed := argfile.ParseFile(path)
+	if got := parsed.Document.Junctors[0].Sources; len(got) != 2 || got[0] != "P1" || got[1] != "P3" {
+		t.Fatalf("sources after removal = %#v", got)
+	}
+}
+
+func TestRemoveSourceRejectsSingleSourceRemainder(t *testing.T) {
+	path := repairWorkspace(t)
+	before, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var stdout, stderr bytes.Buffer
+	err = run([]string{"remove-source", path, "J1", "--source", "P2", "--json"}, &stdout, &stderr)
+	if !errors.Is(err, errValidationFailed) {
+		t.Fatalf("remove-source error = %v", err)
+	}
+	after, readErr := os.ReadFile(path)
+	if readErr != nil || !bytes.Equal(before, after) {
+		t.Fatalf("workspace changed after invalid removal: %v", readErr)
+	}
+}
+
+func TestRemoveJunctorDryRunAndMutation(t *testing.T) {
+	path := repairWorkspace(t)
+	var stdout, stderr bytes.Buffer
+	if err := run([]string{"remove-junctor", path, "J1", "--dry-run", "--json"}, &stdout, &stderr); err != nil {
+		t.Fatalf("remove-junctor dry-run: %v", err)
+	}
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(stdout.Bytes(), &raw); err != nil {
+		t.Fatalf("decode JSON: %v", err)
+	}
+	assertExactKeys(t, raw, "schema_version", "action", "dry_run", "profile", "document", "previous_junctor", "changes", "diagnostics")
+	var output junctorMutationOutput
+	if err := json.Unmarshal(stdout.Bytes(), &output); err != nil || !output.DryRun || output.PreviousJunctor.ID != "J1" {
+		t.Fatalf("dry-run output = %#v, err %v", output, err)
+	}
+	if parsed := argfile.ParseFile(path); len(parsed.Document.Junctors) != 1 {
+		t.Fatal("dry-run removed junctor")
+	}
+	stdout.Reset()
+	stderr.Reset()
+	if err := run([]string{"remove-junctor", "--json", path, "J1"}, &stdout, &stderr); err != nil {
+		t.Fatalf("remove-junctor: %v", err)
+	}
+	if parsed := argfile.ParseFile(path); len(parsed.Document.Junctors) != 0 {
+		t.Fatalf("junctor remains: %#v", parsed.Document.Junctors)
+	}
+}
+
+func TestRemoveJunctorRefusesDanglingUndercut(t *testing.T) {
+	source, err := os.ReadFile(filepath.Join("..", "..", "examples", "broken-window-workspace.arg"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(t.TempDir(), "undercut.arg")
+	if err := os.WriteFile(path, source, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	before := append([]byte(nil), source...)
+	var stdout, stderr bytes.Buffer
+	err = run([]string{"remove-junctor", path, "J1", "--json"}, &stdout, &stderr)
+	if !errors.Is(err, errValidationFailed) {
+		t.Fatalf("remove-junctor error = %v", err)
+	}
+	var failure failureOutput
+	if err := json.Unmarshal(stdout.Bytes(), &failure); err != nil {
+		t.Fatalf("decode failure: %v", err)
+	}
+	if len(failure.Diagnostics) != 1 || failure.Diagnostics[0].Code != "junctor_has_undercuts" {
+		t.Fatalf("diagnostics = %#v", failure.Diagnostics)
+	}
+	after, readErr := os.ReadFile(path)
+	if readErr != nil || !bytes.Equal(before, after) {
+		t.Fatalf("workspace changed after undercut refusal: %v", readErr)
+	}
+}
+
+func repairWorkspace(t *testing.T) string {
+	t.Helper()
+	path := twoPremiseWorkspace(t)
+	var stdout, stderr bytes.Buffer
+	if err := run([]string{"add", path, "--text", "Third"}, &stdout, &stderr); err != nil {
+		t.Fatal(err)
+	}
+	stdout.Reset()
+	stderr.Reset()
+	if err := run([]string{
+		"derive", path, "--source", "P1", "--source", "P2",
+		"--target-text", "Combined",
+	}, &stdout, &stderr); err != nil {
+		t.Fatal(err)
+	}
+	return path
+}
