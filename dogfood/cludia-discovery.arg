@@ -1,4 +1,4 @@
-argument how-should-people-work-cludia "How should people work with Cludia?"
+argument cludia-discovery "Cludia Discovery"
 meta profile="workspace", version="0.1.0"
 
 premise[fact] P1:marlow-llm-agent-completed-cludia-first-implementation-milestone ::T "Marlow, an LLM agent, completed Cludia's first implementation milestone on 2026-08-24."
@@ -30,3 +30,12 @@ premise[fact] P9:post-derive-review-checkpoint-2026-08-24-derive ::T "As of the 
 
 lemma[value] L4:immediate-next-step-review-derive-slice-proposed-adr "As of the post-derive review checkpoint on 2026-08-24, the immediate next step was to commit the reviewed derive slice and accepted ADR 0006 at coherent boundaries."
   <- AND#J4(P7, P8, P9)
+
+premise[fact] P10:commit-c6aa570-cludia-cli-could-create-edit-inspect ::T "At commit c6aa570, Cludia's CLI could create, edit, inspect, validate, and derive multi-premise AND inferences."
+
+premise[fact] P11:commit-c6aa570-discovery-workspace-contained-three-connected-reasoning ::T "At commit c6aa570, the discovery workspace contained three connected reasoning components, but Cludia could not list those components directly."
+
+premise[value] P12:when-dogfooding-requires-agent-reconstruct-existing-reasoning-components ::T "When dogfooding requires an agent to reconstruct existing reasoning components manually, the next query slice should expose those components directly."
+
+lemma[value] L5:cludia-next-implementation-slice-should-add-connected-component "Cludia's next implementation slice should add connected-component listing."
+  <- AND#J5(P11, P12)

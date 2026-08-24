@@ -32,3 +32,8 @@ node accept-revise-adr-0006-temporal-revision-boundaries: Accept or revise ADR 0
 node commit-accepted-adr-0006-paired-argument: Commit accepted ADR 0006 and its paired argument
   complete
   parent accept-revise-adr-0006-temporal-revision-boundaries  # Accept or revise ADR 0006 temporal and revision boundaries
+
+node implement-cludia-connected-component-listing: Implement cludia connected-component listing
+
+node dogfood-cludia-component-listing-tracked-discovery-workspace: Dogfood cludia component listing on the tracked discovery workspace
+  parent implement-cludia-connected-component-listing  # Implement cludia connected-component listing
