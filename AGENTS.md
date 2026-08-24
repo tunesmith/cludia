@@ -41,6 +41,8 @@ not silently redefine the format or semantics in implementation.
 - Installation should not be necessary. Use `go run ./cmd/cludia ...` or build
   the ignored local executable with `go build -o bin/cludia ./cmd/cludia`.
 - `personal/` contains ignored local inquiry data and must not be committed.
+- `dogfood/` contains tracked Cludia reasoning and Dagim planning artifacts;
+  mutate them through their CLIs rather than editing their file syntax directly.
 - Prefer `--json` when the tool is being used by a script or agent.
 - Evaluate behavior through the CLI rather than editing `.arg` fixtures by hand
   unless the task is specifically about parsing or serialization.

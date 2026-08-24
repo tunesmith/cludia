@@ -93,6 +93,20 @@ Future work must decide whether the tool should:
 - reproduce Concludia's acceptance semantics locally;
 - delegate evaluation to Concludia at export/import time.
 
+## Time, revision, and statement identity
+
+[ADR 0006](decisions/0006-time-revision-and-adjacent-artifacts.md) proposes
+keeping revision history outside the `.arg` model in v1, using Git for tracked
+file revisions and explicit wording when valid time matters.
+
+Dogfooding must still determine:
+
+- when an edit is a correction of one stable statement versus a materially new
+  proposition that should receive a new ID;
+- whether named snapshots need conventions beyond ordinary files and Git refs;
+- which concrete temporal or provenance query, if any, justifies structured
+  metadata in the shared format.
+
 ## License and distribution
 
 The license, module path, installation method, and release process remain

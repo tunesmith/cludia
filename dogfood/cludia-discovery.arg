@@ -5,10 +5,28 @@ premise[fact] P1:marlow-llm-agent-completed-cludia-first-implementation-mileston
 
 premise[fact] P2:marlow-has-completed-second-milestone ::T "Marlow completed the first usable slice of Cludia's second roadmap milestone."
 
-premise[fact] P3:cludia-cli-can-now-create-workspaces-capture-edit ::T "Cludia's CLI can now create workspaces, capture and edit statements, list contents, and inspect statements and junctors."
+premise[fact] P3:cludia-cli-can-now-create-workspaces-capture-edit ::T "Before the derive slice, Cludia's CLI could create workspaces, capture and edit statements, list contents, and inspect statements and junctors."
 
-premise[fact] P4:cludia-cli-cannot-yet-create-inferences-connecting-existing ::T "Cludia's CLI cannot yet create inferences connecting existing statements."
+premise[fact] P4:cludia-cli-cannot-yet-create-inferences-connecting-existing ::T "Before the derive slice, Cludia's CLI could not create inferences connecting existing statements."
 
 premise[value] P5:once-statement-capture-inspection-are-usable-next-implementation ::T "Once statement capture and inspection are usable, the next implementation priority should be the missing operation needed to persist reasoning."
 
 premise[fact] P6:cludia-focused-authoring-model-persists-reasoning-multi-premise ::T "Cludia's focused authoring model persists reasoning as multi-premise AND inferences."
+
+lemma[fact] L1:cludia-first-implementation-milestone-first-usable-slice-its "Cludia's first implementation milestone and first usable slice of its second roadmap milestone are complete."
+  <- AND#J1(P1, P2)
+
+lemma[fact] L2:before-derive-slice-cludia-could-maintain-inspect-workspace "Before the derive slice, Cludia could maintain and inspect workspace statements but could not construct relationships between them."
+  <- AND#J2(P3, P4)
+
+lemma[value] L3:capability-gap-warranted-implementing-multi-premise-inference-authoring "The capability gap warranted implementing multi-premise AND inference authoring as Cludia's next slice."
+  <- AND#J3(L2, P5, P6)
+
+premise[fact] P7:proposed-adr-0006-its-paired-concludia-style-argument ::T "Accepted ADR 0006 and its paired Concludia-style argument capture the decision to separate .arg reasoning, Git revision history, and adjacent chronological or task artifacts."
+
+premise[value] P8:architectural-proposals-completed-code-slices-should-be-reviewed ::T "Architectural proposals and completed code slices should be reviewed at coherent boundaries before they are committed."
+
+premise[fact] P9:post-derive-review-checkpoint-2026-08-24-derive ::T "As of the post-derive review checkpoint on 2026-08-24, the derive implementation and its first dogfood inference chain were complete and uncommitted."
+
+lemma[value] L4:immediate-next-step-review-derive-slice-proposed-adr "As of the post-derive review checkpoint on 2026-08-24, the immediate next step was to commit the reviewed derive slice and accepted ADR 0006 at coherent boundaries."
+  <- AND#J4(P7, P8, P9)

@@ -1,12 +1,34 @@
 # dagim v1
 
 node implement-cludia-derive-multi-premise-inference-authoring: Implement cludia derive for multi-premise AND inference authoring
+  complete
 
 node persist-cludia-discovery-milestone-summary-inference-p1-p2: Persist the Cludia discovery milestone-summary inference from P1 and P2
+  complete
   parent implement-cludia-derive-multi-premise-inference-authoring  # Implement cludia derive for multi-premise AND inference...
 
 node persist-cludia-discovery-capability-gap-inference-p3-p4: Persist the Cludia discovery capability-gap inference from P3 and P4
+  complete
   parent implement-cludia-derive-multi-premise-inference-authoring  # Implement cludia derive for multi-premise AND inference...
 
 node persist-cludia-discovery-next-slice-conclusion-capability: Persist the Cludia discovery next-slice conclusion from the capability-gap lemma, P5, and P6
+  complete
   parent persist-cludia-discovery-capability-gap-inference-p3-p4  # Persist the Cludia discovery capability-gap inference from P3...
+
+node review-cludia-derive-implementation-dogfood-inference: Review the cludia derive implementation and dogfood inference results
+  complete
+
+node review-proposed-adr-0006-paired-temporal-history-argument: Review proposed ADR 0006 and its paired temporal-history argument
+  complete
+
+node commit-approved-cludia-derive-slice-corresponding-dogfood: Commit the approved cludia derive slice and corresponding dogfood results
+  complete
+  parent review-cludia-derive-implementation-dogfood-inference  # Review the cludia derive implementation and dogfood inference...
+
+node accept-revise-adr-0006-temporal-revision-boundaries: Accept or revise ADR 0006 temporal and revision boundaries
+  complete
+  parent review-proposed-adr-0006-paired-temporal-history-argument  # Review proposed ADR 0006 and its paired temporal-history...
+
+node commit-accepted-adr-0006-paired-argument: Commit accepted ADR 0006 and its paired argument
+  complete
+  parent accept-revise-adr-0006-temporal-revision-boundaries  # Accept or revise ADR 0006 temporal and revision boundaries

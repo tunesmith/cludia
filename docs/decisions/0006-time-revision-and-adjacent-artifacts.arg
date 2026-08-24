@@ -1,0 +1,21 @@
+argument where-temporal-revision-history-belongs-cludia-v1 "Where temporal and revision history belongs in Cludia v1"
+meta profile="workspace", version="0.1.0"
+
+premise[fact] P1:git-records-revisions ::T "Git records successive committed revisions of tracked Cludia files."
+
+premise[fact] P2:git-revision-timestamp-records-when-document-version-was ::T "A Git revision timestamp records when a document version was committed, not when each proposition was true in the modeled world."
+
+premise[fact] P3:explicit-temporal-scope-statement-text-can-state-when ::T "Explicit temporal scope in statement text can state when a proposition was true without extending the shared .arg syntax."
+
+premise[value] P4:cludia-v1-should-not-duplicate-revision-history-mechanisms ::T "Cludia v1 should not duplicate revision-history mechanisms unless dogfooding demonstrates a query that Git and explicit wording cannot answer."
+
+premise[value] P5:chronological-narratives-dependency-ordered-work-should-remain-adjacent ::T "Chronological narratives and dependency-ordered work should remain in adjacent artifacts designed for chronology and task dependencies."
+
+lemma[fact] L1:git-can-preserve-revision-history-cludia-document-but "Git can preserve the revision history of a Cludia document but cannot by itself express each proposition's valid time."
+  <- AND#J1(P1, P2)
+
+lemma[value] L2:cludia-v1-should-prefer-explicit-temporal-wording-new "Cludia v1 should prefer explicit temporal wording to new temporal metadata until dogfooding demonstrates a missing temporal query."
+  <- AND#J2(P3, P4)
+
+conclusion[value] C1:cludia-v1-should-keep-document-revision-history-git "Cludia v1 should keep document revision history in Git, express valid time in proposition text, and keep primarily chronological or task-shaped records in adjacent tools."
+  <- AND#J3(L1, L2, P5)
