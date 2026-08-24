@@ -102,3 +102,8 @@ node self-review-cludia-statement-lifecycle-operations: Self-review cludia state
 node commit-cludia-statement-lifecycle-slice-dogfood-results: Commit cludia statement lifecycle slice and dogfood results
   complete
   parent self-review-cludia-statement-lifecycle-operations  # Self-review cludia statement lifecycle operations
+
+node implement-cludia-rooted-read-concludia-export: Implement cludia rooted read and Concludia export
+
+node dogfood-rooted-read-export-against-tracked-fixtures: Dogfood rooted read and export against tracked fixtures
+  parent implement-cludia-rooted-read-concludia-export  # Implement cludia rooted read and Concludia export

@@ -91,3 +91,12 @@ lemma[value] L11:statement-truth-kind-editing-plus-dry-run-deletion "At the post
   <- AND#J11(P26, P27, P28)
 
 premise[fact] P29:statement-lifecycle-review-checkpoint-2026-08-24-cludia ::T "At the statement-lifecycle review checkpoint on 2026-08-24, Cludia could edit statement text, truth, and kind and dry-run or execute deletion with incident-relation and component reporting."
+
+premise[fact] P30:commit-92c72a7-cludia-could-conduct-revise-full-local ::T "At commit 92c72a7, Cludia could conduct and revise a full local inquiry but could not read or export the exact rooted closure of a selected conclusion."
+
+premise[value] P31:completed-investigation-must-be-able-inspect-publish-exactly ::T "A completed investigation must be able to inspect and publish exactly the upstream justification and attached defeat chains for a selected root."
+
+premise[fact] P32:cludia-v1-requires-rooted-traversal-include-every-incoming ::T "Cludia v1 requires rooted traversal to include every incoming justification and recursive defeat chain, reconcile roles, and pass strict Concludia validation before atomic export."
+
+lemma[value] L12:rooted-structure-reading-atomic-concludia-export-are-final "Rooted structure reading and atomic Concludia export are the final required investigation-completion slice."
+  <- AND#J12(P30, P31, P32)
