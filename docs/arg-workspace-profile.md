@@ -2,12 +2,12 @@
 
 ## Status
 
-This document proposes a relaxed validation profile over Concludia's existing
-text `.arg` syntax.
+This document defines the relaxed validation profile implemented over
+Concludia's existing text `.arg` syntax.
 
 The literal metadata value `profile="workspace"` is provisional. It describes
 format validation behavior and is not intended to name the product. It may be
-renamed before implementation without implying a change to the eventual tool
+renamed before the first public release without implying a change to the tool
 name.
 
 ## Design

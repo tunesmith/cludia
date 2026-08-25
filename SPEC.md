@@ -1,7 +1,8 @@
 # Cludia v1 Specification
 
-> `Cludia` is the permanent project and repository name. The binary name and
-> `profile="workspace"` identifier remain provisional.
+> `Cludia` is the permanent project and repository name, and `cludia` is the
+> command-line binary. The `profile="workspace"` identifier remains
+> provisional.
 
 ## 1. Status and normative language
 
@@ -298,8 +299,8 @@ provisional metadata field identifies the relaxed workspace profile:
 meta profile="workspace"
 ```
 
-The literal profile value remains renameable before implementation. It denotes
-validation semantics, not the product name.
+The literal profile value remains renameable before the first public release.
+It denotes validation semantics, not the product name.
 
 A valid ordinary Concludia `.arg` document MUST be readable as a workspace.
 Round-tripping it without an explicit transforming operation MUST preserve:

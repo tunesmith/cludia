@@ -138,8 +138,8 @@ Consequently, a supported counterpoint that is itself counterpointed is valid
 workspace structure but currently fails the strict Concludia profile. Cludia
 must preserve the structure and report
 `concludia_defeat_target_not_leaf`; it must not drop either the support or the
-recursive counterpoint. This interoperability edge must be resolved before
-Milestone 3 can promise successful export for that combination.
+recursive counterpoint. Rooted export diagnoses and refuses that combination
+until the Concludia interoperability edge is resolved.
 
 ## Future integration
 

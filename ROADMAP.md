@@ -5,11 +5,16 @@ a graphical interface.
 
 ## Milestone 0: Design packet
 
+Status: completed and committed on 2026-08-24. The `cludia` binary name is
+selected; the workspace-profile identifier intentionally remains provisional
+before the first public release.
+
 - Agree on vision, v1 scope, and non-goals.
 - Record `.arg` workspace-profile and Concludia-closure decisions.
 - Provide paired example files.
 - Establish `Cludia` as the permanent project and repository name.
-- Choose the final binary and workspace-profile names.
+- Choose the `cludia` binary name and explicitly defer the final
+  workspace-profile identifier.
 
 Exit criterion: a new conversation in this repository can explain the product
 and begin implementation without relying on the original brainstorming
@@ -17,7 +22,7 @@ transcript.
 
 ## Milestone 1: Go format core
 
-Status: implemented on 2026-08-24; pending review and commit.
+Status: implemented, reviewed, and committed on 2026-08-24.
 
 - Create the Go module and command entry point.
 - Implement shared `.arg` parsing for statements, metadata, `AND`, `OR`, direct
@@ -32,11 +37,11 @@ expected profiles, and ordinary Concludia fixtures round-trip.
 
 ## Milestone 2: Complete file CLI
 
-Status: first usable slice (`init`, `add`, `edit`, `list`, `show`, `search`,
-`components`, `component`, `derive`, `add-source`, `remove-source`, and
-`remove-junctor`, plus all three defeat scopes and leaf counterpoint removal)
-implemented on 2026-08-24; statement truth/kind editing and dry-run deletion are
-also implemented. The complete file CLI milestone is implemented.
+Status: implemented, reviewed, and committed on 2026-08-24. The complete
+file-first CLI includes capture and statement lifecycle, inspection, search,
+component discovery, multi-premise derivation and repair, all three defeat
+scopes, dry-run destructive operations, statement-identity guidance, and
+versioned JSON output.
 
 - Add/list/show/search/edit statements.
 - List components and isolated statements.
@@ -63,7 +68,12 @@ Concludia example and fails atomically when the requested structure is invalid.
 
 ## Milestone 4: Conversational dogfooding
 
-Status: ready to begin with a separate full-investigation pilot workspace.
+Status: in progress. The first full-investigation pilot and a subsequent
+artifact-only reconstruction audit were completed on 2026-08-24. The artifacts
+were sufficient for responsible causal and operational resumption, while also
+exposing temporal-hygiene, duplicated-workspace, cross-file correlation, and
+task-completion-evidence questions. Those findings do not yet justify new
+format semantics.
 
 - Use the CLI through ordinary LLM conversations on real non-sensitive
   workspaces.

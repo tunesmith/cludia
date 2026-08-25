@@ -1,10 +1,10 @@
 # Cludia
 
-`Cludia` is the permanent project and repository name. The final binary name
-and workspace-profile identifier remain open decisions.
+`Cludia` is the permanent project and repository name, and `cludia` is the
+command-line binary. The workspace-profile identifier remains provisional.
 
-Cludia is a proposed local, file-first reasoning workbench for growing
-disconnected observations into explicit arguments.
+Cludia is a local, file-first reasoning workbench for growing disconnected
+observations into explicit arguments.
 
 The central workflow is premise-up:
 
@@ -25,9 +25,12 @@ after conversational dogfooding identifies the right visual operations.
 
 ## Status
 
-This repository is the permanent project home. It contains the initial Go
-format core and validation CLI; the complete mutation workflow described below
-is not yet implemented.
+This repository is the permanent project home. The Go CLI implements the v1
+file workflow: capture and editing, inspection and search, multi-premise
+derivation and repair, defeat authoring, lifecycle operations, validation, and
+rooted Concludia export. The project is pre-release and remains under active
+conversational dogfooding. Its `.arg` syntax and versioned JSON output remain
+compatibility-sensitive interfaces even before the first public release.
 
 The principal decisions are:
 
@@ -46,8 +49,6 @@ The principal decisions are:
 
 ## Illustrative session
 
-Command names are provisional:
-
 ```bash
 cludia add case.arg --text "The footprints terminate at the garden wall."
 cludia list case.arg --state isolated --json
@@ -63,6 +64,23 @@ cludia export case.arg --root crossed-wall --output crossed-wall.arg
 The expected human workflow is conversational: an LLM reads the corpus through
 `--json`, proposes a conclusion and audits missing premises in conversation,
 then performs a mutation only after the user approves it.
+
+## Install from source
+
+Cludia currently requires Go 1.26.4 or newer. From a checkout:
+
+```bash
+go test ./...
+go install ./cmd/cludia
+cludia version
+```
+
+`go install` writes to `GOBIN`, or to `$(go env GOPATH)/bin` when `GOBIN` is
+unset. That directory must be on `PATH`. An untagged development build reports
+its version as `dev`.
+
+Until a public release exists, clone the repository and install from the
+checkout rather than relying on `go install ...@latest`.
 
 ## Development
 
@@ -182,7 +200,7 @@ choice.
 - [SPEC.md](SPEC.md) defines the normative v1 behavior.
 - [ROADMAP.md](ROADMAP.md) sequences implementation and dogfooding.
 - [docs/arg-workspace-profile.md](docs/arg-workspace-profile.md) defines the
-  proposed `.arg` workspace profile.
+  implemented `.arg` workspace profile.
 - [docs/concludia-interoperability.md](docs/concludia-interoperability.md)
   specifies rooted export and round-trip behavior.
 - [docs/conversational-workflow.md](docs/conversational-workflow.md) describes

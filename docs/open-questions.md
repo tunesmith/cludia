@@ -7,12 +7,11 @@ answered accidentally through implementation details.
 
 - Chosen: the permanent project and repository name is `Cludia` (`cludia` in
   filesystem and repository contexts).
-- Binary name.
+- Chosen: the command-line binary name is `cludia`.
 - Workspace profile identifier.
 
-The binary name and `profile="workspace"` remain provisional. The profile
-identifies validation semantics, not the product, so the two names need not
-match.
+The `profile="workspace"` identifier remains provisional. It identifies
+validation semantics, not the product, so it need not match the binary name.
 
 ## Format ownership and versioning
 
