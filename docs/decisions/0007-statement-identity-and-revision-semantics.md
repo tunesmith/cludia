@@ -56,6 +56,19 @@ The connected argument supporting this decision is
 - Cludia MUST NOT claim to determine natural-language semantic equivalence
   structurally or automatically.
 
+### Identifier lifetime after deletion
+
+- This ADR does not decide whether a deleted statement or junctor ID may be
+  reused in a later revision of the same document lineage.
+- “Durable identity” here means continuity while a proposition record exists
+  and across explicitly meaning-preserving edits; it does not introduce
+  tombstones or permanent ID reservation.
+- Concludia's separation between durable server identity and renumberable
+  display labels is relevant prior art for a future decision.
+- The full-investigation pilot should determine whether cross-revision or
+  external references create enough ambiguity to require retired-ID metadata or
+  a separate opaque identity/display-label model.
+
 ### Slugs
 
 - A slug is an optional, mutable, human-readable alias; it is not identity.
@@ -115,6 +128,8 @@ slugs, not an embedded alias or replacement history.
   `--same-proposition`.
 - Agents can apply the identity contract without being instructed to create or
   maintain files that are irrelevant to the user's chosen workflow.
+- Deleted-ID reuse remains unchanged and explicitly unresolved; this decision
+  adds no allocator metadata or tombstone semantics.
 
 ## Alternatives considered
 

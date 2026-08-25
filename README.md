@@ -90,8 +90,12 @@ bin/cludia add inquiry.arg \
 
 bin/cludia edit inquiry.arg P1 \
   --text "Marlow completed Cludia's first format-core milestone." \
+  --same-proposition \
   --truth T \
   --kind fact
+
+bin/cludia rename-slug inquiry.arg P1 --from-text
+bin/cludia guidance --json
 
 bin/cludia delete inquiry.arg P3 --dry-run
 
@@ -143,8 +147,13 @@ junctor and target, and `counterpoint` for a counterpoint of a counterpoint.
 `remove-counterpoint` is leaf-first, supports `--dry-run`, and refuses to remove
 a statement that still has dependent counterpoints or support relations.
 
-`edit` can change statement text, truth, and kind while preserving stable ID and
-slug. `delete` supports `--dry-run`, removes all incident relations rather than
+Text-changing `edit` requires `--same-proposition` and reports that declared
+identity-continuity intent; truth- and kind-only edits do not require it.
+`rename-slug` can explicitly rename, regenerate, or clear the optional current
+slug while preserving ID and relations. `guidance` exposes the use-case-neutral
+identity and replacement contract in human or versioned JSON form.
+
+`delete` supports `--dry-run`, removes all incident relations rather than
 silently changing an inference's sources, reports component changes and newly
 isolated statements, delegates counterpoint deletion to `remove-counterpoint`,
 and refuses to detach any counterpoint targeting the statement or an incident

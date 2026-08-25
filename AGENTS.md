@@ -32,6 +32,13 @@ not silently redefine the format or semantics in implementation.
   MCP.
 - `.arg` scriptable JSON and file compatibility are public interfaces.
 - Mutations must preserve structural validity and save atomically.
+- Statement IDs are durable proposition-record identities. Use text editing only
+  when explicitly asserting the same proposition; materially different claims
+  receive new IDs and relation-by-relation review.
+- Slugs are optional mutable aliases, not identity. Keep only the current slug
+  and warn about external references outside the checked scope.
+- Identity guidance must remain use-case neutral; do not assume users maintain
+  any fixed number or arrangement of workspace files.
 - Rooted export must include every upstream justification and attached defeat
   chain, then pass the Concludia validation profile.
 - Do not couple this format to Dagim's `# dagim v1` format.

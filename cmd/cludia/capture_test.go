@@ -6,6 +6,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/tunesmith/cludia/internal/argfile"
@@ -113,26 +114,29 @@ func TestEditChangesOnlyTextAndReportsPreviousStatement(t *testing.T) {
 	before := argfile.ParseFile(path).Document.Statements[0]
 	stdout.Reset()
 	stderr.Reset()
-	if err := run([]string{"edit", path, before.Slug, "--text", "Narrower wording", "--json"}, &stdout, &stderr); err != nil {
+	if err := run([]string{"edit", path, before.Slug, "--text", "Original wording.", "--same-proposition", "--json"}, &stdout, &stderr); err != nil {
 		t.Fatalf("edit: %v\nstderr: %s", err, stderr.String())
 	}
 	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(stdout.Bytes(), &raw); err != nil {
 		t.Fatalf("decode edit JSON: %v", err)
 	}
-	assertExactKeys(t, raw, "schema_version", "action", "dry_run", "profile", "document", "statement", "previous_statement", "changes", "diagnostics")
+	assertExactKeys(t, raw, "schema_version", "action", "dry_run", "profile", "document", "statement", "previous_statement", "same_proposition", "changes", "diagnostics")
 	var output mutationOutput
 	if err := json.Unmarshal(stdout.Bytes(), &output); err != nil {
 		t.Fatalf("decode typed edit JSON: %v", err)
 	}
-	if output.PreviousStatement == nil || output.PreviousStatement.Text != "Original wording" || output.Statement.Text != "Narrower wording" {
+	if output.PreviousStatement == nil || output.PreviousStatement.Text != "Original wording" || output.Statement.Text != "Original wording." {
 		t.Fatalf("unexpected edit output: %#v", output)
+	}
+	if output.SameProposition == nil || !*output.SameProposition {
+		t.Fatalf("same-proposition intent not reported: %#v", output)
 	}
 	if output.Statement.ID != before.ID || output.Statement.Slug != before.Slug {
 		t.Fatalf("edit changed stable identity: before %#v after %#v", before, output.Statement)
 	}
 	parsed := argfile.ParseFile(path)
-	if got := parsed.Document.Statements[0]; got.ID != before.ID || got.Slug != before.Slug || got.Text != "Narrower wording" {
+	if got := parsed.Document.Statements[0]; got.ID != before.ID || got.Slug != before.Slug || got.Text != "Original wording." {
 		t.Fatalf("saved edit = %#v", got)
 	}
 }
@@ -149,7 +153,7 @@ func TestFailedEditLeavesWorkspaceUnchanged(t *testing.T) {
 	}
 	stdout.Reset()
 	stderr.Reset()
-	err = run([]string{"edit", path, "missing", "--text", "Changed", "--json"}, &stdout, &stderr)
+	err = run([]string{"edit", path, "missing", "--text", "Changed", "--same-proposition", "--json"}, &stdout, &stderr)
 	if !errors.Is(err, errValidationFailed) {
 		t.Fatalf("edit error = %v, want validation failure", err)
 	}
@@ -199,5 +203,27 @@ func TestEditRejectsExplicitTrueLemma(t *testing.T) {
 	after, readErr := os.ReadFile(path)
 	if readErr != nil || !bytes.Equal(before, after) {
 		t.Fatalf("workspace changed after invalid truth edit: %v", readErr)
+	}
+}
+
+func TestTextEditRequiresSamePropositionIntent(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "workspace.arg")
+	var stdout, stderr bytes.Buffer
+	if err := run([]string{"init", path, "--title", "Title", "--text", "Original"}, &stdout, &stderr); err != nil {
+		t.Fatal(err)
+	}
+	before, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	stdout.Reset()
+	stderr.Reset()
+	err = run([]string{"edit", path, "P1", "--text", "Changed", "--json"}, &stdout, &stderr)
+	if err == nil || !strings.Contains(err.Error(), "--same-proposition") {
+		t.Fatalf("edit error = %v, want same-proposition guidance", err)
+	}
+	after, readErr := os.ReadFile(path)
+	if readErr != nil || !bytes.Equal(before, after) {
+		t.Fatalf("workspace changed without continuity intent: %v", readErr)
 	}
 }

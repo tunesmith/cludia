@@ -48,6 +48,7 @@ stores both in `meta`.
 A statement MUST have:
 
 - a stable local ID;
+- an optional mutable slug;
 - a role supported by the shared `.arg` syntax;
 - a kind (`fact` or `value`);
 - text;
@@ -64,6 +65,19 @@ statements. It MUST NOT assign numerical confidence, credibility, or weight.
 
 Statement text SHOULD be atomic and SHOULD avoid embedding multiple premises
 that need separate examination.
+
+Statement identity, wording, and slug semantics follow ADR 0007:
+
+- the ID is the durable identity of one proposition record;
+- a text edit preserves that ID only when the caller explicitly asserts that
+  the new wording expresses the same proposition;
+- materially different propositions receive new IDs;
+- the slug is an optional mutable human-readable alias with at most one current
+  value and no retained alias history in v1;
+- Cludia MUST NOT claim to determine semantic equivalence mechanically.
+
+Agent-facing CLI guidance and future MCP descriptions MUST expose this contract
+without assuming a particular workspace organization or use case.
 
 ### 3.3 Junctor
 
@@ -188,12 +202,16 @@ capabilities.
 - Read a complete rooted structure.
 - List defeats targeting or originating from an element.
 - Validate under the workspace or Concludia profile.
+- Read versioned machine guidance for statement identity and revision behavior.
 
 ### 6.2 Capture and edit
 
 - Add a statement.
-- Edit statement text without changing its stable identity.
+- Edit statement text without changing its stable identity only with an
+  explicit same-proposition assertion.
 - Change truth and kind where valid.
+- Rename, regenerate, or clear an optional statement slug without changing the
+  statement ID or durable relations.
 - Delete a statement with a dry-run plan showing incident relations and
   resulting orphans/components.
 

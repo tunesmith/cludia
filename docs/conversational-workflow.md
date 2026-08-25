@@ -159,6 +159,13 @@ Semantic mutations should normally be proposed before persistence because:
 - a junctor asserts sufficiency;
 - deleting or repairing a relation may change a larger rooted structure.
 
+Before changing statement text, the agent must distinguish reformulation from
+material replacement. `edit --same-proposition` asserts continuity of one
+proposition record. A materially different proposition receives a new ID and
+each affected relation is audited explicitly. Slug refactoring is a separate
+alias-only operation and must not be presented as a semantic edit. These rules
+apply regardless of how the user organizes one or more workspaces.
+
 The user may explicitly authorize broader mutation, but the tool itself should
 remain transparent through dry-run and structured mutation results.
 

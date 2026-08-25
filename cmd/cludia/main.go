@@ -96,6 +96,10 @@ func run(args []string, stdout, stderr io.Writer) error {
 		return runRoot(args[1:], stdout, stderr)
 	case "export":
 		return runExport(args[1:], stdout, stderr)
+	case "rename-slug":
+		return runRenameSlug(args[1:], stdout, stderr)
+	case "guidance":
+		return runGuidance(args[1:], stdout, stderr)
 	case "validate", "check":
 		return runValidate(args[1:], stdout, stderr)
 	case "help":
@@ -211,7 +215,7 @@ func writeTopLevelUsage(w io.Writer) {
 	fmt.Fprintln(w, "Usage:")
 	fmt.Fprintln(w, "  cludia init [--json] FILE --title TITLE --text TEXT")
 	fmt.Fprintln(w, "  cludia add [--json] FILE --text TEXT")
-	fmt.Fprintln(w, "  cludia edit [--json] FILE STATEMENT --text TEXT")
+	fmt.Fprintln(w, "  cludia edit [--json] FILE STATEMENT --text TEXT --same-proposition")
 	fmt.Fprintln(w, "  cludia derive [--json] FILE --source STATEMENT --source STATEMENT (--target STATEMENT | --target-text TEXT)")
 	fmt.Fprintln(w, "  cludia list [--state all|isolated] [--json] FILE")
 	fmt.Fprintln(w, "  cludia show [--relations] [--json] FILE ELEMENT")
@@ -228,6 +232,8 @@ func writeTopLevelUsage(w io.Writer) {
 	fmt.Fprintln(w, "  cludia delete [--dry-run] [--json] FILE STATEMENT")
 	fmt.Fprintln(w, "  cludia root [--json] FILE STATEMENT")
 	fmt.Fprintln(w, "  cludia export [--json] FILE --root STATEMENT --output FILE")
+	fmt.Fprintln(w, "  cludia rename-slug [--json] FILE STATEMENT (--slug SLUG | --from-text | --clear)")
+	fmt.Fprintln(w, "  cludia guidance [--json]")
 	fmt.Fprintln(w, "  cludia validate [--profile PROFILE] [--json] FILE")
 	fmt.Fprintln(w, "  cludia check [--profile PROFILE] [--json] FILE")
 	fmt.Fprintln(w, "  cludia version")

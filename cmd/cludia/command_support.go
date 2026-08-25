@@ -40,6 +40,7 @@ type mutationOutput struct {
 	Document          documentOutput          `json:"document"`
 	Statement         argument.Statement      `json:"statement"`
 	PreviousStatement *argument.Statement     `json:"previous_statement,omitempty"`
+	SameProposition   *bool                   `json:"same_proposition,omitempty"`
 	Changes           []changeOutput          `json:"changes"`
 	Diagnostics       []diagnostic.Diagnostic `json:"diagnostics"`
 }

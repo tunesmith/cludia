@@ -131,6 +131,15 @@ node commit-accepted-adr-0007-paired-argument: Commit accepted ADR 0007 and pair
   parent accept-revise-adr-0007-statement-identity-semantics  # Accept or revise ADR 0007 statement identity semantics
 
 node implement-adr-0007-identity-guidance-slug-refactoring: Implement ADR 0007 identity guidance and slug refactoring
+  complete
 
 node dogfood-same-proposition-editing-slug-refactoring: Dogfood same-proposition editing and slug refactoring
+  complete
   parent implement-adr-0007-identity-guidance-slug-refactoring  # Implement ADR 0007 identity guidance and slug refactoring
+
+node self-review-adr-0007-identity-guidance-slug-refactoring: Self-review ADR 0007 identity guidance and slug refactoring
+  complete
+
+node commit-adr-0007-identity-implementation-dogfood-results: Commit ADR 0007 identity implementation and dogfood results
+  complete
+  parent self-review-adr-0007-identity-guidance-slug-refactoring  # Self-review ADR 0007 identity guidance and slug refactoring

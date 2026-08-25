@@ -5,9 +5,9 @@ premise[fact] P1:marlow-llm-agent-completed-cludia-first-implementation-mileston
 
 premise[fact] P2:marlow-has-completed-second-milestone ::T "Marlow completed the first usable slice of Cludia's second roadmap milestone."
 
-premise[fact] P3:cludia-cli-can-now-create-workspaces-capture-edit ::T "Before the derive slice, Cludia's CLI could create workspaces, capture and edit statements, list contents, and inspect statements and junctors."
+premise[fact] P3:before-derive-slice-cludia-cli-could-create-workspaces ::T "Before the derive slice, Cludia's CLI could create workspaces, capture and edit statements, list contents, and inspect statements and junctors."
 
-premise[fact] P4:cludia-cli-cannot-yet-create-inferences-connecting-existing ::T "Before the derive slice, Cludia's CLI could not create inferences connecting existing statements."
+premise[fact] P4:before-derive-slice-cludia-cli-could-not-create ::T "Before the derive slice, Cludia's CLI could not create inferences connecting existing statements."
 
 premise[value] P5:once-statement-capture-inspection-are-usable-next-implementation ::T "Once statement capture and inspection are usable, the next implementation priority should be the missing operation needed to persist reasoning."
 
@@ -22,13 +22,13 @@ lemma[fact] L2:before-derive-slice-cludia-could-maintain-inspect-workspace "Befo
 lemma[value] L3:capability-gap-warranted-implementing-multi-premise-inference-authoring "The capability gap warranted implementing multi-premise AND inference authoring as Cludia's next slice."
   <- AND#J3(L2, P5, P6)
 
-premise[fact] P7:proposed-adr-0006-its-paired-concludia-style-argument ::T "Accepted ADR 0006 and its paired Concludia-style argument capture the decision to separate .arg reasoning, Git revision history, and adjacent chronological or task artifacts."
+premise[fact] P7:accepted-adr-0006-its-paired-concludia-style-argument ::T "Accepted ADR 0006 and its paired Concludia-style argument capture the decision to separate .arg reasoning, Git revision history, and adjacent chronological or task artifacts."
 
 premise[value] P8:architectural-proposals-completed-code-slices-should-be-reviewed ::T "Architectural proposals and completed code slices should be reviewed at coherent boundaries before they are committed."
 
 premise[fact] P9:post-derive-review-checkpoint-2026-08-24-derive ::T "As of the post-derive review checkpoint on 2026-08-24, the derive implementation and its first dogfood inference chain were complete and uncommitted."
 
-lemma[value] L4:immediate-next-step-review-derive-slice-proposed-adr "As of the post-derive review checkpoint on 2026-08-24, the immediate next step was to commit the reviewed derive slice and accepted ADR 0006 at coherent boundaries."
+lemma[value] L4:post-derive-review-checkpoint-2026-08-24-immediate "As of the post-derive review checkpoint on 2026-08-24, the immediate next step was to commit the reviewed derive slice and accepted ADR 0006 at coherent boundaries."
   <- AND#J4(P7, P8, P9)
 
 premise[fact] P10:commit-c6aa570-cludia-cli-could-create-edit-inspect ::T "At commit c6aa570, Cludia's CLI could create, edit, inspect, validate, and derive multi-premise AND inferences."
@@ -132,5 +132,14 @@ premise[value] P42:agent-identity-guidance-should-explain-mutation-semantics-wit
 
 premise[fact] P43:dual-current-state-historical-reasoning-workspace-documented-one ::T "A dual current-state and historical-reasoning workspace is documented as one optional incident-investigation use case rather than a Cludia profile or invariant."
 
-lemma[value] L16:cludia-should-implement-identity-guidance-slug-refactoring-use "Cludia should implement identity guidance and slug refactoring as use-case-neutral capabilities."
-  <- AND#J16(P41, P42, P43)
+lemma[value] L17:adr-0007-implementation-checkpoint-accepted-use-case-neutral "At the ADR 0007 implementation checkpoint, the accepted use-case-neutral identity decision warranted identity guidance and slug refactoring."
+  <- AND#J17(P41, P42, P43)
+
+premise[fact] P44:adr-0007-implementation-review-checkpoint-2026-08-24 ::T "At the ADR 0007 implementation review checkpoint on 2026-08-24, Cludia required explicit same-proposition intent for text edits, supported mutable optional slugs, and exposed use-case-neutral machine-readable identity guidance."
+
+premise[fact] P45:adr-0007-implementation-deliberately-leaves-identifier-reuse-after ::T "ADR 0007's implementation deliberately leaves identifier reuse after deletion unresolved and adds no tombstone or allocator metadata."
+
+premise[value] P46:evidence-full-investigation-pilot-should-decide-whether-deleted ::T "Evidence from the full-investigation pilot should decide whether deleted IDs require permanent retirement or a separate opaque identity and display-label model."
+
+lemma[value] L18:identifier-lifetime-after-deletion-remains-open-question-full "Identifier lifetime after deletion remains an open question for the full-investigation pilot."
+  <- AND#J18(P45, P46)

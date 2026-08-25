@@ -61,6 +61,11 @@ conclusion[fact] C1:final-finding "The apparent burglary was staged."
 Focused capture defaults to `premise[fact] ... ::T`. Truth tokens remain the
 existing `T`, `F`, and `U`; no numerical confidence field is introduced.
 
+The statement ID is required durable identity. The slug remains optional and is
+a mutable human-readable alias with one current value; durable relations are
+resolved and canonically written by ID. Text edits that preserve an ID require
+explicit same-proposition intent under ADR 0007.
+
 The workspace allows a premise to be isolated. Once it becomes the target of a
 support relation, focused mutations promote it to a lemma.
 

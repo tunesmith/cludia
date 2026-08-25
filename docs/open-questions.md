@@ -119,6 +119,14 @@ ADR 0007 deliberately leaves the future replacement workflow open:
 - whether and when the old statement is retained;
 - how replacement plans coordinate across multiple known files.
 
+It also leaves identifier lifetime after deletion open:
+
+- whether IDs are unique only while present in a current document revision or
+  across the document's full Git lineage;
+- whether observed ambiguity warrants retired-ID metadata;
+- whether a later model should separate opaque durable identity from
+  renumberable display labels as Concludia does.
+
 ## License and distribution
 
 The license, module path, installation method, and release process remain

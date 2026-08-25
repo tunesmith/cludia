@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"path/filepath"
 	"testing"
 )
 
@@ -72,14 +73,14 @@ func TestSearchNoMatchesHasEmptyArrayAndHumanMessage(t *testing.T) {
 
 func searchTestWorkspace(t *testing.T) string {
 	t.Helper()
-	path := twoPremiseWorkspace(t)
+	path := filepath.Join(t.TempDir(), "workspace.arg")
 	var stdout, stderr bytes.Buffer
-	if err := run([]string{"edit", path, "P1", "--text", "Alpha appears here"}, &stdout, &stderr); err != nil {
+	if err := run([]string{"init", path, "--title", "Search test", "--text", "Alpha appears here"}, &stdout, &stderr); err != nil {
 		t.Fatal(err)
 	}
 	stdout.Reset()
 	stderr.Reset()
-	if err := run([]string{"edit", path, "P2", "--text", "Second alpha observation"}, &stdout, &stderr); err != nil {
+	if err := run([]string{"add", path, "--text", "Second alpha observation"}, &stdout, &stderr); err != nil {
 		t.Fatal(err)
 	}
 	return path
