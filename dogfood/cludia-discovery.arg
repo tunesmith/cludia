@@ -111,3 +111,26 @@ premise[value] P36:after-all-required-v1-investigation-operations-are-available 
 
 lemma[value] L13:cludia-ready-full-investigation-pilot-separate-workspace "Cludia is ready for a full-investigation pilot in a separate workspace."
   <- AND#J13(P34, P35, P36)
+
+premise[fact] P37:proposed-adr-0007-its-paired-strict-concludia-argument ::F "Proposed ADR 0007 and its paired strict Concludia argument capture the distinction among stable statement identity, mutable wording, optional slugs, and material replacement."
+
+premise[value] P38:statement-identity-semantics-should-be-reviewed-before-cli ::T "Statement identity semantics should be reviewed before the CLI requires continuity intent or introduces slug refactoring."
+
+premise[fact] P39:commit-6e508d3-text-edits-preserved-ids-without-explicit ::T "At commit 6e508d3, text edits preserved IDs without an explicit same-proposition assertion and generated slugs could not be renamed through the CLI."
+
+lemma[value] L14:immediate-next-step-review-proposed-adr-0007-before "The immediate next step is to review proposed ADR 0007 before implementing agent revision guidance or slug refactoring."
+  <- AND#J14(P37, P38, P39)
+
+premise[fact] P40:accepted-adr-0007-its-paired-strict-concludia-argument ::T "Accepted ADR 0007 and its paired strict Concludia argument establish the distinction among stable statement identity, mutable wording, optional slugs, and material replacement."
+
+lemma[value] L15:immediate-next-step-commit-accepted-adr-0007-before "The immediate next step is to commit accepted ADR 0007 before implementing identity guidance or slug refactoring."
+  <- AND#J15(P38, P39, P40)
+
+premise[fact] P41:accepted-adr-0007-applies-statement-identity-slug-semantics ::T "Accepted ADR 0007 applies statement identity and slug semantics independently of any particular workspace organization or use case."
+
+premise[value] P42:agent-identity-guidance-should-explain-mutation-semantics-without ::T "Agent identity guidance should explain mutation semantics without assuming that users maintain separate current-state and historical-reasoning files."
+
+premise[fact] P43:dual-current-state-historical-reasoning-workspace-documented-one ::T "A dual current-state and historical-reasoning workspace is documented as one optional incident-investigation use case rather than a Cludia profile or invariant."
+
+lemma[value] L16:cludia-should-implement-identity-guidance-slug-refactoring-use "Cludia should implement identity guidance and slug refactoring as use-case-neutral capabilities."
+  <- AND#J16(P41, P42, P43)

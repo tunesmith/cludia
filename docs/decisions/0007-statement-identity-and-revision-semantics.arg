@@ -1,0 +1,28 @@
+argument how-cludia-distinguishes-statement-identity-wording-slugs "How Cludia distinguishes statement identity, wording, and slugs"
+meta profile="workspace", version="0.1.0"
+
+premise[fact] P1:statement-ids-are-required-durable-identities-support-defeat ::T "Statement IDs are required durable identities and support and defeat relations reference those IDs."
+
+premise[fact] P2:statement-slugs-are-optional-human-readable-aliases-while ::T "Statement slugs are optional human-readable aliases while durable relations can remain ID-based."
+
+premise[value] P3:text-edit-should-preserve-statement-id-only-when ::T "A text edit should preserve a statement ID only when the caller intentionally asserts that the new wording expresses the same proposition."
+
+premise[fact] P4:cludia-cannot-structurally-prove-that-two-natural-language ::T "Cludia cannot structurally prove that two natural-language formulations are semantically equivalent."
+
+premise[value] P5:cli-mcp-surfaces-should-expose-identity-contract-before ::T "CLI and MCP surfaces should expose the identity contract before mutation and require explicit caller intent for meaning-preserving text edits."
+
+premise[value] P6:materially-different-proposition-should-receive-new-id-each ::T "A materially different proposition should receive a new ID and each affected relation should be planned explicitly rather than retargeted automatically."
+
+premise[value] P7:cludia-v1-should-retain-only-one-current-optional ::T "Cludia v1 should retain only one current optional slug while Git preserves prior tracked revisions."
+
+lemma[value] L1:cludia-should-preserve-statement-id-only-intentionally-continuous "Cludia should preserve a statement ID only for an intentionally continuous proposition record and should give materially different propositions new IDs with explicit relation planning."
+  <- AND#J1(P1, P3, P6)
+
+lemma[value] L2:because-semantic-equivalence-not-structurally-provable-agent-facing "Because semantic equivalence is not structurally provable, agent-facing surfaces should expose the identity contract and require declared continuity intent before text mutation."
+  <- AND#J2(P4, P5)
+
+lemma[value] L3:slugs-should-remain-optional-mutable-aliases-one-current "Slugs should remain optional mutable aliases with one current value while Git preserves prior tracked revisions."
+  <- AND#J3(P2, P7)
+
+conclusion[value] C1:cludia-should-distinguish-durable-proposition-identity-mutable-wording "Cludia should distinguish durable proposition identity from mutable wording and optional slugs, require explicit same-proposition intent for text edits, and plan material replacement as a new identity with relation-by-relation decisions."
+  <- AND#J4(L1, L2, L3)

@@ -95,9 +95,14 @@ Future work must decide whether the tool should:
 
 ## Time, revision, and statement identity
 
-[ADR 0006](decisions/0006-time-revision-and-adjacent-artifacts.md) proposes
+[ADR 0006](decisions/0006-time-revision-and-adjacent-artifacts.md) establishes
 keeping revision history outside the `.arg` model in v1, using Git for tracked
 file revisions and explicit wording when valid time matters.
+
+[ADR 0007](decisions/0007-statement-identity-and-revision-semantics.md)
+establishes the distinction between durable proposition identity, mutable text,
+and optional slugs, with explicit caller intent for meaning-preserving text
+edits.
 
 Dogfooding must still determine:
 
@@ -106,6 +111,13 @@ Dogfooding must still determine:
 - whether named snapshots need conventions beyond ordinary files and Git refs;
 - which concrete temporal or provenance query, if any, justifies structured
   metadata in the shared format.
+
+ADR 0007 deliberately leaves the future replacement workflow open:
+
+- command naming and selection UX;
+- per-relation retargeting choices;
+- whether and when the old statement is retained;
+- how replacement plans coordinate across multiple known files.
 
 ## License and distribution
 

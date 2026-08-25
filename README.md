@@ -186,6 +186,8 @@ choice.
   Concludia closure.
 - [dogfood/](dogfood/) contains tracked reasoning and implementation-planning
   artifacts maintained through the Cludia and Dagim CLIs.
+- [docs/use-cases/](docs/use-cases/) records optional workflow patterns without
+  turning them into required format profiles or agent assumptions.
 
 ## Relationship to neighboring projects
 

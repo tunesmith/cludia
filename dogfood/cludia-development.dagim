@@ -118,3 +118,19 @@ node commit-cludia-rooted-read-export-slice-dogfood-results: Commit cludia roote
   parent self-review-cludia-rooted-read-concludia-export  # Self-review cludia rooted read and Concludia export
 
 node run-full-investigation-pilot-separate-cludia-workspace: Run a full investigation pilot in a separate Cludia workspace
+
+node review-proposed-adr-0007-paired-identity-argument: Review proposed ADR 0007 and paired identity argument
+  complete
+
+node accept-revise-adr-0007-statement-identity-semantics: Accept or revise ADR 0007 statement identity semantics
+  complete
+  parent review-proposed-adr-0007-paired-identity-argument  # Review proposed ADR 0007 and paired identity argument
+
+node commit-accepted-adr-0007-paired-argument: Commit accepted ADR 0007 and paired argument
+  complete
+  parent accept-revise-adr-0007-statement-identity-semantics  # Accept or revise ADR 0007 statement identity semantics
+
+node implement-adr-0007-identity-guidance-slug-refactoring: Implement ADR 0007 identity guidance and slug refactoring
+
+node dogfood-same-proposition-editing-slug-refactoring: Dogfood same-proposition editing and slug refactoring
+  parent implement-adr-0007-identity-guidance-slug-refactoring  # Implement ADR 0007 identity guidance and slug refactoring
