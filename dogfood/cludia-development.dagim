@@ -168,3 +168,7 @@ node refine-adr-0007-implement-safe-material-statement: Refine ADR 0007 and impl
 node complete-cross-model-dogfood-review-prepare-work-agent: Complete cross-model dogfood review and prepare the work-agent handoff
   complete
   parent refine-adr-0007-implement-safe-material-statement  # Refine ADR 0007 and implement safe material statement...
+
+node review-deterministic-textual-inspection-candidate-decide: Review deterministic textual inspection candidate and decide derivation-ledger and support-sink command scope
+
+node review-deleted-id-reuse-evidence-decide-tracked-lineage: Review deleted-ID reuse evidence and decide tracked-lineage allocation policy

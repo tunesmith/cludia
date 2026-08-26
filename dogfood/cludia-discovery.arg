@@ -1,196 +1,30 @@
 argument cludia-discovery "Cludia Discovery"
 meta profile="workspace", version="0.1.0"
 
-premise[fact] P1:marlow-llm-agent-completed-cludia-first-implementation-milestone ::T "Marlow, an LLM agent, completed Cludia's first implementation milestone on 2026-08-24."
-
-premise[fact] P2:marlow-has-completed-second-milestone ::T "Marlow completed the first usable slice of Cludia's second roadmap milestone."
-
-premise[fact] P3:before-derive-slice-cludia-cli-could-create-workspaces ::T "Before the derive slice, Cludia's CLI could create workspaces, capture and edit statements, list contents, and inspect statements and junctors."
-
-premise[fact] P4:before-derive-slice-cludia-cli-could-not-create ::T "Before the derive slice, Cludia's CLI could not create inferences connecting existing statements."
-
-premise[value] P5:once-statement-capture-inspection-are-usable-next-implementation ::T "Once statement capture and inspection are usable, the next implementation priority should be the missing operation needed to persist reasoning."
-
-premise[fact] P6:cludia-focused-authoring-model-persists-reasoning-multi-premise ::T "Cludia's focused authoring model persists reasoning as multi-premise AND inferences."
-
-lemma[fact] L1:cludia-first-implementation-milestone-first-usable-slice-its "Cludia's first implementation milestone and first usable slice of its second roadmap milestone are complete."
-  <- AND#J1(P1, P2)
-
-lemma[fact] L2:before-derive-slice-cludia-could-maintain-inspect-workspace "Before the derive slice, Cludia could maintain and inspect workspace statements but could not construct relationships between them."
-  <- AND#J2(P3, P4)
-
-lemma[value] L3:capability-gap-warranted-implementing-multi-premise-inference-authoring "The capability gap warranted implementing multi-premise AND inference authoring as Cludia's next slice."
-  <- AND#J3(L2, P5, P6)
-
-premise[fact] P7:accepted-adr-0006-its-paired-concludia-style-argument ::T "Accepted ADR 0006 and its paired Concludia-style argument capture the decision to separate .arg reasoning, Git revision history, and adjacent chronological or task artifacts."
-
-premise[value] P8:architectural-proposals-completed-code-slices-should-be-reviewed ::T "Architectural proposals and completed code slices should be reviewed at coherent boundaries before they are committed."
-
-premise[fact] P9:post-derive-review-checkpoint-2026-08-24-derive ::T "As of the post-derive review checkpoint on 2026-08-24, the derive implementation and its first dogfood inference chain were complete and uncommitted."
-
-lemma[value] L4:post-derive-review-checkpoint-2026-08-24-immediate "As of the post-derive review checkpoint on 2026-08-24, the immediate next step was to commit the reviewed derive slice and accepted ADR 0006 at coherent boundaries."
-  <- AND#J4(P7, P8, P9)
-
-premise[fact] P10:commit-c6aa570-cludia-cli-could-create-edit-inspect ::T "At commit c6aa570, Cludia's CLI could create, edit, inspect, validate, and derive multi-premise AND inferences."
-
-premise[fact] P11:commit-c6aa570-discovery-workspace-contained-three-connected-reasoning ::T "At commit c6aa570, the discovery workspace contained three connected reasoning components, but Cludia could not list those components directly."
-
-premise[value] P12:when-dogfooding-requires-agent-reconstruct-existing-reasoning-components ::T "When dogfooding requires an agent to reconstruct existing reasoning components manually, the next query slice should expose those components directly."
-
-lemma[value] L5:cludia-next-implementation-slice-should-add-connected-component "At the post-c6aa570 checkpoint, the inspection gap warranted implementing connected-component listing as Cludia's next slice."
-  <- AND#J5(P11, P12)
-
-premise[fact] P13:component-listing-review-checkpoint-2026-08-24-cludia ::T "At the component-listing review checkpoint on 2026-08-24, Cludia could list every connected component and inspect the complete component containing a statement, slug, or junctor."
-
-premise[fact] P14:between-commit-c6aa570-component-listing-checkpoint-no-previously ::T "Between commit c6aa570 and the component-listing checkpoint, no previously implemented Cludia CLI capability was removed."
-
-lemma[fact] L6:component-listing-checkpoint-cludia-supported-workspace-creation "At the component-listing checkpoint, Cludia supported workspace creation, statement capture and editing, listing, inspection, validation, multi-premise AND derivation, and component discovery."
-  <- AND#J6(P10, P13, P14)
-
-premise[fact] P15:commit-b516a86-locating-statements-wording-required-reading-externally ::T "At commit b516a86, locating statements by wording required reading or externally filtering the complete list output because Cludia had no search command."
-
-premise[value] P16:workspaces-grow-next-read-query-priority-should-eliminate ::T "As workspaces grow, the next read/query priority should eliminate whole-workspace scanning for a known word, phrase, ID, or slug."
-
-lemma[value] L7:statement-search-justified-cludia-next-read-query-slice "At the post-b516a86 checkpoint, the whole-workspace scanning gap warranted statement search as Cludia's next read/query slice."
-  <- AND#J7(P15, P16)
-
-premise[fact] P17:commit-b516a86-cludia-could-create-inference-but-could ::T "At commit b516a86, Cludia could create an AND inference but could not add or remove its sources or remove the junctor."
-
-premise[value] P18:after-inference-creation-works-authors-should-be-able ::T "After inference creation works, authors should be able to repair a persisted inference when an audit reveals a missing or unnecessary premise."
-
-lemma[value] L8:inference-repair-justified-cludia-next-construction-slice "At the post-b516a86 checkpoint, the inability to modify persisted AND inferences warranted inference repair as Cludia's next construction slice."
-  <- AND#J8(P17, P18)
-
-premise[value] P19:among-required-missing-features-next-slice-should-prioritize ::T "Among required missing features, the next slice should prioritize friction already encountered in dogfooding."
-
-lemma[value] L9:cludia-should-implement-statement-search-before-inference-repair "At the post-b516a86 checkpoint, statement search was the warranted implementation priority before inference repair."
-  <- AND#J9(P15, P17, P19)
-
-premise[fact] P20:statement-search-review-checkpoint-2026-08-24-cludia ::T "At the statement-search review checkpoint on 2026-08-24, Cludia could search statement IDs, slugs, and text by case-insensitive substring while preserving document order."
-
-premise[fact] P21:inference-repair-review-checkpoint-2026-08-24-cludia ::T "At the inference-repair review checkpoint on 2026-08-24, Cludia could add a source, remove a source while preserving at least two, and remove a junctor without leaving an undercut dangling."
-
-premise[fact] P22:commit-d1a2f3b-cludia-could-capture-query-derive-repair ::T "At commit d1a2f3b, Cludia could capture, query, derive, and repair affirmative reasoning but could not author or remove defeats."
-
-premise[value] P23:full-investigation-must-preserve-material-challenges-premises-inferences ::T "A full investigation must preserve material challenges to premises, inferences, and other challenges."
-
-premise[fact] P24:cludia-v1-requires-premise-undermines-inference-undercuts-counterpoints ::T "Cludia v1 requires premise undermines, inference undercuts, and counterpoints targeting counterpoints as first-class defeat scopes."
-
-lemma[value] L10:defeat-authoring-removal-are-required-before-cludia-can "At the post-d1a2f3b checkpoint, the inability to author defeats warranted defeat authoring and removal before a full investigation."
-  <- AND#J10(P22, P23, P24)
-
-premise[fact] P25:defeat-authoring-review-checkpoint-2026-08-24-cludia ::T "At the defeat-authoring review checkpoint on 2026-08-24, Cludia could author and remove premise undermines, inference undercuts, and counterpoints targeting counterpoints."
-
-premise[fact] P26:commit-fbfbeb5-cludia-could-author-remove-defeats-but ::T "At commit fbfbeb5, Cludia could author and remove defeats but could only edit statement text and could not delete a statement."
-
-premise[value] P27:full-investigation-must-be-able-correct-statement-truth ::T "A full investigation must be able to correct a statement's truth or kind and remove capture mistakes with a structural preview."
-
-premise[fact] P28:cludia-v1-requires-truth-kind-changes-plus-statement ::T "Cludia v1 requires truth and kind changes plus statement deletion with a dry-run plan of incident relations and resulting components."
-
-lemma[value] L11:statement-truth-kind-editing-plus-dry-run-deletion "At the post-fbfbeb5 checkpoint, missing statement truth/kind editing and structural deletion warranted the next investigation slice."
-  <- AND#J11(P26, P27, P28)
-
-premise[fact] P29:statement-lifecycle-review-checkpoint-2026-08-24-cludia ::T "At the statement-lifecycle review checkpoint on 2026-08-24, Cludia could edit statement text, truth, and kind and dry-run or execute deletion with incident-relation and component reporting."
-
-premise[fact] P30:commit-92c72a7-cludia-could-conduct-revise-full-local ::T "At commit 92c72a7, Cludia could conduct and revise a full local inquiry but could not read or export the exact rooted closure of a selected conclusion."
-
-premise[value] P31:completed-investigation-must-be-able-inspect-publish-exactly ::T "A completed investigation must be able to inspect and publish exactly the upstream justification and attached defeat chains for a selected root."
-
-premise[fact] P32:cludia-v1-requires-rooted-traversal-include-every-incoming ::T "Cludia v1 requires rooted traversal to include every incoming justification and recursive defeat chain, reconcile roles, and pass strict Concludia validation before atomic export."
-
-lemma[value] L12:rooted-structure-reading-atomic-concludia-export-are-final "At the post-92c72a7 checkpoint, missing rooted closure reading and strict atomic export warranted the final investigation-completion slice."
-  <- AND#J12(P30, P31, P32)
-
-premise[fact] P33:rooted-export-review-checkpoint-2026-08-24-cludia ::T "At the rooted-export review checkpoint on 2026-08-24, Cludia could read complete rooted support and defeat closures and atomically export strict Concludia artifacts without overwriting existing files."
-
-premise[fact] P34:commit-677babe-cludia-supported-defeat-authoring-removal-statement ::T "At commit 677babe, Cludia supported defeat authoring and removal, statement truth and kind editing, structural deletion, rooted closure reading, and strict atomic Concludia export."
-
-premise[fact] P35:commit-677babe-every-durable-v1-capability-required-specification ::T "At commit 677babe, every durable v1 capability required by specification sections 6.1 through 6.4 was accessible through the Cludia CLI with structured output."
-
-premise[value] P36:after-all-required-v1-investigation-operations-are-available ::T "After all required v1 investigation operations are available and validated, the next priority should be a real full-investigation pilot rather than speculative feature expansion."
-
-lemma[value] L13:cludia-ready-full-investigation-pilot-separate-workspace "Cludia is ready for a full-investigation pilot in a separate workspace."
-  <- AND#J13(P34, P35, P36)
-
-premise[fact] P37:proposed-adr-0007-its-paired-strict-concludia-argument ::F "Proposed ADR 0007 and its paired strict Concludia argument capture the distinction among stable statement identity, mutable wording, optional slugs, and material replacement."
-
-premise[value] P38:statement-identity-semantics-should-be-reviewed-before-cli ::T "Statement identity semantics should be reviewed before the CLI requires continuity intent or introduces slug refactoring."
-
-premise[fact] P39:commit-6e508d3-text-edits-preserved-ids-without-explicit ::T "At commit 6e508d3, text edits preserved IDs without an explicit same-proposition assertion and generated slugs could not be renamed through the CLI."
-
-lemma[value] L14:immediate-next-step-review-proposed-adr-0007-before "The immediate next step is to review proposed ADR 0007 before implementing agent revision guidance or slug refactoring."
-  <- AND#J14(P37, P38, P39)
-
-premise[fact] P40:accepted-adr-0007-its-paired-strict-concludia-argument ::T "Accepted ADR 0007 and its paired strict Concludia argument establish the distinction among stable statement identity, mutable wording, optional slugs, and material replacement."
-
-lemma[value] L15:immediate-next-step-commit-accepted-adr-0007-before "The immediate next step is to commit accepted ADR 0007 before implementing identity guidance or slug refactoring."
-  <- AND#J15(P38, P39, P40)
-
-premise[fact] P41:accepted-adr-0007-applies-statement-identity-slug-semantics ::T "Accepted ADR 0007 applies statement identity and slug semantics independently of any particular workspace organization or use case."
-
-premise[value] P42:agent-identity-guidance-should-explain-mutation-semantics-without ::T "Agent identity guidance should explain mutation semantics without assuming that users maintain separate current-state and historical-reasoning files."
-
-premise[fact] P43:dual-current-state-historical-reasoning-workspace-documented-one ::T "A dual current-state and historical-reasoning workspace is documented as one optional incident-investigation use case rather than a Cludia profile or invariant."
-
-lemma[value] L17:adr-0007-implementation-checkpoint-accepted-use-case-neutral "At the ADR 0007 implementation checkpoint, the accepted use-case-neutral identity decision warranted identity guidance and slug refactoring."
-  <- AND#J17(P41, P42, P43)
-
-premise[fact] P44:adr-0007-implementation-review-checkpoint-2026-08-24 ::T "At the ADR 0007 implementation review checkpoint on 2026-08-24, Cludia required explicit same-proposition intent for text edits, supported mutable optional slugs, and exposed use-case-neutral machine-readable identity guidance."
-
-premise[fact] P45:adr-0007-implementation-deliberately-leaves-identifier-reuse-after ::T "ADR 0007's implementation deliberately leaves identifier reuse after deletion unresolved and adds no tombstone or allocator metadata."
-
-premise[value] P46:evidence-full-investigation-pilot-should-decide-whether-deleted ::T "Evidence from the full-investigation pilot should decide whether deleted IDs require permanent retirement or a separate opaque identity and display-label model."
-
-lemma[value] L18:identifier-lifetime-after-deletion-remains-open-question-full "Identifier lifetime after deletion remains an open question for the full-investigation pilot."
-  <- AND#J18(P45, P46)
-
 premise[fact] P47:external-claude-agent-dogfooded-cludia-work-investigation ::T "An external Claude agent dogfooded Cludia during a multi-session work investigation and reported that dependency inspection made affected conclusions easier to find than rereading a growing prose summary."
 
 premise[fact] P48:identity-defeat-model-improved-agent-reasoning-precision ::T "The external agent reported that Cludia's identity guard prevented a material proposition change from being hidden as an edit and that undermine, undercut, and counterpoint scopes improved reasoning precision."
 
-premise[fact] P49:predicted-generated-ids-after-failed-add-caused-semantic-miswiring ::T "After a failed add with a digit-leading generated slug, the external agent's predicted numeric IDs no longer matched later successful additions, producing structurally valid but semantically miswired inferences."
-
-premise[fact] P50:generated-slug-can-violate-own-leading-letter-rule ::T "Cludia can generate a digit-leading slug even though workspace validation requires statement slugs to begin with a lowercase letter."
-
-premise[fact] P51:external-agent-repeatedly-needed-atomic-junctor-source-replacement ::T "The external agent repeatedly needed to replace one incorrect source in an existing junctor and found the add-source then remove-source sequence awkward."
-
-premise[fact] P52:external-agent-repeatedly-needed-material-statement-replacement ::T "The external agent repeatedly needed to replace a materially changed statement, audit downstream relations, remove the old statement, and verify the resulting graph."
-
-premise[fact] P53:guidance-omits-predicted-id-and-counterpoint-deletion-preconditions ::T "Cludia's machine guidance does not warn agents against predicting generated IDs across mutations or explain that attached counterpoints must be removed before deleting their target."
-
 lemma[value] L19:cross-model-dogfood-validates-core-reasoning-model "Cross-model dogfooding provides concrete evidence that Cludia's explicit dependency, identity, and defeat model improves multi-session agent reasoning over an accumulating prose summary."
   <- AND#J16(P47, P48)
 
-lemma[value] L20:immediate-correction-agent-safe-capture-guidance "The immediate correction should make generated capture safe and teach external agents to use explicit or returned IDs and counterpoint-aware deletion."
-  <- AND#J19(P49, P50, P53)
+premise[fact] P59:adjacent-artifacts-already-preserve-implementation-state ::T "Git, Dagim, the roadmap, CLI help, and accepted ADRs already preserve implementation chronology, task state, current capabilities, and durable decisions outside the tracked Cludia dogfood workspace."
 
-premise[fact] P54:external-agent-safety-slice-review-checkpoint ::T "At the external-agent safety review checkpoint, Cludia generated valid statement slugs for digit-leading text, preserved existing document-ID fallback behavior, and exposed machine guidance against predicted IDs and implicit counterpoint detachment."
+premise[fact] P60:support-sink-review-exposed-obsolete-development-history ::T "Reviewing the dogfood workspace's support sinks exposed completed next-step lemmas, dated capability checkpoints, and statements whose applicability had expired."
 
-lemma[value] L21:first-external-agent-follow-up-slice-ready-review "The first external-agent follow-up slice is implemented and ready for review."
-  <- AND#J20(L20, P54)
+lemma[value] L28:dogfood-workspace-should-focus-current-product-discovery "The tracked Cludia dogfood workspace should retain current product-discovery reasoning that may inform future features rather than duplicate implementation chronology, task history, or general capability documentation."
+  <- AND#J27(P59, P60)
 
-premise[fact] P55:atomic-source-replacement-review-checkpoint ::T "At the atomic source-replacement review checkpoint, Cludia could preview and atomically replace one source of an AND junctor in place while preserving source order and refusing duplicate, cyclic, invalid, or OR-junctor changes without writing."
+premise[fact] P61:deleted-id-reuse-remains-undecided ::T "Cludia has not decided whether statement and junctor IDs may be reused after deletion within one document lineage."
 
-lemma[value] L22:atomic-source-replacement-slice-ready-review "The atomic single-junctor source-replacement slice is implemented and ready for review."
-  <- AND#J21(P51, P55)
+premise[fact] P62:textual-ledger-sink-table-communicated-graph-without-routing ::T "A full-text derivation ledger and support-sink table communicated graph contents without relying on graphical edge routing."
 
-premise[fact] P56:atomic-batch-capture-review-checkpoint ::T "At the atomic batch-capture review checkpoint, Cludia could preview or apply versioned multi-statement JSON input, return an ordered caller-key-to-statement mapping, and reject an invalid later entry without writing earlier entries or consuming generated IDs."
+premise[fact] P63:textual-views-required-agent-reconstruction-general-json ::T "Producing those textual views required the agent to reconstruct topological ordering, outgoing-target status, and longest justification depth from general Cludia JSON output."
 
-lemma[value] L23:atomic-batch-capture-addresses-predicted-id-failure "Atomic batch capture addresses the demonstrated predicted-ID failure class and is implemented for review."
-  <- AND#J22(P49, P56)
+lemma[value] L29:deterministic-textual-inspection-next-feature-candidate "A deterministic textual inspection command for derivation ledgers and support sinks is a warranted candidate for the next Cludia feature dogfood slice."
+  <- AND#J28(L28, P62, P63)
 
-premise[fact] P57:safe-material-replacement-review-checkpoint ::T "At the safe material-replacement review checkpoint, Cludia could report every incident relation, retarget only selected downstream AND sources, remove only selected old justifications, surface affected defeats and deletion blockers, preserve unselected relations, and apply an exact reviewed plan token only while the workspace remained unchanged."
+premise[fact] P64:cleanup-rehearsal-reused-deleted-junctor-ids ::T "During the rehearsed dogfood cleanup, automatic derivation reused J1 and J2 after those junctor IDs had been deleted from the tracked document lineage."
 
-lemma[value] L24:safe-material-replacement-slice-ready-review "The two-phase, relation-by-relation material replacement slice addresses the repeated external-agent workflow and is implemented for review."
-  <- AND#J23(P52, P57)
-
-premise[fact] P58:cross-model-follow-up-final-validation-checkpoint ::T "At the final cross-model follow-up checkpoint, all normal and race-enabled tests, vet, build, tracked-artifact validation, strict ADR argument validation, and installation from a clean committed checkout succeeded."
-
-lemma[value] L25:external-agent-capture-repair-friction-addressed "The demonstrated external-agent capture and focused inference-repair friction has been addressed by reviewed agent guidance, atomic source replacement, and atomic batch capture."
-  <- AND#J24(L21, L22, L23)
-
-lemma[value] L26:core-value-safe-replacement-validated-together "Cross-model evidence for Cludia's core reasoning value now coexists with validated, semantically guarded material replacement mechanics."
-  <- AND#J25(L19, L24, P58)
-
-lemma[value] L27:five-step-external-claude-follow-up-complete "The five-step external Claude dogfood follow-up is complete and ready for handoff."
-  <- AND#J26(L25, L26)
+lemma[value] L30:tracked-lineages-need-deleted-id-policy "Cludia should decide whether tracked document lineages require retired-ID protection before relying on automatic allocation after deletion."
+  <- AND#J29(P61, P64)
