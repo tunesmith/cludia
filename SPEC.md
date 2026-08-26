@@ -220,6 +220,9 @@ capabilities.
   statement ID or durable relations.
 - Delete a statement with a dry-run plan showing incident relations and
   resulting orphans/components.
+- Plan and apply material replacement between two existing non-counterpoint
+  statement records through explicit per-relation choices and a state-bound
+  apply token.
 
 ### 6.3 Construct and repair
 
@@ -296,6 +299,21 @@ resulting statement MUST reject the whole batch without writing. Successful and
 dry-run output MUST preserve input order and return each key with its complete
 assigned statement. A dry-run mapping is tentative; only the result of the
 applied mutation is authoritative for later references.
+
+Material replacement MUST be a two-phase operation. A dry run MUST report the
+old and replacement records, every incident support and defeat, each explicitly
+selected downstream `AND` source retarget, each explicitly selected old
+justification removal, affected inference defeats, recognized root handling,
+component changes, deletion blockers, and whether the old record remains. An
+applicable plan MUST return a token bound to the current document and exact
+choices. Application MUST repeat those choices and present the token, and MUST
+refuse without writing when the token is stale.
+
+The replacement operation MUST NOT offer automatic retarget-all behavior. The
+old statement remains by default. Explicit deletion MUST fail while any
+unselected support, direct support, defeat, or recognized root reference remains
+incident to the old record. Counterpoint records are excluded from focused
+material replacement and continue to use counterpoint-specific operations.
 
 The CLI MUST NOT require installation when run from a checkout. Once Go code
 exists, ordinary validation will include:
@@ -424,6 +442,9 @@ V1 is complete when automated tests demonstrate at least:
     explicitly supplied invalid slug is rejected without changing the file.
 13. A multi-statement batch either returns an ordered key-to-statement mapping
     and saves every statement, or saves none when any input is invalid.
+14. Material replacement requires a reviewed state-bound plan, retargets only
+    selected downstream sources, reports affected defeats, and cannot delete
+    the old statement while an unreviewed incident relation remains.
 
 ## 14. Open decisions
 

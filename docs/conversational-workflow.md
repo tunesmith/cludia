@@ -219,6 +219,24 @@ the counterpoint through `remove-counterpoint`; Cludia refuses to detach it
 implicitly. Use `delete --dry-run --json` or the applicable relation-removal
 dry run to inspect structural effects before the destructive mutation.
 
+For a materially different proposition, first add and justify the new record.
+Then use `replace` to plan only the relation changes that have been semantically
+reviewed:
+
+```bash
+cludia replace case.arg old-finding --with corrected-finding \
+  --retarget-source J7 \
+  --remove-justification J3 \
+  --delete-old --dry-run --json
+```
+
+The dry run reports all incident relations and returns a token only when the
+plan is applicable. Apply by repeating the exact choices with
+`--apply-token TOKEN`. Any intervening workspace change invalidates the token.
+Unselected relations block deletion, the old record is retained by default,
+and Cludia never assumes that all relations about the old proposition remain
+valid for the new one.
+
 The user may explicitly authorize broader mutation, but the tool itself should
 remain transparent through dry-run and structured mutation results.
 

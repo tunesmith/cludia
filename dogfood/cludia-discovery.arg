@@ -178,3 +178,8 @@ premise[fact] P56:atomic-batch-capture-review-checkpoint ::T "At the atomic batc
 
 lemma[value] L23:atomic-batch-capture-addresses-predicted-id-failure "Atomic batch capture addresses the demonstrated predicted-ID failure class and is implemented for review."
   <- AND#J22(P49, P56)
+
+premise[fact] P57:safe-material-replacement-review-checkpoint ::T "At the safe material-replacement review checkpoint, Cludia could report every incident relation, retarget only selected downstream AND sources, remove only selected old justifications, surface affected defeats and deletion blockers, preserve unselected relations, and apply an exact reviewed plan token only while the workspace remained unchanged."
+
+lemma[value] L24:safe-material-replacement-slice-ready-review "The two-phase, relation-by-relation material replacement slice addresses the repeated external-agent workflow and is implemented for review."
+  <- AND#J23(P52, P57)

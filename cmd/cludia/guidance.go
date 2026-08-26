@@ -59,10 +59,15 @@ type deletionGuidance struct {
 }
 
 type materialReplacementGuidance struct {
-	EditCommandAppropriate bool     `json:"edit_command_appropriate"`
-	CurrentPrimitiveSteps  []string `json:"current_primitive_steps"`
-	FutureDryRunRequired   bool     `json:"future_dry_run_required"`
-	AutomaticRetargetAll   bool     `json:"automatic_retarget_all"`
+	EditCommandAppropriate  bool     `json:"edit_command_appropriate"`
+	CurrentPrimitiveSteps   []string `json:"current_primitive_steps"`
+	Command                 string   `json:"command"`
+	TwoPhase                bool     `json:"two_phase"`
+	DryRunRequired          bool     `json:"dry_run_required"`
+	ApplyTokenRequired      bool     `json:"apply_token_required"`
+	RelationChoicesExplicit bool     `json:"relation_choices_explicit"`
+	OldRetainedByDefault    bool     `json:"old_retained_by_default"`
+	AutomaticRetargetAll    bool     `json:"automatic_retarget_all"`
 }
 
 func runGuidance(args []string, stdout, stderr io.Writer) error {
@@ -94,6 +99,7 @@ func runGuidance(args []string, stdout, stderr io.Writer) error {
 	fmt.Fprintln(stdout, "- A batch dry-run mapping is tentative; use IDs from the applied mutation result for later references.")
 	fmt.Fprintln(stdout, "- Before deleting a challenged element, remove attached counterpoints with remove-counterpoint; use delete --dry-run to inspect structural effects.")
 	fmt.Fprintln(stdout, "- Materially different propositions receive new IDs; audit each relation before retargeting.")
+	fmt.Fprintln(stdout, "- Material replacement uses replace --dry-run followed by the same explicit relation choices and --apply-token; there is no retarget-all mode.")
 	fmt.Fprintln(stdout, "- These rules do not assume any particular workspace organization or use case.")
 	return nil
 }
@@ -124,8 +130,9 @@ func identityGuidance() guidanceOutput {
 		},
 		MaterialReplacement: materialReplacementGuidance{
 			EditCommandAppropriate: false,
-			CurrentPrimitiveSteps:  []string{"add new statement", "audit and repair relations", "retain or delete old statement"},
-			FutureDryRunRequired:   true, AutomaticRetargetAll: false,
+			CurrentPrimitiveSteps:  []string{"add and justify new statement", "dry-run explicit relation choices", "apply the state-bound plan", "retain or explicitly delete old statement"},
+			Command:                "replace", TwoPhase: true, DryRunRequired: true, ApplyTokenRequired: true,
+			RelationChoicesExplicit: true, OldRetainedByDefault: true, AutomaticRetargetAll: false,
 		},
 	}
 }

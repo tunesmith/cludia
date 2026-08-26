@@ -25,4 +25,16 @@ lemma[value] L3:slugs-should-remain-optional-mutable-aliases-one-current "Slugs 
   <- AND#J3(P2, P7)
 
 conclusion[value] C1:cludia-should-distinguish-durable-proposition-identity-mutable-wording "Cludia should distinguish durable proposition identity from mutable wording and optional slugs, require explicit same-proposition intent for text edits, and plan material replacement as a new identity with relation-by-relation decisions."
-  <- AND#J4(L1, L2, L3)
+  <- AND#J4(L5, L2, L3)
+
+premise[fact] P8:external-agent-dogfood-repeated-material-replacement-workflow ::T "External-agent dogfooding repeatedly required replacing an earlier proposition after new evidence resolved or corrected it."
+
+premise[value] P9:safe-replacement-should-require-explicit-relation-choices ::T "A replacement convenience operation should require explicit choices for each retargeted downstream source, removed old justification, root update, and old-record deletion."
+
+premise[value] P10:replacement-application-should-match-reviewed-document-plan ::T "Applying a replacement should require a plan token bound to the reviewed document state and exact relation choices."
+
+lemma[value] L4:material-replacement-two-phase-state-bound-explicit-plan "Material replacement should use a two-phase, state-bound plan that automates selected mechanics without making semantic relation choices for the caller."
+  <- AND#J5(P8, P9, P10)
+
+lemma[value] L5:identity-policy-includes-safe-replacement-mechanics "Cludia's identity policy should combine new proposition identities with two-phase, relation-by-relation replacement mechanics."
+  <- AND#J6(L1, L4)

@@ -119,6 +119,11 @@ bin/cludia guidance --json
 
 bin/cludia delete inquiry.arg P3 --dry-run
 
+bin/cludia replace inquiry.arg L1 --with L2 \
+  --retarget-source J2 \
+  --remove-justification J1 \
+  --delete-old --dry-run --json
+
 bin/cludia derive inquiry.arg \
   --source P1 \
   --source P2 \
@@ -191,6 +196,15 @@ silently changing an inference's sources, reports component changes and newly
 isolated statements, delegates counterpoint deletion to `remove-counterpoint`,
 and refuses to detach any counterpoint targeting the statement or an incident
 junctor.
+
+Material statement replacement is a two-phase `replace` operation between two
+existing non-counterpoint records. The caller explicitly selects every
+downstream `AND` source retarget, old incoming justification removal, recognized
+root update, and old-record deletion. A dry run reports all incident relations,
+affected defeats, blockers, and component changes and returns a plan token.
+Application repeats the same choices with `--apply-token`; any intervening
+workspace or choice change makes the token stale. The old statement remains by
+default, and there is no retarget-all mode.
 
 `root` computes the complete upstream support closure and attached recursive
 defeat chains for a selected non-counterpoint statement, reconciles roles, and

@@ -162,6 +162,7 @@ node design-implement-atomic-batch-statement-capture: Design and implement atomi
   parent implement-atomic-single-junctor-source-replacement  # Implement atomic single-junctor source replacement
 
 node refine-adr-0007-implement-safe-material-statement: Refine ADR 0007 and implement safe material statement replacement
+  complete
   parent design-implement-atomic-batch-statement-capture  # Design and implement atomic batch statement capture
 
 node complete-cross-model-dogfood-review-prepare-work-agent: Complete cross-model dogfood review and prepare the work-agent handoff

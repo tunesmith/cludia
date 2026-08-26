@@ -35,7 +35,7 @@ func TestGuidanceJSONContractIsUseCaseNeutral(t *testing.T) {
 	if !output.Deletion.DryRunAvailable || output.Deletion.DryRunFlag != "--dry-run" || !output.Deletion.RemoveAttachedCounterpointsFirst || output.Deletion.CounterpointRemovalCommand != "remove-counterpoint" {
 		t.Fatalf("deletion guidance = %#v", output.Deletion)
 	}
-	if output.MaterialReplacement.EditCommandAppropriate || !output.MaterialReplacement.FutureDryRunRequired || output.MaterialReplacement.AutomaticRetargetAll {
+	if output.MaterialReplacement.EditCommandAppropriate || output.MaterialReplacement.Command != "replace" || !output.MaterialReplacement.TwoPhase || !output.MaterialReplacement.DryRunRequired || !output.MaterialReplacement.ApplyTokenRequired || !output.MaterialReplacement.RelationChoicesExplicit || !output.MaterialReplacement.OldRetainedByDefault || output.MaterialReplacement.AutomaticRetargetAll {
 		t.Fatalf("replacement guidance = %#v", output.MaterialReplacement)
 	}
 }

@@ -111,12 +111,10 @@ Dogfooding must still determine:
 - which concrete temporal or provenance query, if any, justifies structured
   metadata in the shared format.
 
-ADR 0007 deliberately leaves the future replacement workflow open:
-
-- command naming and selection UX;
-- per-relation retargeting choices;
-- whether and when the old statement is retained;
-- how replacement plans coordinate across multiple known files.
+ADR 0007's proposed 2026-08-25 refinement resolves the single-workspace
+replacement command, explicit per-relation selection, old-record retention, and
+state-bound plan/application workflow. Replacement coordination across multiple
+known files remains open.
 
 It also leaves identifier lifetime after deletion open:
 
@@ -128,5 +126,7 @@ It also leaves identifier lifetime after deletion open:
 
 ## License and distribution
 
-The license, module path, installation method, and release process remain
-deferred. They should be chosen before the first public release.
+The module path is `github.com/tunesmith/cludia`, and the current private
+distribution method is cloning and installing from source. The license and
+public release process remain deferred and must be chosen before the first
+public release.

@@ -2,6 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-08-24
+- Replacement refinement: Accepted 2026-08-25
 
 ## Context
 
@@ -104,8 +105,30 @@ The connected argument supporting this decision is
   component changes.
 - Replacement MUST NOT retarget every relation automatically; each relation may
   depend on the exact old proposition.
-- The command name, selection UX, and defaults for retaining the old statement
-  remain deferred until manual replacement is dogfooded.
+- External-agent dogfooding subsequently demonstrated repeated material
+  replacement after new evidence resolved or corrected an earlier proposition.
+  The manual workflow was correct but required several ordered mutations and
+  repeated structural verification.
+- The focused convenience command is named `replace`. It operates between two
+  existing non-counterpoint statement records; creating and justifying the new
+  proposition remains an explicit earlier operation.
+- `replace` has no retarget-all mode. The caller identifies each downstream
+  `AND` junctor whose source should change and each old incoming justification
+  that should be removed. Unselected support, direct support, defeat, and
+  metadata relations remain visible and block deletion of the old statement.
+- Recognized root metadata may be retargeted only through an explicit choice.
+  Unknown external references remain outside the checked scope and produce a
+  warning.
+- Every replacement begins with a structural dry run reporting both statement
+  records, all incident relations, selected source retargets, removed
+  justifications, defeats attached to affected junctors, component changes,
+  deletion blockers, and whether the old record will remain.
+- An applicable dry run returns a plan token bound to the current document and
+  the exact relation choices. Application requires that token and refuses if
+  the workspace or requested choices have changed.
+- The old statement is retained by default. Explicit deletion succeeds only
+  when the selected changes leave no incident relation or recognized root
+  reference attached to it.
 
 Git remains the history of earlier tracked file revisions under ADR 0006. The
 current `.arg` revision contains the current proposition records and current
