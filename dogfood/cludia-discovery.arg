@@ -183,3 +183,14 @@ premise[fact] P57:safe-material-replacement-review-checkpoint ::T "At the safe m
 
 lemma[value] L24:safe-material-replacement-slice-ready-review "The two-phase, relation-by-relation material replacement slice addresses the repeated external-agent workflow and is implemented for review."
   <- AND#J23(P52, P57)
+
+premise[fact] P58:cross-model-follow-up-final-validation-checkpoint ::T "At the final cross-model follow-up checkpoint, all normal and race-enabled tests, vet, build, tracked-artifact validation, strict ADR argument validation, and installation from a clean committed checkout succeeded."
+
+lemma[value] L25:external-agent-capture-repair-friction-addressed "The demonstrated external-agent capture and focused inference-repair friction has been addressed by reviewed agent guidance, atomic source replacement, and atomic batch capture."
+  <- AND#J24(L21, L22, L23)
+
+lemma[value] L26:core-value-safe-replacement-validated-together "Cross-model evidence for Cludia's core reasoning value now coexists with validated, semantically guarded material replacement mechanics."
+  <- AND#J25(L19, L24, P58)
+
+lemma[value] L27:five-step-external-claude-follow-up-complete "The five-step external Claude dogfood follow-up is complete and ready for handoff."
+  <- AND#J26(L25, L26)

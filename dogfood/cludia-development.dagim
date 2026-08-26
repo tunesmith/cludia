@@ -166,4 +166,5 @@ node refine-adr-0007-implement-safe-material-statement: Refine ADR 0007 and impl
   parent design-implement-atomic-batch-statement-capture  # Design and implement atomic batch statement capture
 
 node complete-cross-model-dogfood-review-prepare-work-agent: Complete cross-model dogfood review and prepare the work-agent handoff
+  complete
   parent refine-adr-0007-implement-safe-material-statement  # Refine ADR 0007 and implement safe material statement...

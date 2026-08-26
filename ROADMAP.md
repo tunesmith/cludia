@@ -73,7 +73,12 @@ artifact-only reconstruction audit were completed on 2026-08-24. The artifacts
 were sufficient for responsible causal and operational resumption, while also
 exposing temporal-hygiene, duplicated-workspace, cross-file correlation, and
 task-completion-evidence questions. Those findings do not yet justify new
-format semantics.
+format semantics. A separate Claude-driven work investigation then demonstrated
+cross-model value from dependency tracing, identity continuity, and typed
+defeats while exposing agent-specific capture and replacement friction. The
+resulting generated-slug correction, machine guidance, atomic source
+replacement, atomic batch capture, and state-bound material replacement were
+implemented and reviewed on 2026-08-25 without adding temporal format semantics.
 
 - Use the CLI through ordinary LLM conversations on real non-sensitive
   workspaces.
