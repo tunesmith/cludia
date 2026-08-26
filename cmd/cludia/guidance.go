@@ -45,6 +45,10 @@ type scriptedAuthoringGuidance struct {
 	ExplicitIDFlag                        string `json:"explicit_id_flag"`
 	AddResultIDField                      string `json:"add_result_id_field"`
 	SuccessfulMutationResultAuthoritative bool   `json:"successful_mutation_result_authoritative"`
+	AtomicBatchCommand                    string `json:"atomic_batch_command"`
+	BatchInputSchemaVersion               int    `json:"batch_input_schema_version"`
+	BatchResultMappingField               string `json:"batch_result_mapping_field"`
+	BatchDryRunMappingTentative           bool   `json:"batch_dry_run_mapping_tentative"`
 }
 
 type deletionGuidance struct {
@@ -86,6 +90,8 @@ func runGuidance(args []string, stdout, stderr io.Writer) error {
 	fmt.Fprintln(stdout, "- Truth- and kind-only edits do not require --same-proposition.")
 	fmt.Fprintln(stdout, "- Slugs are optional mutable aliases with one current value and no retained alias history.")
 	fmt.Fprintln(stdout, "- Scripted capture must not predict generated IDs across mutations; pass --id or read statement.id from each successful add --json result.")
+	fmt.Fprintln(stdout, "- Use add-batch with versioned JSON input for all-or-nothing multi-statement capture and caller-key-to-statement mappings.")
+	fmt.Fprintln(stdout, "- A batch dry-run mapping is tentative; use IDs from the applied mutation result for later references.")
 	fmt.Fprintln(stdout, "- Before deleting a challenged element, remove attached counterpoints with remove-counterpoint; use delete --dry-run to inspect structural effects.")
 	fmt.Fprintln(stdout, "- Materially different propositions receive new IDs; audit each relation before retargeting.")
 	fmt.Fprintln(stdout, "- These rules do not assume any particular workspace organization or use case.")
@@ -109,7 +115,8 @@ func identityGuidance() guidanceOutput {
 		},
 		ScriptedAuthoring: scriptedAuthoringGuidance{
 			PredictGeneratedIDs: false, ExplicitIDFlag: "--id", AddResultIDField: "statement.id",
-			SuccessfulMutationResultAuthoritative: true,
+			SuccessfulMutationResultAuthoritative: true, AtomicBatchCommand: "add-batch",
+			BatchInputSchemaVersion: 1, BatchResultMappingField: "statements", BatchDryRunMappingTentative: true,
 		},
 		Deletion: deletionGuidance{
 			DryRunAvailable: true, DryRunFlag: "--dry-run", RemoveAttachedCounterpointsFirst: true,

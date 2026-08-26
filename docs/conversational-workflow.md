@@ -69,6 +69,32 @@ candidate ID. Either pass an explicit `--id` for every planned statement or
 read `statement.id` from each successful `add --json` response before using it
 in a later command.
 
+When several statements are already known, prefer one atomic batch over a
+sequence whose later references depend on predicted allocations. For example,
+`statements.json` may contain:
+
+```json
+{
+  "schema_version": 1,
+  "statements": [
+    {"key": "phase-status", "text": "The migration phase is complete."},
+    {"key": "ticket-42061", "text": "42061 blocks the next phase."}
+  ]
+}
+```
+
+Then preview or apply it with:
+
+```bash
+cludia add-batch case.arg --input statements.json --dry-run --json
+cludia add-batch case.arg --input statements.json --json
+```
+
+The result returns each caller key beside its complete assigned statement. If
+any entry is invalid, no statement is written and no generated ID is consumed.
+Treat IDs in a dry-run mapping as tentative and use the applied mutation's
+mapping for later derives or other references.
+
 ### 2. Inspect
 
 The agent queries the file rather than asking the user to restate it:

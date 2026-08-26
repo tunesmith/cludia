@@ -62,6 +62,8 @@ func run(args []string, stdout, stderr io.Writer) error {
 		return runInit(args[1:], stdout, stderr)
 	case "add":
 		return runAdd(args[1:], stdout, stderr)
+	case "add-batch":
+		return runAddBatch(args[1:], stdout, stderr)
 	case "edit":
 		return runEdit(args[1:], stdout, stderr)
 	case "derive":
@@ -217,6 +219,7 @@ func writeTopLevelUsage(w io.Writer) {
 	fmt.Fprintln(w, "Usage:")
 	fmt.Fprintln(w, "  cludia init [--json] FILE --title TITLE --text TEXT")
 	fmt.Fprintln(w, "  cludia add [--json] FILE --text TEXT")
+	fmt.Fprintln(w, "  cludia add-batch [--dry-run] [--json] FILE --input FILE")
 	fmt.Fprintln(w, "  cludia edit [--json] FILE STATEMENT --text TEXT --same-proposition")
 	fmt.Fprintln(w, "  cludia derive [--json] FILE --source STATEMENT --source STATEMENT (--target STATEMENT | --target-text TEXT)")
 	fmt.Fprintln(w, "  cludia list [--state all|isolated] [--json] FILE")

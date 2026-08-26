@@ -211,6 +211,8 @@ capabilities.
 ### 6.2 Capture and edit
 
 - Add a statement.
+- Atomically add a non-empty batch of statements from versioned structured
+  input and return an ordered caller-key-to-statement mapping.
 - Edit statement text without changing its stable identity only with an
   explicit same-proposition assertion.
 - Change truth and kind where valid.
@@ -267,6 +269,33 @@ IDs across independent mutations. Callers can instead provide explicit IDs or
 consume the assigned ID from each successful structured mutation result.
 Guidance MUST also state that attached counterpoints are removed explicitly
 before deleting their target or an incident inference.
+
+The version 1 batch-capture input contract is:
+
+```json
+{
+  "schema_version": 1,
+  "statements": [
+    {
+      "key": "caller-owned-correlation-key",
+      "text": "Required statement text.",
+      "id": "optional-explicit-id",
+      "slug": "optional-explicit-slug",
+      "truth": "T",
+      "kind": "fact"
+    }
+  ]
+}
+```
+
+Within a batch, `key` MUST be non-empty and unique but is not durable workspace
+identity. `text` MUST be non-empty. Omitted `id` and `slug` values are generated
+in batch order; omitted `truth` and `kind` values default to `T` and `fact`.
+Unknown fields, unsupported schema versions, duplicate keys, or any invalid
+resulting statement MUST reject the whole batch without writing. Successful and
+dry-run output MUST preserve input order and return each key with its complete
+assigned statement. A dry-run mapping is tentative; only the result of the
+applied mutation is authoritative for later references.
 
 The CLI MUST NOT require installation when run from a checkout. Once Go code
 exists, ordinary validation will include:
@@ -393,6 +422,8 @@ V1 is complete when automated tests demonstrate at least:
     appear together in rooted export until the original is explicitly removed.
 12. Generated slugs for digit-leading statement text are valid, while an
     explicitly supplied invalid slug is rejected without changing the file.
+13. A multi-statement batch either returns an ordered key-to-statement mapping
+    and saves every statement, or saves none when any input is invalid.
 
 ## 14. Open decisions
 

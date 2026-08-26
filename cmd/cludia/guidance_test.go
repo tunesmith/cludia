@@ -29,7 +29,7 @@ func TestGuidanceJSONContractIsUseCaseNeutral(t *testing.T) {
 	if !output.Slugs.Optional || !output.Slugs.Mutable || output.Slugs.OldAliasesRetained || !output.Slugs.RelationsUseIDs {
 		t.Fatalf("slug guidance = %#v", output.Slugs)
 	}
-	if output.ScriptedAuthoring.PredictGeneratedIDs || output.ScriptedAuthoring.ExplicitIDFlag != "--id" || output.ScriptedAuthoring.AddResultIDField != "statement.id" || !output.ScriptedAuthoring.SuccessfulMutationResultAuthoritative {
+	if output.ScriptedAuthoring.PredictGeneratedIDs || output.ScriptedAuthoring.ExplicitIDFlag != "--id" || output.ScriptedAuthoring.AddResultIDField != "statement.id" || !output.ScriptedAuthoring.SuccessfulMutationResultAuthoritative || output.ScriptedAuthoring.AtomicBatchCommand != "add-batch" || output.ScriptedAuthoring.BatchInputSchemaVersion != 1 || output.ScriptedAuthoring.BatchResultMappingField != "statements" || !output.ScriptedAuthoring.BatchDryRunMappingTentative {
 		t.Fatalf("scripted authoring guidance = %#v", output.ScriptedAuthoring)
 	}
 	if !output.Deletion.DryRunAvailable || output.Deletion.DryRunFlag != "--dry-run" || !output.Deletion.RemoveAttachedCounterpointsFirst || output.Deletion.CounterpointRemovalCommand != "remove-counterpoint" {

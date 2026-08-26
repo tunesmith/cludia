@@ -106,6 +106,8 @@ bin/cludia init inquiry.arg \
 bin/cludia add inquiry.arg \
   --text "Cludia supports direct CLI use and conversational agent use."
 
+bin/cludia add-batch inquiry.arg --input statements.json --dry-run --json
+
 bin/cludia edit inquiry.arg P1 \
   --text "Marlow completed Cludia's first format-core milestone." \
   --same-proposition \
@@ -155,6 +157,12 @@ conflating their logical meanings.
 
 `search` performs a case-insensitive substring match over statement IDs, slugs,
 and text. Results preserve document order and report which fields matched.
+
+`add-batch` atomically captures multiple statements from a versioned JSON input
+file. Each input item has a required unique caller `key` and statement `text`,
+plus optional `id`, `slug`, `truth`, and `kind`. The result preserves input order
+and maps every caller key to its complete assigned statement; any invalid item
+rejects the whole batch without writing or consuming IDs.
 
 Focused inference repair uses `add-source`, `replace-source`, `remove-source`,
 and `remove-junctor`. Source editing applies only to `AND` junctors and must

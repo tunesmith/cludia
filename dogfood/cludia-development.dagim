@@ -158,6 +158,7 @@ node implement-atomic-single-junctor-source-replacement: Implement atomic single
   parent fix-generated-slug-safety-expand-external-agent-guidance  # Fix generated slug safety and expand external-agent guidance
 
 node design-implement-atomic-batch-statement-capture: Design and implement atomic batch statement capture
+  complete
   parent implement-atomic-single-junctor-source-replacement  # Implement atomic single-junctor source replacement
 
 node refine-adr-0007-implement-safe-material-statement: Refine ADR 0007 and implement safe material statement replacement
