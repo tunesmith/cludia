@@ -145,6 +145,21 @@ Until removal, `J1` still means that its sources were authored as sufficient;
 the undercut records that this claim is contested or presently rejected. The
 tool preserves both claims and does not decide which one is semantically right.
 
+When one source of an `AND` junctor was selected incorrectly, replace it as one
+atomic operation rather than temporarily adding a third source and then
+removing the old one:
+
+```bash
+cludia replace-source case.arg J1 \
+  --from wrong-source \
+  --to corrected-source \
+  --dry-run --json
+```
+
+The command preserves the source position, validates the complete result, and
+writes nothing when replacement would create a duplicate, self-support, cycle,
+or other invalid structure.
+
 ### 7. Export
 
 When the structure is mature:

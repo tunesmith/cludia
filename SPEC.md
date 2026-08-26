@@ -224,6 +224,8 @@ capabilities.
 - Create a new target and `AND` junctor from two or more existing sources.
 - Add a new `AND` justification to an existing target.
 - Add a source to an existing junctor.
+- Atomically replace one source of an existing `AND` junctor while preserving
+  source position and validating the complete resulting workspace.
 - Remove a source when the remaining construct is valid.
 - Remove a junctor.
 - Add an undermine.

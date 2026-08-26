@@ -66,6 +66,27 @@ func runRemoveSource(args []string, stdout, stderr io.Writer) error {
 	return mutateJunctorSource(fs.Arg(0), fs.Arg(1), *sourceRef, false, *dryRun, *jsonOutput, stdout)
 }
 
+func runReplaceSource(args []string, stdout, stderr io.Writer) error {
+	fs := flag.NewFlagSet("replace-source", flag.ContinueOnError)
+	fs.SetOutput(stderr)
+	jsonOutput := fs.Bool("json", false, "output versioned JSON")
+	dryRun := fs.Bool("dry-run", false, "validate and report without saving")
+	fromRef := fs.String("from", "", "current source statement id or slug")
+	toRef := fs.String("to", "", "replacement source statement id or slug")
+	fs.Usage = func() { writeReplaceSourceUsage(fs.Output()) }
+	if err := fs.Parse(flagsFirst(args, map[string]bool{"from": true, "to": true})); err != nil {
+		if errors.Is(err, flag.ErrHelp) {
+			return nil
+		}
+		return err
+	}
+	if fs.NArg() != 2 || strings.TrimSpace(*fromRef) == "" || strings.TrimSpace(*toRef) == "" {
+		fs.Usage()
+		return fmt.Errorf("replace-source expects a file and junctor and requires --from and --to")
+	}
+	return replaceJunctorSource(fs.Arg(0), fs.Arg(1), *fromRef, *toRef, *dryRun, *jsonOutput, stdout)
+}
+
 func mutateJunctorSource(path, junctorID, sourceRef string, add, dryRun, jsonOutput bool, stdout io.Writer) error {
 	doc, profile, diagnostics := loadValidated(path)
 	if diagnostic.HasErrors(diagnostics) {
@@ -131,6 +152,77 @@ func mutateJunctorSource(path, junctorID, sourceRef string, add, dryRun, jsonOut
 		output.SourceAdded = source.ID
 	} else {
 		output.SourceRemoved = source.ID
+	}
+	return writeJunctorMutation(stdout, jsonOutput, output)
+}
+
+func replaceJunctorSource(path, junctorID, fromRef, toRef string, dryRun, jsonOutput bool, stdout io.Writer) error {
+	doc, profile, diagnostics := loadValidated(path)
+	if diagnostic.HasErrors(diagnostics) {
+		if err := writeFailure(stdout, jsonOutput, profile, diagnostics); err != nil {
+			return err
+		}
+		return errValidationFailed
+	}
+	next := doc.Clone()
+	junctor, ok := next.Junctor(junctorID)
+	if !ok {
+		return writeMutationFailure(stdout, jsonOutput, profile, "junctor_not_found", fmt.Sprintf("junctor %q not found", junctorID), junctorID)
+	}
+	if junctor.Connector != argument.ConnectorAND {
+		return writeMutationFailure(stdout, jsonOutput, profile, "junctor_not_editable", fmt.Sprintf("focused repair edits only AND junctors; %s uses %s", junctor.ID, junctor.Connector), junctor.ID)
+	}
+	from, ok := next.Statement(strings.TrimSpace(fromRef))
+	if !ok {
+		return writeMutationFailure(stdout, jsonOutput, profile, "source_not_found", fmt.Sprintf("source statement %q not found", fromRef), fromRef)
+	}
+	to, ok := next.Statement(strings.TrimSpace(toRef))
+	if !ok {
+		return writeMutationFailure(stdout, jsonOutput, profile, "source_not_found", fmt.Sprintf("source statement %q not found", toRef), toRef)
+	}
+	index := -1
+	for i, id := range junctor.Sources {
+		if id == from.ID {
+			index = i
+			break
+		}
+	}
+	if index < 0 {
+		return writeMutationFailure(stdout, jsonOutput, profile, "junctor_source_not_found", fmt.Sprintf("statement %s is not a source of junctor %s", from.ID, junctor.ID), from.ID)
+	}
+	if from.ID == to.ID {
+		return writeMutationFailure(stdout, jsonOutput, profile, "source_replacement_same_statement", fmt.Sprintf("replacement source for junctor %s must differ from %s", junctor.ID, from.ID), from.ID)
+	}
+	for _, id := range junctor.Sources {
+		if id == to.ID {
+			return writeMutationFailure(stdout, jsonOutput, profile, "junctor_source_duplicate", fmt.Sprintf("statement %s is already a source of junctor %s", to.ID, junctor.ID), to.ID)
+		}
+	}
+	previous := copyJunctor(*junctor)
+	junctor.Sources[index] = to.ID
+	validated := validation.Validate(next, profile)
+	if !validated.OK() {
+		if err := writeFailure(stdout, jsonOutput, profile, validated.Diagnostics); err != nil {
+			return err
+		}
+		return errValidationFailed
+	}
+	if !dryRun {
+		if err := argfile.SaveAtomic(path, next); err != nil {
+			return err
+		}
+	}
+	diagnostics = validated.Diagnostics
+	if diagnostics == nil {
+		diagnostics = []diagnostic.Diagnostic{}
+	}
+	current := copyJunctor(*junctor)
+	output := junctorMutationOutput{
+		SchemaVersion: outputSchemaVersion, Action: "replace-source", DryRun: dryRun,
+		Profile: profile, Document: documentSummary(next), Junctor: &current,
+		PreviousJunctor: previous, SourceAdded: to.ID, SourceRemoved: from.ID,
+		Changes:     []changeOutput{{Operation: "updated", ElementType: "junctor", ID: junctor.ID}},
+		Diagnostics: diagnostics,
 	}
 	return writeJunctorMutation(stdout, jsonOutput, output)
 }
@@ -222,6 +314,8 @@ func writeJunctorMutation(w io.Writer, jsonOutput bool, output junctorMutationOu
 		fmt.Fprintf(w, "Added source %s to %s\n", output.SourceAdded, output.PreviousJunctor.ID)
 	case "remove-source":
 		fmt.Fprintf(w, "Removed source %s from %s\n", output.SourceRemoved, output.PreviousJunctor.ID)
+	case "replace-source":
+		fmt.Fprintf(w, "Replaced source %s with %s in %s\n", output.SourceRemoved, output.SourceAdded, output.PreviousJunctor.ID)
 	case "remove-junctor":
 		fmt.Fprintf(w, "Removed junctor %s\n", output.PreviousJunctor.ID)
 	}
@@ -245,6 +339,11 @@ func writeAddSourceUsage(w io.Writer) {
 func writeRemoveSourceUsage(w io.Writer) {
 	fmt.Fprintln(w, "Usage: cludia remove-source [--dry-run] [--json] FILE JUNCTOR --source STATEMENT")
 	fmt.Fprintln(w, "Remove a source when at least two distinct sources remain valid.")
+}
+
+func writeReplaceSourceUsage(w io.Writer) {
+	fmt.Fprintln(w, "Usage: cludia replace-source [--dry-run] [--json] FILE JUNCTOR --from STATEMENT --to STATEMENT")
+	fmt.Fprintln(w, "Replace one source in place within an AND junctor after validating the complete workspace.")
 }
 
 func writeRemoveJunctorUsage(w io.Writer) {

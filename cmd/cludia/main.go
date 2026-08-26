@@ -80,6 +80,8 @@ func run(args []string, stdout, stderr io.Writer) error {
 		return runAddSource(args[1:], stdout, stderr)
 	case "remove-source":
 		return runRemoveSource(args[1:], stdout, stderr)
+	case "replace-source":
+		return runReplaceSource(args[1:], stdout, stderr)
 	case "remove-junctor":
 		return runRemoveJunctor(args[1:], stdout, stderr)
 	case "undermine":
@@ -224,6 +226,7 @@ func writeTopLevelUsage(w io.Writer) {
 	fmt.Fprintln(w, "  cludia search [--json] FILE QUERY")
 	fmt.Fprintln(w, "  cludia add-source [--json] FILE JUNCTOR --source STATEMENT")
 	fmt.Fprintln(w, "  cludia remove-source [--dry-run] [--json] FILE JUNCTOR --source STATEMENT")
+	fmt.Fprintln(w, "  cludia replace-source [--dry-run] [--json] FILE JUNCTOR --from STATEMENT --to STATEMENT")
 	fmt.Fprintln(w, "  cludia remove-junctor [--dry-run] [--json] FILE JUNCTOR")
 	fmt.Fprintln(w, "  cludia undermine [--json] FILE PREMISE --text TEXT")
 	fmt.Fprintln(w, "  cludia undercut [--json] FILE JUNCTOR --text TEXT")

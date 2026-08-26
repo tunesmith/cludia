@@ -168,3 +168,8 @@ premise[fact] P54:external-agent-safety-slice-review-checkpoint ::T "At the exte
 
 lemma[value] L21:first-external-agent-follow-up-slice-ready-review "The first external-agent follow-up slice is implemented and ready for review."
   <- AND#J20(L20, P54)
+
+premise[fact] P55:atomic-source-replacement-review-checkpoint ::T "At the atomic source-replacement review checkpoint, Cludia could preview and atomically replace one source of an AND junctor in place while preserving source order and refusing duplicate, cyclic, invalid, or OR-junctor changes without writing."
+
+lemma[value] L22:atomic-source-replacement-slice-ready-review "The atomic single-junctor source-replacement slice is implemented and ready for review."
+  <- AND#J21(P51, P55)

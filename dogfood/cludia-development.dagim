@@ -154,6 +154,7 @@ node fix-generated-slug-safety-expand-external-agent-guidance: Fix generated slu
   parent record-external-claude-dogfood-findings-five-step-follow  # Record external Claude dogfood findings and the five-step...
 
 node implement-atomic-single-junctor-source-replacement: Implement atomic single-junctor source replacement
+  complete
   parent fix-generated-slug-safety-expand-external-agent-guidance  # Fix generated slug safety and expand external-agent guidance
 
 node design-implement-atomic-batch-statement-capture: Design and implement atomic batch statement capture

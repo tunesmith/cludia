@@ -123,6 +123,7 @@ bin/cludia derive inquiry.arg \
   --target-text "Cludia's first two implementation increments are complete."
 
 bin/cludia add-source inquiry.arg J1 --source P3
+bin/cludia replace-source inquiry.arg J1 --from P2 --to P3 --dry-run
 bin/cludia remove-source inquiry.arg J1 --source P3 --dry-run
 bin/cludia remove-junctor inquiry.arg J1 --dry-run
 
@@ -155,10 +156,12 @@ conflating their logical meanings.
 `search` performs a case-insensitive substring match over statement IDs, slugs,
 and text. Results preserve document order and report which fields matched.
 
-Focused inference repair uses `add-source`, `remove-source`, and
-`remove-junctor`. Source editing applies only to `AND` junctors and must leave at
-least two distinct sources. Removal commands support `--dry-run`; junctor
-removal refuses to orphan an attached inference undercut.
+Focused inference repair uses `add-source`, `replace-source`, `remove-source`,
+and `remove-junctor`. Source editing applies only to `AND` junctors and must
+leave at least two distinct sources. `replace-source` substitutes one source in
+place and validates the result atomically instead of requiring an intermediate
+three-source junctor. Source and junctor removal commands support `--dry-run`;
+junctor removal refuses to orphan an attached inference undercut.
 
 Defeat authoring uses `undermine` for premise scope, `undercut` for a specific
 junctor and target, and `counterpoint` for a counterpoint of a counterpoint.
