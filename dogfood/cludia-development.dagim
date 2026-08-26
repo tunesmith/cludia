@@ -118,6 +118,7 @@ node commit-cludia-rooted-read-export-slice-dogfood-results: Commit cludia roote
   parent self-review-cludia-rooted-read-concludia-export  # Self-review cludia rooted read and Concludia export
 
 node run-full-investigation-pilot-separate-cludia-workspace: Run a full investigation pilot in a separate Cludia workspace
+  complete
 
 node review-proposed-adr-0007-paired-identity-argument: Review proposed ADR 0007 and paired identity argument
   complete
@@ -143,3 +144,23 @@ node self-review-adr-0007-identity-guidance-slug-refactoring: Self-review ADR 00
 node commit-adr-0007-identity-implementation-dogfood-results: Commit ADR 0007 identity implementation and dogfood results
   complete
   parent self-review-adr-0007-identity-guidance-slug-refactoring  # Self-review ADR 0007 identity guidance and slug refactoring
+
+node record-external-claude-dogfood-findings-five-step-follow: Record external Claude dogfood findings and the five-step follow-up plan
+  complete
+  parent run-full-investigation-pilot-separate-cludia-workspace  # Run a full investigation pilot in a separate Cludia workspace
+
+node fix-generated-slug-safety-expand-external-agent-guidance: Fix generated slug safety and expand external-agent guidance
+  complete
+  parent record-external-claude-dogfood-findings-five-step-follow  # Record external Claude dogfood findings and the five-step...
+
+node implement-atomic-single-junctor-source-replacement: Implement atomic single-junctor source replacement
+  parent fix-generated-slug-safety-expand-external-agent-guidance  # Fix generated slug safety and expand external-agent guidance
+
+node design-implement-atomic-batch-statement-capture: Design and implement atomic batch statement capture
+  parent implement-atomic-single-junctor-source-replacement  # Implement atomic single-junctor source replacement
+
+node refine-adr-0007-implement-safe-material-statement: Refine ADR 0007 and implement safe material statement replacement
+  parent design-implement-atomic-batch-statement-capture  # Design and implement atomic batch statement capture
+
+node complete-cross-model-dogfood-review-prepare-work-agent: Complete cross-model dogfood review and prepare the work-agent handoff
+  parent refine-adr-0007-implement-safe-material-statement  # Refine ADR 0007 and implement safe material statement...

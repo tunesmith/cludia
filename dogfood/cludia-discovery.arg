@@ -143,3 +143,28 @@ premise[value] P46:evidence-full-investigation-pilot-should-decide-whether-delet
 
 lemma[value] L18:identifier-lifetime-after-deletion-remains-open-question-full "Identifier lifetime after deletion remains an open question for the full-investigation pilot."
   <- AND#J18(P45, P46)
+
+premise[fact] P47:external-claude-agent-dogfooded-cludia-work-investigation ::T "An external Claude agent dogfooded Cludia during a multi-session work investigation and reported that dependency inspection made affected conclusions easier to find than rereading a growing prose summary."
+
+premise[fact] P48:identity-defeat-model-improved-agent-reasoning-precision ::T "The external agent reported that Cludia's identity guard prevented a material proposition change from being hidden as an edit and that undermine, undercut, and counterpoint scopes improved reasoning precision."
+
+premise[fact] P49:predicted-generated-ids-after-failed-add-caused-semantic-miswiring ::T "After a failed add with a digit-leading generated slug, the external agent's predicted numeric IDs no longer matched later successful additions, producing structurally valid but semantically miswired inferences."
+
+premise[fact] P50:generated-slug-can-violate-own-leading-letter-rule ::T "Cludia can generate a digit-leading slug even though workspace validation requires statement slugs to begin with a lowercase letter."
+
+premise[fact] P51:external-agent-repeatedly-needed-atomic-junctor-source-replacement ::T "The external agent repeatedly needed to replace one incorrect source in an existing junctor and found the add-source then remove-source sequence awkward."
+
+premise[fact] P52:external-agent-repeatedly-needed-material-statement-replacement ::T "The external agent repeatedly needed to replace a materially changed statement, audit downstream relations, remove the old statement, and verify the resulting graph."
+
+premise[fact] P53:guidance-omits-predicted-id-and-counterpoint-deletion-preconditions ::T "Cludia's machine guidance does not warn agents against predicting generated IDs across mutations or explain that attached counterpoints must be removed before deleting their target."
+
+lemma[value] L19:cross-model-dogfood-validates-core-reasoning-model "Cross-model dogfooding provides concrete evidence that Cludia's explicit dependency, identity, and defeat model improves multi-session agent reasoning over an accumulating prose summary."
+  <- AND#J16(P47, P48)
+
+lemma[value] L20:immediate-correction-agent-safe-capture-guidance "The immediate correction should make generated capture safe and teach external agents to use explicit or returned IDs and counterpoint-aware deletion."
+  <- AND#J19(P49, P50, P53)
+
+premise[fact] P54:external-agent-safety-slice-review-checkpoint ::T "At the external-agent safety review checkpoint, Cludia generated valid statement slugs for digit-leading text, preserved existing document-ID fallback behavior, and exposed machine guidance against predicted IDs and implicit counterpoint detachment."
+
+lemma[value] L21:first-external-agent-follow-up-slice-ready-review "The first external-agent follow-up slice is implemented and ready for review."
+  <- AND#J20(L20, P54)

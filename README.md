@@ -169,7 +169,11 @@ Text-changing `edit` requires `--same-proposition` and reports that declared
 identity-continuity intent; truth- and kind-only edits do not require it.
 `rename-slug` can explicitly rename, regenerate, or clear the optional current
 slug while preserving ID and relations. `guidance` exposes the use-case-neutral
-identity and replacement contract in human or versioned JSON form.
+identity and replacement contract in human or versioned JSON form. Its
+scripted-authoring guidance requires callers to provide explicit IDs or consume
+the returned `statement.id` instead of predicting allocations across
+mutations, and its deletion guidance explains counterpoint-removal
+preconditions.
 
 `delete` supports `--dry-run`, removes all incident relations rather than
 silently changing an inference's sources, reports component changes and newly

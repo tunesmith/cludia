@@ -13,6 +13,8 @@ type guidanceOutput struct {
 	StatementIdentity   statementIdentityGuidance   `json:"statement_identity"`
 	TextEdits           textEditGuidance            `json:"text_edits"`
 	Slugs               slugGuidance                `json:"slugs"`
+	ScriptedAuthoring   scriptedAuthoringGuidance   `json:"scripted_authoring"`
+	Deletion            deletionGuidance            `json:"deletion"`
 	MaterialReplacement materialReplacementGuidance `json:"material_replacement"`
 }
 
@@ -36,6 +38,20 @@ type slugGuidance struct {
 	RelationsUseIDs      bool     `json:"relations_use_ids"`
 	Operations           []string `json:"operations"`
 	ExternalScopeWarning bool     `json:"external_scope_warning"`
+}
+
+type scriptedAuthoringGuidance struct {
+	PredictGeneratedIDs                   bool   `json:"predict_generated_ids"`
+	ExplicitIDFlag                        string `json:"explicit_id_flag"`
+	AddResultIDField                      string `json:"add_result_id_field"`
+	SuccessfulMutationResultAuthoritative bool   `json:"successful_mutation_result_authoritative"`
+}
+
+type deletionGuidance struct {
+	DryRunAvailable                  bool   `json:"dry_run_available"`
+	DryRunFlag                       string `json:"dry_run_flag"`
+	RemoveAttachedCounterpointsFirst bool   `json:"remove_attached_counterpoints_first"`
+	CounterpointRemovalCommand       string `json:"counterpoint_removal_command"`
 }
 
 type materialReplacementGuidance struct {
@@ -69,6 +85,8 @@ func runGuidance(args []string, stdout, stderr io.Writer) error {
 	fmt.Fprintln(stdout, "- Text edits require --same-proposition; Cludia does not verify semantic equivalence.")
 	fmt.Fprintln(stdout, "- Truth- and kind-only edits do not require --same-proposition.")
 	fmt.Fprintln(stdout, "- Slugs are optional mutable aliases with one current value and no retained alias history.")
+	fmt.Fprintln(stdout, "- Scripted capture must not predict generated IDs across mutations; pass --id or read statement.id from each successful add --json result.")
+	fmt.Fprintln(stdout, "- Before deleting a challenged element, remove attached counterpoints with remove-counterpoint; use delete --dry-run to inspect structural effects.")
 	fmt.Fprintln(stdout, "- Materially different propositions receive new IDs; audit each relation before retargeting.")
 	fmt.Fprintln(stdout, "- These rules do not assume any particular workspace organization or use case.")
 	return nil
@@ -88,6 +106,14 @@ func identityGuidance() guidanceOutput {
 		Slugs: slugGuidance{
 			Optional: true, Mutable: true, OldAliasesRetained: false, RelationsUseIDs: true,
 			Operations: []string{"--slug", "--from-text", "--clear"}, ExternalScopeWarning: true,
+		},
+		ScriptedAuthoring: scriptedAuthoringGuidance{
+			PredictGeneratedIDs: false, ExplicitIDFlag: "--id", AddResultIDField: "statement.id",
+			SuccessfulMutationResultAuthoritative: true,
+		},
+		Deletion: deletionGuidance{
+			DryRunAvailable: true, DryRunFlag: "--dry-run", RemoveAttachedCounterpointsFirst: true,
+			CounterpointRemovalCommand: "remove-counterpoint",
 		},
 		MaterialReplacement: materialReplacementGuidance{
 			EditCommandAppropriate: false,

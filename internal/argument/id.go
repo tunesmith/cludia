@@ -128,6 +128,8 @@ func UniqueSlug(doc *Document, text string) string {
 	base := Slugify(text)
 	if base == "" {
 		base = "statement"
+	} else if base[0] >= '0' && base[0] <= '9' {
+		base = compactSlug(append([]string{"statement"}, strings.Split(base, "-")...))
 	}
 	used := make(map[string]bool, len(doc.Statements))
 	for _, statement := range doc.Statements {

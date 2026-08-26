@@ -105,6 +105,61 @@ func TestFailedAddLeavesWorkspaceUnchanged(t *testing.T) {
 	}
 }
 
+func TestAddGeneratesValidSlugForDigitLeadingText(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "workspace.arg")
+	var stdout, stderr bytes.Buffer
+	if err := run([]string{"init", path, "--title", "Title", "--text", "First"}, &stdout, &stderr); err != nil {
+		t.Fatal(err)
+	}
+	stdout.Reset()
+	stderr.Reset()
+	if err := run([]string{"add", path, "--text", "42061 blocks the migration", "--json"}, &stdout, &stderr); err != nil {
+		t.Fatalf("add: %v\nstderr: %s", err, stderr.String())
+	}
+	var output mutationOutput
+	if err := json.Unmarshal(stdout.Bytes(), &output); err != nil {
+		t.Fatal(err)
+	}
+	if got, want := output.Statement.Slug, "statement-42061-blocks-migration"; got != want {
+		t.Fatalf("generated slug = %q, want %q", got, want)
+	}
+	if !argument.ValidSlug(output.Statement.Slug) {
+		t.Fatalf("generated slug %q is invalid", output.Statement.Slug)
+	}
+	before, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	stdout.Reset()
+	stderr.Reset()
+	err = run([]string{"add", path, "--text", "Explicit invalid alias", "--slug", "42061-explicit", "--json"}, &stdout, &stderr)
+	if !errors.Is(err, errValidationFailed) {
+		t.Fatalf("explicit invalid slug error = %v, want validation failure", err)
+	}
+	after, readErr := os.ReadFile(path)
+	if readErr != nil || !bytes.Equal(before, after) {
+		t.Fatalf("workspace changed after explicit invalid slug: %v", readErr)
+	}
+}
+
+func TestInitSeparatesDigitLeadingDocumentIDAndStatementSlugFallbacks(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "workspace.arg")
+	var stdout, stderr bytes.Buffer
+	if err := run([]string{"init", path, "--title", "2026 migration", "--text", "42061 blocks the migration", "--json"}, &stdout, &stderr); err != nil {
+		t.Fatalf("init: %v\nstderr: %s", err, stderr.String())
+	}
+	var output mutationOutput
+	if err := json.Unmarshal(stdout.Bytes(), &output); err != nil {
+		t.Fatal(err)
+	}
+	if got, want := output.Document.ID, "workspace-2026-migration"; got != want {
+		t.Fatalf("document id = %q, want %q", got, want)
+	}
+	if got, want := output.Statement.Slug, "statement-42061-blocks-migration"; got != want {
+		t.Fatalf("statement slug = %q, want %q", got, want)
+	}
+}
+
 func TestEditChangesOnlyTextAndReportsPreviousStatement(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "workspace.arg")
 	var stdout, stderr bytes.Buffer

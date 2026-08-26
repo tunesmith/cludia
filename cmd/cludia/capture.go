@@ -61,7 +61,7 @@ func runInit(args []string, stdout, stderr io.Writer) error {
 	kind, kindOK := parseKind(*kindName)
 	firstSlug := strings.TrimSpace(*slug)
 	if firstSlug == "" {
-		firstSlug = argument.Slugify(cleanText)
+		firstSlug = argument.UniqueSlug(&argument.Document{}, cleanText)
 	}
 	doc := &argument.Document{
 		ID: id, Title: cleanTitle,

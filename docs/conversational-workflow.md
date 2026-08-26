@@ -62,6 +62,13 @@ cludia add case.arg \
   --json
 ```
 
+For scripted or agent-driven capture, a generated ID becomes authoritative
+only in the successful mutation result. An agent must not predict a sequence of
+future IDs across independent mutations: a rejected add does not reserve its
+candidate ID. Either pass an explicit `--id` for every planned statement or
+read `statement.id` from each successful `add --json` response before using it
+in a later command.
+
 ### 2. Inspect
 
 The agent queries the file rather than asking the user to restate it:
@@ -165,6 +172,11 @@ proposition record. A materially different proposition receives a new ID and
 each affected relation is audited explicitly. Slug refactoring is a separate
 alias-only operation and must not be presented as a semantic edit. These rules
 apply regardless of how the user organizes one or more workspaces.
+
+Before deleting a statement or inference with an attached counterpoint, remove
+the counterpoint through `remove-counterpoint`; Cludia refuses to detach it
+implicitly. Use `delete --dry-run --json` or the applicable relation-removal
+dry run to inspect structural effects before the destructive mutation.
 
 The user may explicitly authorize broader mutation, but the tool itself should
 remain transparent through dry-run and structured mutation results.

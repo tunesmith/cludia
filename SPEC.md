@@ -61,6 +61,9 @@ New captured statements MUST default to:
 premise[fact] <id> ::T "<text>"
 ```
 
+Automatically generated non-empty slugs MUST satisfy workspace slug
+validation. A caller-supplied invalid slug MUST still be rejected.
+
 The CLI MUST provide explicit ways to capture unknown, false, and value
 statements. It MUST NOT assign numerical confidence, credibility, or weight.
 
@@ -257,6 +260,12 @@ Flags SHOULD be accepted consistently before or after positional arguments.
 Mutation commands that can remove or cascade through relations SHOULD support
 `--dry-run`.
 
+Agent-facing guidance MUST instruct scripted callers not to predict generated
+IDs across independent mutations. Callers can instead provide explicit IDs or
+consume the assigned ID from each successful structured mutation result.
+Guidance MUST also state that attached counterpoints are removed explicitly
+before deleting their target or an incident inference.
+
 The CLI MUST NOT require installation when run from a checkout. Once Go code
 exists, ordinary validation will include:
 
@@ -380,6 +389,8 @@ V1 is complete when automated tests demonstrate at least:
     commands.
 11. A challenged junctor and a repaired replacement can coexist, save, and
     appear together in rooted export until the original is explicitly removed.
+12. Generated slugs for digit-leading statement text are valid, while an
+    explicitly supplied invalid slug is rejected without changing the file.
 
 ## 14. Open decisions
 

@@ -15,7 +15,7 @@ func TestGuidanceJSONContractIsUseCaseNeutral(t *testing.T) {
 	if err := json.Unmarshal(stdout.Bytes(), &raw); err != nil {
 		t.Fatal(err)
 	}
-	assertExactKeys(t, raw, "schema_version", "use_case_neutral", "statement_identity", "text_edits", "slugs", "material_replacement")
+	assertExactKeys(t, raw, "schema_version", "use_case_neutral", "statement_identity", "text_edits", "slugs", "scripted_authoring", "deletion", "material_replacement")
 	var output guidanceOutput
 	if err := json.Unmarshal(stdout.Bytes(), &output); err != nil {
 		t.Fatal(err)
@@ -28,6 +28,12 @@ func TestGuidanceJSONContractIsUseCaseNeutral(t *testing.T) {
 	}
 	if !output.Slugs.Optional || !output.Slugs.Mutable || output.Slugs.OldAliasesRetained || !output.Slugs.RelationsUseIDs {
 		t.Fatalf("slug guidance = %#v", output.Slugs)
+	}
+	if output.ScriptedAuthoring.PredictGeneratedIDs || output.ScriptedAuthoring.ExplicitIDFlag != "--id" || output.ScriptedAuthoring.AddResultIDField != "statement.id" || !output.ScriptedAuthoring.SuccessfulMutationResultAuthoritative {
+		t.Fatalf("scripted authoring guidance = %#v", output.ScriptedAuthoring)
+	}
+	if !output.Deletion.DryRunAvailable || output.Deletion.DryRunFlag != "--dry-run" || !output.Deletion.RemoveAttachedCounterpointsFirst || output.Deletion.CounterpointRemovalCommand != "remove-counterpoint" {
+		t.Fatalf("deletion guidance = %#v", output.Deletion)
 	}
 	if output.MaterialReplacement.EditCommandAppropriate || !output.MaterialReplacement.FutureDryRunRequired || output.MaterialReplacement.AutomaticRetargetAll {
 		t.Fatalf("replacement guidance = %#v", output.MaterialReplacement)

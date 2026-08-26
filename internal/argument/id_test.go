@@ -50,3 +50,17 @@ func TestSlugifyProducesBoundedConversationalSlug(t *testing.T) {
 		t.Fatalf("slug length = %d, max %d", len(got), maxSlugLength)
 	}
 }
+
+func TestUniqueSlugPrefixesDigitLeadingText(t *testing.T) {
+	got := UniqueSlug(&Document{}, "42061 blocks the migration")
+	want := "statement-42061-blocks-migration"
+	if got != want {
+		t.Fatalf("UniqueSlug = %q, want %q", got, want)
+	}
+	if !ValidSlug(got) {
+		t.Fatalf("generated slug %q is invalid", got)
+	}
+	if len(got) > maxSlugLength {
+		t.Fatalf("slug length = %d, max %d", len(got), maxSlugLength)
+	}
+}
