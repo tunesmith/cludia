@@ -178,6 +178,7 @@ node record-accepted-adr-0008-read-only-terminal-navigation: Record accepted ADR
   complete
 
 node implement-deterministic-cludia-top-ledger-query-commands: Implement deterministic Cludia top and ledger query commands
+  complete
   parent record-accepted-adr-0008-read-only-terminal-navigation  # Record accepted ADR 0008 read-only terminal navigation decision
 
 node implement-read-only-cludia-tui-top-detail-ledger: Implement read-only Cludia TUI Top Detail Ledger navigation

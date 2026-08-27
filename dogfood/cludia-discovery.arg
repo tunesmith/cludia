@@ -45,3 +45,8 @@ lemma[value] L32:first-tui-slice-top-detail-ledger-read-only "The first terminal
 
 lemma[value] L33:next-interface-slice-read-only-tui "The next Cludia interface slice should implement deterministic Top and Ledger commands and the accepted read-only TUI described by ADR 0008."
   <- AND#J32(L31, L32)
+
+premise[fact] P69:top-ledger-query-review-checkpoint ::T "At the deterministic text-view review checkpoint, Cludia could list top statements with depth and challenge state and render a full-text rooted ledger with compact derivation notation in human and versioned JSON output."
+
+lemma[value] L34:top-ledger-query-slice-ready-for-tui "The deterministic Top and Ledger query slice is implemented and ready to support read-only terminal navigation."
+  <- AND#J33(L33, P69)

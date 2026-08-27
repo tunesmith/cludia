@@ -144,6 +144,8 @@ bin/cludia export inquiry.arg --root L1 --output conclusion.arg \
   --id conclusion-id --title "Published conclusion" --json
 
 bin/cludia list inquiry.arg --state isolated
+bin/cludia top inquiry.arg --json
+bin/cludia ledger inquiry.arg L1 --json
 bin/cludia show inquiry.arg P1 --relations
 bin/cludia components inquiry.arg
 bin/cludia component inquiry.arg P1 --json
@@ -162,6 +164,12 @@ conflating their logical meanings.
 
 `search` performs a case-insensitive substring match over statement IDs, slugs,
 and text. Results preserve document order and report which fields matched.
+
+`top` lists non-counterpoint statements with no outgoing support in document
+order, including longest upstream support depth and challenge state. `ledger`
+shows the complete support derivation to a selected statement in stable
+topological order. Their human output preserves full statement text; their
+versioned JSON is the shared read model for agents and the read-only TUI.
 
 `add-batch` atomically captures multiple statements from a versioned JSON input
 file. Each input item has a required unique caller `key` and statement `text`,

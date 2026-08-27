@@ -1,0 +1,124 @@
+package query
+
+import (
+	"reflect"
+	"testing"
+
+	"github.com/tunesmith/cludia/internal/argument"
+)
+
+func TestTopUsesDocumentOrderLongestDepthAndChallengeState(t *testing.T) {
+	doc := navigationDocument()
+	items := Top(doc)
+	if len(items) != 2 {
+		t.Fatalf("top items = %#v", items)
+	}
+	if items[0].Statement.ID != "L2" || items[0].Depth != 2 || !items[0].Challenged {
+		t.Fatalf("first top item = %#v", items[0])
+	}
+	if items[1].Statement.ID != "P5" || items[1].Depth != 0 || !items[1].Challenged {
+		t.Fatalf("second top item = %#v", items[1])
+	}
+	for _, item := range items {
+		if item.Statement.Role == argument.RoleCounterpoint {
+			t.Fatalf("counterpoint included in top: %#v", item)
+		}
+	}
+}
+
+func TestLedgerIsStableSupportOnlyAndPreservesMultipleDerivations(t *testing.T) {
+	doc := navigationDocument()
+	root, rows, err := Ledger(doc, "final")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if root != "L2" {
+		t.Fatalf("root = %q", root)
+	}
+	ids := make([]string, 0, len(rows))
+	for _, row := range rows {
+		ids = append(ids, row.Statement.ID)
+	}
+	want := []string{"P1", "P2", "P3", "P4", "L1", "L2"}
+	if !reflect.DeepEqual(ids, want) {
+		t.Fatalf("ledger order = %#v, want %#v", ids, want)
+	}
+	if len(rows[4].Derivations) != 2 || rows[4].Derivations[0].Connector != argument.ConnectorAND || rows[4].Derivations[1].Connector != argument.ConnectorOR {
+		t.Fatalf("L1 derivations = %#v", rows[4].Derivations)
+	}
+	if len(rows[5].Derivations) != 2 || rows[5].Derivations[1].Type != "direct" || rows[5].Depth != 2 || !rows[5].Challenged {
+		t.Fatalf("L2 row = %#v", rows[5])
+	}
+	for _, row := range rows {
+		if row.Statement.Role == argument.RoleCounterpoint {
+			t.Fatalf("challenge row leaked into ledger: %#v", row)
+		}
+	}
+}
+
+func TestLedgerAcceptsSlugAndRejectsCounterpointRoot(t *testing.T) {
+	doc := navigationDocument()
+	if root, _, err := Ledger(doc, "final"); err != nil || root != "L2" {
+		t.Fatalf("ledger by slug root=%q err=%v", root, err)
+	}
+	if _, _, err := Ledger(doc, "CP1"); err == nil {
+		t.Fatal("counterpoint ledger root accepted")
+	}
+}
+
+func TestCounterpointOfCounterpointDoesNotClearChallenge(t *testing.T) {
+	doc := navigationDocument()
+	if !StatementChallenged(doc, "P5") {
+		t.Fatal("counter-counterpoint cleared challenge state")
+	}
+}
+
+func TestLedgerIncludesCounterpointExplicitlyUsedAsSupportSource(t *testing.T) {
+	doc := &argument.Document{
+		Statements: []argument.Statement{
+			{ID: "P1", Role: argument.RolePremise, Kind: argument.KindFact, Truth: argument.TruthTrue, Text: "Premise"},
+			{ID: "CP1", Role: argument.RoleCounterpoint, Kind: argument.KindFact, Truth: argument.TruthTrue, Text: "Counterpoint used as an authored support source"},
+			{ID: "L1", Role: argument.RoleLemma, Kind: argument.KindFact, Truth: argument.TruthUnknown, Text: "Target"},
+		},
+		Junctors: []argument.Junctor{{ID: "J1", Connector: argument.ConnectorAND, Sources: []string{"P1", "CP1"}, Target: "L1"}},
+	}
+	_, rows, err := Ledger(doc, "L1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	ids := []string{rows[0].Statement.ID, rows[1].Statement.ID, rows[2].Statement.ID}
+	if !reflect.DeepEqual(ids, []string{"P1", "CP1", "L1"}) {
+		t.Fatalf("ledger support rows = %#v", ids)
+	}
+}
+
+func navigationDocument() *argument.Document {
+	statement := func(id, slug string, role argument.Role) argument.Statement {
+		truth := argument.TruthUnknown
+		if role == argument.RolePremise || role == argument.RoleCounterpoint {
+			truth = argument.TruthTrue
+		}
+		return argument.Statement{ID: id, Slug: slug, Role: role, Kind: argument.KindFact, Truth: truth, Text: "Full statement text for " + id}
+	}
+	return &argument.Document{
+		ID: "navigation", Title: "Navigation",
+		Statements: []argument.Statement{
+			statement("P1", "one", argument.RolePremise), statement("P2", "two", argument.RolePremise),
+			statement("P3", "three", argument.RolePremise), statement("P4", "four", argument.RolePremise),
+			statement("L1", "middle", argument.RoleLemma), statement("L2", "final", argument.RoleLemma),
+			statement("P5", "isolated", argument.RolePremise), statement("CP1", "challenge", argument.RoleCounterpoint),
+			statement("CP2", "answer", argument.RoleCounterpoint), statement("CP3", "undercut", argument.RoleCounterpoint),
+		},
+		Junctors: []argument.Junctor{
+			{ID: "J1", Connector: argument.ConnectorAND, Sources: []string{"P1", "P2"}, Target: "L1"},
+			{ID: "J2", Connector: argument.ConnectorOR, Sources: []string{"P3", "P4"}, Target: "L1"},
+			{ID: "J3", Connector: argument.ConnectorAND, Sources: []string{"L1", "P4"}, Target: "L2"},
+		},
+		DirectSupports: []argument.DirectSupport{{Source: "P2", Target: "L2", Connector: argument.ConnectorAND}},
+		Defeats: []argument.Defeat{
+			{From: "CP1", Scope: argument.DefeatPremise, To: "P5"},
+			{From: "CP2", Scope: argument.DefeatCounterpoint, To: "CP1"},
+			{From: "CP3", Scope: argument.DefeatInference, JunctorID: "J3", AtTarget: "L2"},
+		},
+	}
+}
