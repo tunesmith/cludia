@@ -100,7 +100,7 @@ func TestLedgerViewUsesCompactDerivationAndEnterNavigation(t *testing.T) {
 	if m.mode != modeDetail || m.current != "P1" {
 		t.Fatalf("ledger enter = %s", m.debugState())
 	}
-	m = pressKey(m, "h")
+	m = pressKey(m, "esc")
 	if m.mode != modeLedger || m.ledgerCursor != 0 {
 		t.Fatalf("ledger return = %s", m.debugState())
 	}
@@ -232,9 +232,43 @@ func TestNavigationStackRestoresCursorAndScroll(t *testing.T) {
 	if m.mode != modeDetail {
 		t.Fatalf("did not enter detail: %s", m.debugState())
 	}
-	m = pressKey(m, "h")
+	m = pressKey(m, "esc")
 	if m.mode != modeLedger || m.ledgerCursor != wantCursor || m.ledgerScroll != wantScroll {
 		t.Fatalf("ledger viewport not restored: cursor=%d/%d scroll=%d/%d", m.ledgerCursor, wantCursor, m.ledgerScroll, wantScroll)
+	}
+}
+
+func TestTopKeyReturnsDirectlyToTopAndClearsHistory(t *testing.T) {
+	m := newModel("", testUIDocument(), diskVersion{})
+	m = m.openLedger("L2").ensureSelectionVisible()
+	m = pressKey(m, "enter")
+	if m.mode != modeDetail || len(m.history) < 2 {
+		t.Fatalf("nested navigation precondition failed: %s history=%d", m.debugState(), len(m.history))
+	}
+	m = pressKey(m, "t")
+	if m.mode != modeTop || m.current != "" || len(m.history) != 0 {
+		t.Fatalf("t did not return directly to Top: %s history=%d", m.debugState(), len(m.history))
+	}
+	m = pressKey(m, "esc")
+	if m.mode != modeTop {
+		t.Fatalf("Top retained a hidden back destination: %s", m.debugState())
+	}
+}
+
+func TestSpatialAliasesWorkWithoutFooterAdvertising(t *testing.T) {
+	m := newModel("", testUIDocument(), diskVersion{})
+	m = pressKey(m, "l")
+	if m.mode != modeDetail {
+		t.Fatalf("l did not follow from Top: %s", m.debugState())
+	}
+	m = pressKey(m, "h")
+	if m.mode != modeTop {
+		t.Fatalf("h did not go back to Top: %s", m.debugState())
+	}
+	m = m.openLedger("L2").ensureSelectionVisible()
+	view := m.View()
+	if strings.Contains(view, "h/Esc") || strings.Contains(view, "Enter/l") || !strings.Contains(view, "Esc back  t Top") {
+		t.Fatalf("ledger footer advertises hidden aliases or lacks visible guidance:\n%s", view)
 	}
 }
 

@@ -78,9 +78,10 @@ in document order, with longest support depth and `!` on challenged statements.
 All statement text wraps without truncation. Enter follows the selected
 statement into exact justification, challenge, and downstream-use detail; `f`
 opens the complete support ledger to that statement. `j/k` navigates and
-`h`/Escape returns. Valid external CLI or agent changes reload automatically;
-invalid contents leave the last valid in-memory view intact. The TUI never
-writes the workspace.
+Escape returns to the previous view. Press `t` from anywhere to return directly
+to Top. Valid external CLI or agent changes reload automatically; invalid
+contents leave the last valid in-memory view intact. The TUI never writes the
+workspace.
 
 ## Install from source
 

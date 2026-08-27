@@ -104,6 +104,9 @@ func (m Model) updateKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	if key == "ctrl+c" || key == "q" {
 		return m, tea.Quit
 	}
+	if key == "t" {
+		return m.goTop().ensureSelectionVisible(), nil
+	}
 	switch m.mode {
 	case modeTop:
 		m = m.updateTop(key)
@@ -193,6 +196,14 @@ func (m Model) updateLedger(key string) Model {
 	case "h", "esc":
 		m = m.back()
 	}
+	return m
+}
+
+func (m Model) goTop() Model {
+	m.mode = modeTop
+	m.current = ""
+	m.history = nil
+	m.clearMessage()
 	return m
 }
 

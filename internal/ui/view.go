@@ -39,18 +39,18 @@ func (m Model) viewTop() string {
 func (m Model) viewLedger() string {
 	lines, _, _ := m.renderedLedgerBody()
 	body := renderLineViewport(lines, m.ledgerScroll, m.viewportBudget())
-	return m.frame("DERIVATION TO "+m.ledgerRoot, body, "j/k move  Enter inspect  h/Esc back  q quit")
+	return m.frame("DERIVATION TO "+m.ledgerRoot, body, "j/k move  Enter inspect  Esc back  t Top  q quit")
 }
 
 func (m Model) viewDetail() string {
 	statement, ok := m.doc.Statement(m.current)
 	if !ok {
-		return m.frame("STATEMENT", []string{mutedStyle.Render("statement missing")}, "h/Esc back  q quit")
+		return m.frame("STATEMENT", []string{mutedStyle.Render("statement missing")}, "Esc back  t Top  q quit")
 	}
 	body, _, _ := m.renderedDetailBody()
-	footer := "j/k move  Enter follow  f derivation  h/Esc back  q quit"
+	footer := "j/k move  Enter follow  f derivation  Esc back  t Top  q quit"
 	if statement.Role == "counterpoint" {
-		footer = "j/k move  Enter follow  h/Esc back  q quit"
+		footer = "j/k move  Enter follow  Esc back  t Top  q quit"
 	}
 	return m.frame("STATEMENT DETAIL", renderLineViewport(body, m.detailScroll, m.viewportBudget()), footer)
 }
