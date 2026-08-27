@@ -1,0 +1,21 @@
+argument read-only-terminal-navigation-decision "Read-only terminal navigation decision"
+meta version="0.1.0", root="cludia-should-add-read-only-terminal-navigation"
+
+premise[fact] P1:dogfooding-reconstructed-top-ledger-views ::T "Conversational dogfooding repeatedly reconstructed top statements and rooted derivation ledgers from general Cludia JSON."
+
+premise[fact] P2:graphical-views-unreliable-fragile ::T "Generated graphical views either invented edge topology or required fragile manual layout for exact argument rendering."
+
+premise[value] P3:exact-textual-navigation-should-remain-deterministic ::T "Exact statement text and typed support and challenge navigation should remain deterministic."
+
+lemma[value] L1:dogfooding-warrants-textual-navigation-before-graphics "Dogfooding warrants deterministic textual graph navigation before graphical rendering work."
+  <- AND#J1(P1, P2, P3)
+
+premise[fact] P4:dagim-validates-terminal-list-detail-navigation ::T "Dagim demonstrates that terminal list and detail navigation with live file reload remains useful while an external agent edits the underlying file."
+
+premise[value] P5:initial-ui-should-be-read-only-shared-queries ::T "An initial Cludia terminal interface should be read-only and use the same query models exposed to scripts and agents."
+
+lemma[value] L2:read-only-three-view-navigator-appropriate-first-ui "A read-only Top, Statement Detail, and Derivation Ledger navigator is an appropriate first Cludia UI slice."
+  <- AND#J2(P4, P5)
+
+conclusion[value] C1:cludia-should-add-read-only-terminal-navigation "Cludia should add deterministic Top and Ledger query surfaces and a read-only terminal navigator before MCP and graphical web UI work."
+  <- AND#J3(L1, L2)

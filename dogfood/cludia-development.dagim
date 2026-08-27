@@ -170,5 +170,24 @@ node complete-cross-model-dogfood-review-prepare-work-agent: Complete cross-mode
   parent refine-adr-0007-implement-safe-material-statement  # Refine ADR 0007 and implement safe material statement...
 
 node review-deterministic-textual-inspection-candidate-decide: Review deterministic textual inspection candidate and decide derivation-ledger and support-sink command scope
+  complete
 
 node review-deleted-id-reuse-evidence-decide-tracked-lineage: Review deleted-ID reuse evidence and decide tracked-lineage allocation policy
+
+node record-accepted-adr-0008-read-only-terminal-navigation: Record accepted ADR 0008 read-only terminal navigation decision
+  complete
+
+node implement-deterministic-cludia-top-ledger-query-commands: Implement deterministic Cludia top and ledger query commands
+  parent record-accepted-adr-0008-read-only-terminal-navigation  # Record accepted ADR 0008 read-only terminal navigation decision
+
+node implement-read-only-cludia-tui-top-detail-ledger: Implement read-only Cludia TUI Top Detail Ledger navigation
+  parent implement-deterministic-cludia-top-ledger-query-commands  # Implement deterministic Cludia top and ledger query commands
+
+node implement-cludia-tui-live-reload-viewport-navigation: Implement Cludia TUI live reload viewport navigation
+  parent implement-read-only-cludia-tui-top-detail-ledger  # Implement read-only Cludia TUI Top Detail Ledger navigation
+
+node review-dogfood-read-only-cludia-tui: Review and dogfood read-only Cludia TUI
+  parent implement-cludia-tui-live-reload-viewport-navigation  # Implement Cludia TUI live reload viewport navigation
+
+node commit-install-read-only-cludia-tui: Commit and install read-only Cludia TUI
+  parent review-dogfood-read-only-cludia-tui  # Review and dogfood read-only Cludia TUI

@@ -99,7 +99,21 @@ Questions to answer through use:
 Exit criterion: a short dogfooding report identifies the minimum visual UX and
 any necessary CLI contract changes.
 
-## Milestone 5: MCP adapter
+## Milestone 5: Read-only terminal navigator
+
+- Add deterministic Top and Derivation Ledger query surfaces with versioned
+  JSON output.
+- Open `cludia FILE` into a read-only Top view with full wrapped statements,
+  depth, and challenge indication.
+- Navigate through Statement Detail and rooted Derivation Ledger views.
+- Follow valid external agent mutations while retaining the last valid view on
+  invalid changes.
+
+Exit criterion: the TUI can navigate the tracked dogfood workspace through Top,
+Detail, and Ledger without truncating text or writing the workspace, and every
+displayed fact is available through structured CLI output.
+
+## Milestone 6: MCP adapter
 
 - Expose the stable CLI/domain operations through MCP.
 - Keep MCP thin: no separate model, mutations, or hidden LLM calls.
@@ -108,7 +122,7 @@ any necessary CLI contract changes.
 Exit criterion: an MCP client and the CLI produce equivalent reads and
 mutations against the same fixtures.
 
-## Milestone 6: Minimal local web UI
+## Milestone 7: Minimal local web UI
 
 - Statement inbox/list and search.
 - Multi-selection and combine/justify flow.
@@ -126,6 +140,7 @@ without adding a second persistence or semantics implementation.
 - Model-assisted background discovery or embeddings.
 - New `OR` and direct-support authoring.
 - Collaboration and hosted publication.
-- TUI and native application packaging.
+- TUI mutation authoring, graphical terminal maps, and native application
+  packaging.
 - Advanced timelines, entities, maps, and investigation ingestion.
 - Any universal graph format spanning Dagim.

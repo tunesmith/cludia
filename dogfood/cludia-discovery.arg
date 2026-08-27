@@ -28,3 +28,20 @@ premise[fact] P64:cleanup-rehearsal-reused-deleted-junctor-ids ::T "During the r
 
 lemma[value] L30:tracked-lineages-need-deleted-id-policy "Cludia should decide whether tracked document lineages require retired-ID protection before relying on automatic allocation after deletion."
   <- AND#J29(P61, P64)
+
+premise[fact] P65:dogfooding-found-top-ledger-navigation-useful ::T "Dogfooding found that full-text top-statement lists and rooted derivation ledgers communicated Cludia graph structure reliably without graphical edge routing."
+
+premise[value] P66:read-only-terminal-navigation-can-preserve-exact-semantics ::T "A read-only terminal navigator can preserve exact statement text, typed justifications, challenge scope, and downstream uses through progressive disclosure."
+
+premise[value] P67:initial-tui-should-share-query-models-remain-read-only ::T "The initial Cludia TUI should reuse deterministic query models exposed to agents and remain read-only."
+
+premise[fact] P68:dagim-demonstrates-list-detail-navigation-live-reload ::T "Dagim demonstrates that terminal list and detail navigation with live reload remains useful while an external agent edits the underlying file."
+
+lemma[value] L31:dogfood-warrants-read-only-terminal-navigator "Dogfood evidence warrants a read-only Cludia terminal navigator built on deterministic Top and Ledger views."
+  <- AND#J30(L29, P65, P68)
+
+lemma[value] L32:first-tui-slice-top-detail-ledger-read-only "The first terminal UI slice should contain Top, Statement Detail, and Derivation Ledger navigation with no mutation controls."
+  <- AND#J31(P66, P67)
+
+lemma[value] L33:next-interface-slice-read-only-tui "The next Cludia interface slice should implement deterministic Top and Ledger commands and the accepted read-only TUI described by ADR 0008."
+  <- AND#J32(L31, L32)

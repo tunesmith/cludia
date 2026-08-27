@@ -9,9 +9,10 @@
 This document specifies the intended first implementation. `MUST`, `SHOULD`,
 and `MAY` are normative.
 
-The first implementation is a Go CLI over a local `.arg` file. A later local
-web UI is in scope only after CLI dogfooding and MUST have operation and
-information parity with the CLI.
+The first implementation is a Go CLI over a local `.arg` file. After CLI
+dogfooding, v1 also includes a read-only terminal navigator over the same query
+and persistence layers. A later local web UI MUST have operation and information
+parity with the CLI.
 
 ## 2. Terms
 
@@ -204,6 +205,10 @@ capabilities.
 - List isolated statements.
 - List connected components.
 - Read a complete rooted structure.
+- List non-counterpoint statements with no outgoing support, longest upstream
+  support depth, and challenge state.
+- Read a complete, stable, topologically ordered support ledger for a selected
+  non-counterpoint statement.
 - List defeats targeting or originating from an element.
 - Validate under the workspace or Concludia profile.
 - Read versioned machine guidance for statement identity and revision behavior.
@@ -385,10 +390,11 @@ and pass Concludia-profile validation.
 Semantic validity remains a human/LLM audit. Structural export success MUST NOT
 be described as proof that the argument is sound.
 
-## 11. Web parity
+## 11. Interface parity
 
-A future web UI MUST use the same domain operations as the CLI. It MUST NOT
-write the `.arg` file through an independent implementation.
+The read-only TUI and a future web UI MUST use the same domain operations as the
+CLI. They MUST NOT interpret or write the `.arg` file through independent
+implementations.
 
 Parity means:
 
@@ -396,6 +402,10 @@ Parity means:
 - every durable mutation exposed through the CLI can be initiated or
   meaningfully inspected in the UI;
 - every fact shown visually is available in structured CLI output.
+
+The initial TUI MUST remain read-only, expose Top, Statement Detail, and
+Derivation Ledger views, and automatically reload valid external file changes
+without replacing its last valid in-memory document with invalid contents.
 
 Pixel layout, graph rendering, keyboard navigation, and batch ergonomics need
 not be identical.
@@ -409,7 +419,7 @@ not be identical.
 - Entity extraction, timelines, maps, or OSINT collection.
 - Collaboration, accounts, hosted storage, or publication.
 - Native macOS packaging.
-- A TUI.
+- TUI mutation authoring, graphical graph maps, and TUI-only semantic queries.
 - A universal format shared with Dagim.
 - New `OR` or direct-support authoring UX.
 - A new truth-propagation or defeat-adjudication engine.
