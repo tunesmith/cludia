@@ -81,25 +81,25 @@ func scheduleDiskCheck() tea.Cmd {
 
 func (m Model) refreshFromDisk(check diskContents) Model {
 	if check.err != nil {
-		m.message = "reload failed: " + check.err.Error()
-		return m
+		m.setMessage("reload failed: "+check.err.Error(), messageError)
+		return m.ensureSelectionVisible()
 	}
 	if m.diskVersionKnown && check.version == m.seenDiskVersion {
 		return m
 	}
 	m.seenDiskVersion = check.version
 	if m.diskVersionKnown && check.version == m.diskVersion {
-		m.message = "workspace restored to last valid contents"
-		return m
+		m.setMessage("workspace restored to last valid contents", messageSuccess)
+		return m.ensureSelectionVisible()
 	}
 	if !check.version.exists {
-		m.message = "reload failed: workspace no longer exists"
-		return m
+		m.setMessage("reload failed: workspace no longer exists", messageError)
+		return m.ensureSelectionVisible()
 	}
 	doc, err := parseValidDocument(check.data)
 	if err != nil {
-		m.message = "external change is invalid: " + err.Error()
-		return m
+		m.setMessage("external change is invalid: "+err.Error(), messageError)
+		return m.ensureSelectionVisible()
 	}
 	preferredTop := m.selectedTopID()
 	current := m.current
@@ -112,22 +112,22 @@ func (m Model) refreshFromDisk(check diskContents) Model {
 			m.current = current
 		} else {
 			m.mode, m.history = modeTop, nil
-			m.message = "selected statement was removed; returned to Top"
-			return m
+			m.setMessage("selected statement was removed; returned to Top", messageError)
+			return m.ensureSelectionVisible()
 		}
 	}
 	if m.mode == modeLedger {
 		root, rows, ledgerErr := queryLedger(m.doc, ledgerRoot)
 		if ledgerErr != nil {
 			m.mode, m.history = modeTop, nil
-			m.message = "ledger root changed; returned to Top"
-			return m
+			m.setMessage("ledger root changed; returned to Top", messageError)
+			return m.ensureSelectionVisible()
 		}
 		m.ledgerRoot, m.ledgerRows = root, rows
 	}
 	m.ensureSelections()
-	m.message = "reloaded changes from disk"
-	return m
+	m.setMessage("reloaded changes from disk", messageSuccess)
+	return m.ensureSelectionVisible()
 }
 
 func queryLedger(doc *argument.Document, root string) (string, []query.LedgerRow, error) {

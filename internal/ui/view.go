@@ -10,16 +10,14 @@ import (
 )
 
 var (
-	titleStyle    = lipgloss.NewStyle().Bold(true)
-	mutedStyle    = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "#6B7280", Dark: "#9CA3AF"})
-	warningStyle  = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.AdaptiveColor{Light: "#B45309", Dark: "#FBBF24"})
-	selectedStyle = lipgloss.NewStyle().Bold(true)
+	titleStyle         = lipgloss.NewStyle().Bold(true)
+	statementHeadStyle = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.AdaptiveColor{Light: "#1F2937", Dark: "#FFF7D6"})
+	mutedStyle         = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "#6B7280", Dark: "#9CA3AF"})
+	warningStyle       = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.AdaptiveColor{Light: "#B45309", Dark: "#FBBF24"})
+	selectedStyle      = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.AdaptiveColor{Light: "#9A6700", Dark: "#D7AF5F"})
+	successStyle       = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "#15803D", Dark: "#4ADE80"})
+	errorStyle         = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "#B91C1C", Dark: "#FB7185"})
 )
-
-type renderedItem struct {
-	id    string
-	lines []string
-}
 
 func (m Model) View() string {
 	switch m.mode {
@@ -33,39 +31,14 @@ func (m Model) View() string {
 }
 
 func (m Model) viewTop() string {
-	width := m.contentWidth()
-	items := make([]renderedItem, 0, len(m.topItems))
-	labelWidth := 5
-	for _, item := range m.topItems {
-		labelWidth = maxInt(labelWidth, runeCount(displayID(item.Statement.ID, item.Challenged)))
-	}
-	for i, item := range m.topItems {
-		items = append(items, renderedItem{id: item.Statement.ID, lines: renderTopItem(item, width, labelWidth, i == m.topCursor)})
-	}
-	var body []string
-	if len(items) == 0 {
-		body = []string{mutedStyle.Render("  no top statements")}
-	} else {
-		header := "  " + pad("LABEL", labelWidth) + "  " + pad("DEPTH", 5) + "  STATEMENT"
-		body = append([]string{mutedStyle.Render(header)}, visibleRenderedItems(items, m.topCursor, m.bodyHeight(5))...)
-	}
+	lines, _, _ := m.renderedTopBody()
+	body := renderLineViewport(lines, m.topScroll, m.viewportBudget())
 	return m.frame(m.doc.Title+" — TOP", body, "j/k move  Enter inspect  f derivation  q quit")
 }
 
 func (m Model) viewLedger() string {
-	width := m.contentWidth()
-	items := make([]renderedItem, 0, len(m.ledgerRows))
-	labelWidth := 5
-	for _, row := range m.ledgerRows {
-		labelWidth = maxInt(labelWidth, runeCount(displayID(row.Statement.ID, row.Challenged)))
-	}
-	for i, row := range m.ledgerRows {
-		items = append(items, renderedItem{id: row.Statement.ID, lines: renderLedgerItem(row, width, labelWidth, i == m.ledgerCursor)})
-	}
-	derivationWidth := minInt(34, maxInt(20, width/4))
-	statementWidth := maxInt(26, width-2-labelWidth-2-derivationWidth-2)
-	header := "  " + pad("LABEL", labelWidth) + "  " + pad("STATEMENT", statementWidth) + "  DERIVATION"
-	body := append([]string{mutedStyle.Render(header)}, visibleRenderedItems(items, m.ledgerCursor, m.bodyHeight(5))...)
+	lines, _, _ := m.renderedLedgerBody()
+	body := renderLineViewport(lines, m.ledgerScroll, m.viewportBudget())
 	return m.frame("DERIVATION TO "+m.ledgerRoot, body, "j/k move  Enter inspect  h/Esc back  q quit")
 }
 
@@ -74,9 +47,91 @@ func (m Model) viewDetail() string {
 	if !ok {
 		return m.frame("STATEMENT", []string{mutedStyle.Render("statement missing")}, "h/Esc back  q quit")
 	}
+	body, _, _ := m.renderedDetailBody()
+	footer := "j/k move  Enter follow  f derivation  h/Esc back  q quit"
+	if statement.Role == "counterpoint" {
+		footer = "j/k move  Enter follow  h/Esc back  q quit"
+	}
+	return m.frame("STATEMENT DETAIL", renderLineViewport(body, m.detailScroll, m.viewportBudget()), footer)
+}
+
+func (m Model) frame(title string, body []string, footer string) string {
+	var b strings.Builder
+	b.WriteString(titleStyle.Render(title))
+	b.WriteByte('\n')
+	b.WriteString(strings.Repeat("─", maxInt(1, m.contentWidth())))
+	b.WriteByte('\n')
+	b.WriteString(strings.Join(body, "\n"))
+	b.WriteByte('\n')
+	if m.message != "" {
+		style := mutedStyle
+		switch m.messageKind {
+		case messageSuccess:
+			style = successStyle
+		case messageError:
+			style = errorStyle
+		}
+		b.WriteString(style.Render(m.message))
+		b.WriteByte('\n')
+	}
+	b.WriteString(mutedStyle.Render(footer))
+	return b.String()
+}
+
+func (m Model) renderedTopBody() ([]string, int, int) {
 	width := m.contentWidth()
-	header := fmt.Sprintf("%s  %s[%s]  %s", displayID(statement.ID, query.StatementChallenged(m.doc, statement.ID)), statement.Role, statement.Kind, statement.Truth)
-	body := []string{titleStyle.Render(header)}
+	labelWidth := 5
+	for _, item := range m.topItems {
+		labelWidth = maxInt(labelWidth, runeCount(displayID(item.Statement.ID, item.Challenged)))
+	}
+	if len(m.topItems) == 0 {
+		return []string{mutedStyle.Render("  no top statements")}, -1, -1
+	}
+	lines := []string{mutedStyle.Render("  " + pad("LABEL", labelWidth) + "  " + pad("DEPTH", 5) + "  STATEMENT")}
+	selectedStart, selectedEnd := -1, -1
+	for i, item := range m.topItems {
+		if i == m.topCursor {
+			selectedStart = len(lines)
+		}
+		lines = append(lines, renderTopItem(item, width, labelWidth, i == m.topCursor)...)
+		if i == m.topCursor {
+			selectedEnd = len(lines)
+		}
+	}
+	return lines, selectedStart, selectedEnd
+}
+
+func (m Model) renderedLedgerBody() ([]string, int, int) {
+	width := m.contentWidth()
+	labelWidth := 5
+	for _, row := range m.ledgerRows {
+		labelWidth = maxInt(labelWidth, runeCount(displayID(row.Statement.ID, row.Challenged)))
+	}
+	derivationWidth := minInt(34, maxInt(20, width/4))
+	statementWidth := maxInt(26, width-2-labelWidth-2-derivationWidth-2)
+	lines := []string{mutedStyle.Render("  " + pad("LABEL", labelWidth) + "  " + pad("STATEMENT", statementWidth) + "  DERIVATION")}
+	selectedStart, selectedEnd := -1, -1
+	for i, row := range m.ledgerRows {
+		if i == m.ledgerCursor {
+			selectedStart = len(lines)
+		}
+		lines = append(lines, renderLedgerItem(row, width, labelWidth, i == m.ledgerCursor)...)
+		if i == m.ledgerCursor {
+			selectedEnd = len(lines)
+		}
+	}
+	return lines, selectedStart, selectedEnd
+}
+
+func (m Model) renderedDetailBody() ([]string, int, int) {
+	statement, ok := m.doc.Statement(m.current)
+	if !ok {
+		return []string{mutedStyle.Render("statement missing")}, -1, -1
+	}
+	width := m.contentWidth()
+	challenged := query.StatementChallenged(m.doc, statement.ID)
+	header := renderID(displayID(statement.ID, challenged), challenged) + statementHeadStyle.Render(fmt.Sprintf("  %s[%s]  %s", statement.Role, statement.Kind, statement.Truth))
+	body := []string{header}
 	for _, line := range wrapWords(statement.Text, maxInt(10, width)) {
 		body = append(body, line)
 	}
@@ -118,27 +173,26 @@ func (m Model) viewDetail() string {
 			selectableIndex++
 		}
 	}
-	footer := "j/k move  Enter follow  f derivation  h/Esc back  q quit"
-	if statement.Role == "counterpoint" {
-		footer = "j/k move  Enter follow  h/Esc back  q quit"
-	}
-	return m.frame("STATEMENT DETAIL", visibleLineWindow(body, selectedStart, selectedEnd, m.bodyHeight(4)), footer)
+	return body, selectedStart, selectedEnd
 }
 
-func (m Model) frame(title string, body []string, footer string) string {
-	var b strings.Builder
-	b.WriteString(titleStyle.Render(title))
-	b.WriteByte('\n')
-	b.WriteString(strings.Repeat("─", maxInt(1, m.contentWidth())))
-	b.WriteByte('\n')
-	b.WriteString(strings.Join(body, "\n"))
-	b.WriteByte('\n')
+func (m Model) viewportBudget() int {
+	reserved := 3
 	if m.message != "" {
-		b.WriteString(mutedStyle.Render(m.message))
-		b.WriteByte('\n')
+		reserved++
 	}
-	b.WriteString(mutedStyle.Render(footer))
-	return b.String()
+	return maxInt(1, m.height-reserved)
+}
+
+func renderLineViewport(lines []string, scroll, budget int) []string {
+	if len(lines) == 0 {
+		return nil
+	}
+	budget = maxInt(1, budget)
+	maxScroll := maxInt(0, len(lines)-budget)
+	scroll = minInt(maxInt(0, scroll), maxScroll)
+	end := minInt(len(lines), scroll+budget)
+	return lines[scroll:end]
 }
 
 func renderTopItem(item query.TopItem, width, labelWidth int, selected bool) []string {
@@ -240,50 +294,6 @@ func ledgerNotation(row query.LedgerRow) []string {
 	return result
 }
 
-func visibleRenderedItems(items []renderedItem, cursor, budget int) []string {
-	if len(items) == 0 {
-		return []string{}
-	}
-	cursor = clampCursor(cursor, len(items))
-	if budget < 1 {
-		budget = 1
-	}
-	start, end := cursor, cursor+1
-	used := len(items[cursor].lines)
-	for start > 0 && used+len(items[start-1].lines) <= budget {
-		start--
-		used += len(items[start].lines)
-	}
-	for end < len(items) && used+len(items[end].lines) <= budget {
-		used += len(items[end].lines)
-		end++
-	}
-	lines := make([]string, 0, used)
-	for i := start; i < end; i++ {
-		lines = append(lines, items[i].lines...)
-	}
-	return lines
-}
-
-func visibleLineWindow(lines []string, selectedStart, selectedEnd, budget int) []string {
-	if budget <= 0 || len(lines) <= budget {
-		return lines
-	}
-	if selectedStart < 0 {
-		return lines[:budget]
-	}
-	start := selectedStart
-	if selectedEnd-selectedStart < budget {
-		start = maxInt(0, selectedEnd-budget)
-	}
-	end := minInt(len(lines), start+budget)
-	if selectedEnd > end {
-		end = minInt(len(lines), selectedEnd)
-		start = maxInt(0, end-budget)
-	}
-	return lines[start:end]
-}
-
 func displayID(id string, challenged bool) string {
 	if challenged {
 		return id + "!"
@@ -363,13 +373,6 @@ func (m Model) contentWidth() int {
 		return 20
 	}
 	return m.width
-}
-
-func (m Model) bodyHeight(reserved int) int {
-	if m.height <= reserved {
-		return 1
-	}
-	return m.height - reserved
 }
 
 func maxInt(a, b int) int {

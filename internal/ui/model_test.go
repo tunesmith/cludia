@@ -133,6 +133,128 @@ func TestDetailViewportFollowsLogicalSelection(t *testing.T) {
 	}
 }
 
+func TestTallLedgerNeverScrollsWhileNavigating(t *testing.T) {
+	m := newModel("", testUIDocument(), diskVersion{})
+	m.width, m.height = 110, 20
+	m = m.openLedger("L2").ensureSelectionVisible()
+	for range len(m.ledgerRows) - 1 {
+		m = pressKey(m, "j")
+		if m.ledgerScroll != 0 {
+			t.Fatalf("tall ledger scrolled down at cursor %d: %d", m.ledgerCursor, m.ledgerScroll)
+		}
+	}
+	for range len(m.ledgerRows) - 1 {
+		m = pressKey(m, "k")
+		if m.ledgerScroll != 0 {
+			t.Fatalf("tall ledger scrolled up at cursor %d: %d", m.ledgerCursor, m.ledgerScroll)
+		}
+	}
+}
+
+func TestShortLedgerScrollsOnlyAtViewportEdges(t *testing.T) {
+	m := newModel("", testUIDocument(), diskVersion{})
+	m.width, m.height = 110, 7 // four body lines: header plus three one-line rows
+	m = m.openLedger("L2").ensureSelectionVisible()
+
+	for m.ledgerCursor < len(m.ledgerRows)-1 {
+		before := m
+		next := pressKey(m, "j")
+		_, start, end := next.renderedLedgerBody()
+		wasVisible := start >= before.ledgerScroll && end <= before.ledgerScroll+before.viewportBudget()
+		if wasVisible && next.ledgerScroll != before.ledgerScroll {
+			t.Fatalf("downward navigation shifted an already-visible row: cursor=%d before=%d after=%d", next.ledgerCursor, before.ledgerScroll, next.ledgerScroll)
+		}
+		m = next
+	}
+	if m.ledgerScroll == 0 {
+		t.Fatal("short ledger never scrolled")
+	}
+
+	stableReversals := 0
+	for m.ledgerCursor > 0 {
+		before := m
+		next := pressKey(m, "k")
+		_, start, end := next.renderedLedgerBody()
+		wasVisible := start >= before.ledgerScroll && end <= before.ledgerScroll+before.viewportBudget()
+		if wasVisible {
+			stableReversals++
+			if next.ledgerScroll != before.ledgerScroll {
+				t.Fatalf("reverse navigation shifted an already-visible row: cursor=%d before=%d after=%d", next.ledgerCursor, before.ledgerScroll, next.ledgerScroll)
+			}
+		}
+		m = next
+	}
+	if stableReversals == 0 {
+		t.Fatal("test did not exercise a visible row while reversing")
+	}
+	if m.ledgerScroll != 0 {
+		t.Fatalf("return to first row did not restore header: %d", m.ledgerScroll)
+	}
+}
+
+func TestTopAndDetailUsePersistentViewportOffsets(t *testing.T) {
+	m := newModel("", testUIDocument(), diskVersion{})
+	m.width, m.height = 56, 7
+	m = m.ensureSelectionVisible()
+	m = pressKey(m, "j")
+	if m.topScroll == 0 {
+		t.Fatal("short wrapped Top did not scroll to reveal second item")
+	}
+	topScroll := m.topScroll
+	m = pressKey(m, "k")
+	if m.topScroll >= topScroll {
+		t.Fatalf("Top did not move minimally toward first item: before=%d after=%d", topScroll, m.topScroll)
+	}
+
+	m = m.openDetail("L2").ensureSelectionVisible()
+	for range 3 {
+		m = pressKey(m, "j")
+	}
+	if m.detailScroll == 0 {
+		t.Fatal("short Detail did not scroll to reveal later relation")
+	}
+	detailScroll := m.detailScroll
+	m = pressKey(m, "k")
+	if m.detailScroll != detailScroll {
+		t.Fatalf("Detail shifted while reversed selection remained visible: before=%d after=%d", detailScroll, m.detailScroll)
+	}
+}
+
+func TestNavigationStackRestoresCursorAndScroll(t *testing.T) {
+	m := newModel("", testUIDocument(), diskVersion{})
+	m.width, m.height = 110, 7
+	m = m.openLedger("L2").ensureSelectionVisible()
+	for range 4 {
+		m = pressKey(m, "j")
+	}
+	wantCursor, wantScroll := m.ledgerCursor, m.ledgerScroll
+	m = pressKey(m, "enter")
+	if m.mode != modeDetail {
+		t.Fatalf("did not enter detail: %s", m.debugState())
+	}
+	m = pressKey(m, "h")
+	if m.mode != modeLedger || m.ledgerCursor != wantCursor || m.ledgerScroll != wantScroll {
+		t.Fatalf("ledger viewport not restored: cursor=%d/%d scroll=%d/%d", m.ledgerCursor, wantCursor, m.ledgerScroll, wantScroll)
+	}
+}
+
+func TestResizeToTallWindowClearsUnneededScroll(t *testing.T) {
+	m := newModel("", testUIDocument(), diskVersion{})
+	m.width, m.height = 110, 7
+	m = m.openLedger("L2").ensureSelectionVisible()
+	for range 5 {
+		m = pressKey(m, "j")
+	}
+	if m.ledgerScroll == 0 {
+		t.Fatal("precondition: short ledger did not scroll")
+	}
+	updated, _ := m.Update(tea.WindowSizeMsg{Width: 110, Height: 30})
+	m = updated.(Model)
+	if m.ledgerScroll != 0 {
+		t.Fatalf("tall resize retained unnecessary scroll: %d", m.ledgerScroll)
+	}
+}
+
 func TestLiveReloadPreservesSelectionRejectsInvalidAndHandlesDeletion(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "workspace.arg")
 	doc := testUIDocument()
