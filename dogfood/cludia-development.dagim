@@ -182,13 +182,17 @@ node implement-deterministic-cludia-top-ledger-query-commands: Implement determi
   parent record-accepted-adr-0008-read-only-terminal-navigation  # Record accepted ADR 0008 read-only terminal navigation decision
 
 node implement-read-only-cludia-tui-top-detail-ledger: Implement read-only Cludia TUI Top Detail Ledger navigation
+  complete
   parent implement-deterministic-cludia-top-ledger-query-commands  # Implement deterministic Cludia top and ledger query commands
 
 node implement-cludia-tui-live-reload-viewport-navigation: Implement Cludia TUI live reload viewport navigation
+  complete
   parent implement-read-only-cludia-tui-top-detail-ledger  # Implement read-only Cludia TUI Top Detail Ledger navigation
 
 node review-dogfood-read-only-cludia-tui: Review and dogfood read-only Cludia TUI
+  complete
   parent implement-cludia-tui-live-reload-viewport-navigation  # Implement Cludia TUI live reload viewport navigation
 
 node commit-install-read-only-cludia-tui: Commit and install read-only Cludia TUI
+  complete
   parent review-dogfood-read-only-cludia-tui  # Review and dogfood read-only Cludia TUI

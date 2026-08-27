@@ -50,3 +50,15 @@ premise[fact] P69:top-ledger-query-review-checkpoint ::T "At the deterministic t
 
 lemma[value] L34:top-ledger-query-slice-ready-for-tui "The deterministic Top and Ledger query slice is implemented and ready to support read-only terminal navigation."
   <- AND#J33(L33, P69)
+
+premise[fact] P70:read-only-tui-review-checkpoint ::T "At the read-only TUI review checkpoint, the cludia FILE invocation opened Top in document order with full wrapped statements, depth, and accessible challenge markers, while Enter and f navigated Statement Detail and Derivation Ledger without writing."
+
+premise[fact] P71:tui-live-reload-review-checkpoint ::T "A live-reload dogfood check preserved the selected L30 statement while an external CLI addition appeared, and automated invalid and missing-file tests retained the last valid in-memory workspace."
+
+lemma[value] L35:read-only-tui-slice-ready-installation "The accepted read-only Cludia TUI slice is implemented, validated, and ready for installation."
+  <- AND#J34(L34, P70, P71)
+
+premise[fact] P72:read-only-tui-final-validation-checkpoint ::T "At the final read-only TUI checkpoint, normal and race-enabled tests, vet, build, strict ADR validation, tracked workspace validation, PTY navigation, live reload, and installation to the configured Go bin all succeeded."
+
+lemma[value] L36:read-only-tui-complete-installed "The accepted read-only Cludia TUI and deterministic Top and Ledger surfaces are complete and installed."
+  <- AND#J35(L35, P72)

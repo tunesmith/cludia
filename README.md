@@ -28,9 +28,11 @@ after conversational dogfooding identifies the right visual operations.
 This repository is the permanent project home. The Go CLI implements the v1
 file workflow: capture and editing, inspection and search, multi-premise
 derivation and repair, defeat authoring, lifecycle operations, validation, and
-rooted Concludia export. The project is pre-release and remains under active
-conversational dogfooding. Its `.arg` syntax and versioned JSON output remain
-compatibility-sensitive interfaces even before the first public release.
+rooted Concludia export. A read-only terminal navigator adds deterministic Top,
+Statement Detail, and Derivation Ledger views over the same query layer. The
+project is pre-release and remains under active conversational dogfooding. Its
+`.arg` syntax and versioned JSON output remain compatibility-sensitive
+interfaces even before the first public release.
 
 The principal decisions are:
 
@@ -64,6 +66,21 @@ cludia export case.arg --root crossed-wall --output crossed-wall.arg
 The expected human workflow is conversational: an LLM reads the corpus through
 `--json`, proposes a conclusion and audits missing premises in conversation,
 then performs a mutation only after the user approves it.
+
+Open a workspace in the read-only terminal navigator:
+
+```bash
+cludia case.arg
+```
+
+The default Top view lists non-counterpoint statements with no outgoing support
+in document order, with longest support depth and `!` on challenged statements.
+All statement text wraps without truncation. Enter follows the selected
+statement into exact justification, challenge, and downstream-use detail; `f`
+opens the complete support ledger to that statement. `j/k` navigates and
+`h`/Escape returns. Valid external CLI or agent changes reload automatically;
+invalid contents leave the last valid in-memory view intact. The TUI never
+writes the workspace.
 
 ## Install from source
 

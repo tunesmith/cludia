@@ -1,0 +1,135 @@
+package ui
+
+import (
+	"crypto/sha256"
+	"errors"
+	"fmt"
+	"os"
+	"strings"
+	"time"
+
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/tunesmith/cludia/internal/argfile"
+	"github.com/tunesmith/cludia/internal/argument"
+	"github.com/tunesmith/cludia/internal/diagnostic"
+	"github.com/tunesmith/cludia/internal/query"
+	"github.com/tunesmith/cludia/internal/validation"
+)
+
+const diskCheckInterval = 500 * time.Millisecond
+
+type diskVersion struct {
+	exists bool
+	digest [sha256.Size]byte
+}
+
+type diskContents struct {
+	data    []byte
+	version diskVersion
+	err     error
+}
+
+type diskCheckMsg struct{}
+
+func readDisk(path string) diskContents {
+	data, err := os.ReadFile(path)
+	if errors.Is(err, os.ErrNotExist) {
+		return diskContents{version: diskVersion{}}
+	}
+	if err != nil {
+		return diskContents{err: err}
+	}
+	return diskContents{data: data, version: diskVersion{exists: true, digest: sha256.Sum256(data)}}
+}
+
+func loadDocument(path string) (*argument.Document, diskVersion, error) {
+	check := readDisk(path)
+	if check.err != nil {
+		return nil, diskVersion{}, check.err
+	}
+	if !check.version.exists {
+		return nil, diskVersion{}, fmt.Errorf("workspace does not exist: %s", path)
+	}
+	doc, err := parseValidDocument(check.data)
+	if err != nil {
+		return nil, diskVersion{}, err
+	}
+	return doc, check.version, nil
+}
+
+func parseValidDocument(data []byte) (*argument.Document, error) {
+	parsed := argfile.Parse(string(data))
+	diagnostics := append([]diagnostic.Diagnostic(nil), parsed.Diagnostics...)
+	if !diagnostic.HasErrors(diagnostics) {
+		diagnostics = append(diagnostics, validation.Validate(parsed.Document, validation.ProfileWorkspace).Diagnostics...)
+	}
+	if diagnostic.HasErrors(diagnostics) {
+		messages := make([]string, 0)
+		for _, item := range diagnostics {
+			if item.Severity == diagnostic.SeverityError {
+				messages = append(messages, item.Code+": "+item.Message)
+			}
+		}
+		return nil, fmt.Errorf("invalid workspace: %s", strings.Join(messages, "; "))
+	}
+	return parsed.Document, nil
+}
+
+func scheduleDiskCheck() tea.Cmd {
+	return tea.Tick(diskCheckInterval, func(time.Time) tea.Msg { return diskCheckMsg{} })
+}
+
+func (m Model) refreshFromDisk(check diskContents) Model {
+	if check.err != nil {
+		m.message = "reload failed: " + check.err.Error()
+		return m
+	}
+	if m.diskVersionKnown && check.version == m.seenDiskVersion {
+		return m
+	}
+	m.seenDiskVersion = check.version
+	if m.diskVersionKnown && check.version == m.diskVersion {
+		m.message = "workspace restored to last valid contents"
+		return m
+	}
+	if !check.version.exists {
+		m.message = "reload failed: workspace no longer exists"
+		return m
+	}
+	doc, err := parseValidDocument(check.data)
+	if err != nil {
+		m.message = "external change is invalid: " + err.Error()
+		return m
+	}
+	preferredTop := m.selectedTopID()
+	current := m.current
+	ledgerRoot := m.ledgerRoot
+	m.doc = doc
+	m.diskVersion, m.seenDiskVersion, m.diskVersionKnown = check.version, check.version, true
+	m.refreshQueries(preferredTop)
+	if m.mode == modeDetail {
+		if _, ok := m.doc.Statement(current); ok {
+			m.current = current
+		} else {
+			m.mode, m.history = modeTop, nil
+			m.message = "selected statement was removed; returned to Top"
+			return m
+		}
+	}
+	if m.mode == modeLedger {
+		root, rows, ledgerErr := queryLedger(m.doc, ledgerRoot)
+		if ledgerErr != nil {
+			m.mode, m.history = modeTop, nil
+			m.message = "ledger root changed; returned to Top"
+			return m
+		}
+		m.ledgerRoot, m.ledgerRows = root, rows
+	}
+	m.ensureSelections()
+	m.message = "reloaded changes from disk"
+	return m
+}
+
+func queryLedger(doc *argument.Document, root string) (string, []query.LedgerRow, error) {
+	return query.Ledger(doc, root)
+}

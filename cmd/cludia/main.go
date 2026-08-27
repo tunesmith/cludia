@@ -12,6 +12,7 @@ import (
 	"github.com/tunesmith/cludia/internal/argfile"
 	"github.com/tunesmith/cludia/internal/argument"
 	"github.com/tunesmith/cludia/internal/diagnostic"
+	"github.com/tunesmith/cludia/internal/ui"
 	"github.com/tunesmith/cludia/internal/validation"
 )
 
@@ -20,6 +21,7 @@ const outputSchemaVersion = 1
 var (
 	version             = "dev"
 	errValidationFailed = errors.New("validation failed")
+	launchTUI           = ui.Run
 )
 
 type validateOutput struct {
@@ -119,6 +121,9 @@ func run(args []string, stdout, stderr io.Writer) error {
 		fmt.Fprintf(stdout, "cludia %s\n", version)
 		return nil
 	default:
+		if len(args) == 1 && !strings.HasPrefix(args[0], "-") {
+			return launchTUI(args[0])
+		}
 		writeTopLevelUsage(stderr)
 		return fmt.Errorf("unknown command %q", args[0])
 	}
@@ -223,6 +228,7 @@ func writeHumanValidation(w io.Writer, output validateOutput) {
 
 func writeTopLevelUsage(w io.Writer) {
 	fmt.Fprintln(w, "Usage:")
+	fmt.Fprintln(w, "  cludia FILE")
 	fmt.Fprintln(w, "  cludia init [--json] FILE --title TITLE --text TEXT")
 	fmt.Fprintln(w, "  cludia add [--json] FILE --text TEXT")
 	fmt.Fprintln(w, "  cludia add-batch [--dry-run] [--json] FILE --input FILE")

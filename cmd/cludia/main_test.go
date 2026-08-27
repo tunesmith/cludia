@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"sort"
+	"strings"
 	"testing"
 )
 
@@ -48,6 +49,32 @@ func TestValidateInvalidProfileReturnsStructuredFailure(t *testing.T) {
 	}
 	if output.OK || len(output.Diagnostics) != 1 || output.Diagnostics[0].Code != "profile_unknown" {
 		t.Fatalf("unexpected output: %#v", output)
+	}
+}
+
+func TestSingleFileArgumentLaunchesTUIAndCommandsTakePrecedence(t *testing.T) {
+	original := launchTUI
+	t.Cleanup(func() { launchTUI = original })
+	called := ""
+	launchTUI = func(path string) error {
+		called = path
+		return nil
+	}
+	var stdout, stderr bytes.Buffer
+	if err := run([]string{"case.arg"}, &stdout, &stderr); err != nil {
+		t.Fatal(err)
+	}
+	if called != "case.arg" {
+		t.Fatalf("TUI path = %q", called)
+	}
+	called = ""
+	stdout.Reset()
+	stderr.Reset()
+	if err := run([]string{"help"}, &stdout, &stderr); err != nil {
+		t.Fatal(err)
+	}
+	if called != "" || !strings.Contains(stdout.String(), "cludia top") {
+		t.Fatalf("help dispatch called=%q output=%q", called, stdout.String())
 	}
 }
 
