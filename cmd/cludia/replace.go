@@ -254,8 +254,12 @@ func runReplace(args []string, stdout, stderr io.Writer) error {
 		})
 	}
 	if *deleteOld || *retargetRoot {
+		reference := oldNext.ID
+		if oldNext.Slug != "" {
+			reference = fmt.Sprintf("%s or slug %q", oldNext.ID, oldNext.Slug)
+		}
 		diagnostics = append(diagnostics, diagnostic.Diagnostic{
-			Code: "external_statement_references_unchecked", Message: "only the workspace file and recognized root metadata were checked; unknown external statement references may require updates",
+			Code: "external_statement_references_unchecked", Message: fmt.Sprintf("Cludia checked only this workspace and recognized root metadata. It cannot detect textual references to %s in Markdown, scripts, other workspaces, prior exports, or published graphs. If no such references exist, no action is needed.", reference),
 			Severity: diagnostic.SeverityWarning, Element: oldNext.ID,
 		})
 	}

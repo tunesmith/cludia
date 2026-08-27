@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/tunesmith/cludia/internal/argfile"
@@ -43,6 +44,9 @@ func TestReplaceDryRunAndStateBoundApply(t *testing.T) {
 	}
 	if len(plan.SourceRetargets) != 1 || len(plan.JustificationsRemoved) != 1 || len(plan.Blockers) != 0 {
 		t.Fatalf("replacement plan relations = %#v", plan)
+	}
+	if len(plan.Diagnostics) != 1 || plan.Diagnostics[0].Code != "external_statement_references_unchecked" || !strings.Contains(plan.Diagnostics[0].Message, "L1 or slug \"old-conclusion\"") || !strings.Contains(plan.Diagnostics[0].Message, "other workspaces") || !strings.Contains(plan.Diagnostics[0].Message, "no action is needed") {
+		t.Fatalf("external-reference diagnostic = %#v", plan.Diagnostics)
 	}
 	if got := plan.IncidentsBefore.SourceJunctors; len(got) != 1 || got[0] != "J3" {
 		t.Fatalf("source incidents = %#v", got)
