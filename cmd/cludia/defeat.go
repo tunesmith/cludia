@@ -54,7 +54,7 @@ func addDefeatFlags(fs *flag.FlagSet) defeatFlags {
 	return defeatFlags{
 		jsonOutput: fs.Bool("json", false, "output versioned JSON"),
 		text:       fs.String("text", "", "counterpoint text"),
-		id:         fs.String("id", "", "counterpoint statement id (generated if omitted)"),
+		id:         fs.String("id", "", "exact next CP statement id (generated if omitted)"),
 		slug:       fs.String("slug", "", "counterpoint slug (generated if omitted)"),
 		truth:      fs.String("truth", "T", "counterpoint truth: T, F, or U"),
 		kind:       fs.String("kind", "fact", "counterpoint kind: fact or value"),

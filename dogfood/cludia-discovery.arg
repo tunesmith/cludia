@@ -1,5 +1,5 @@
 argument cludia-discovery "Cludia Discovery"
-meta profile="workspace", version="0.1.0", cludia-next-ids="v1;P=79;L=41;C=1;CP=1;J=40"
+meta profile="workspace", version="0.1.0", cludia-next-ids="v1;P=81;L=42;C=1;CP=1;J=41"
 
 premise[fact] P47:external-claude-agent-dogfooded-cludia-work-investigation ::T "An external Claude agent dogfooded Cludia during a multi-session work investigation and reported that dependency inspection made affected conclusions easier to find than rereading a growing prose summary."
 
@@ -86,3 +86,10 @@ premise[fact] P78:monotonic-allocator-checkpoint-passed ::T "At the monotonic al
 
 lemma[value] L40:monotonic-allocator-ready-for-renumber "The accepted monotonic allocator and next-ID metadata are implemented and ready to support explicit whole-document renumbering."
   <- AND#J39(L39, P78)
+
+premise[fact] P79:renumber-dogfood-copy-succeeded ::T "A dry-run and state-bound apply renumbered a copy of the tracked discovery graph, preserved its Top and Ledger structure, and produced a rooted export accepted by Concludia's own DSL compiler and validator."
+
+premise[fact] P80:renumber-test-matrix-passed ::T "The renumber implementation passed normal and race-enabled tests, vet, builds, mapping, stale-token, no-op, reference-rewrite, allocator, and compatibility checks."
+
+lemma[value] L41:monotonic-ids-renumber-complete "Monotonic allocation and explicit whole-document renumbering are implemented, interoperable, and ready for installation."
+  <- AND#J40(L40, P79, P80)

@@ -104,6 +104,8 @@ func run(args []string, stdout, stderr io.Writer) error {
 		return runDelete(args[1:], stdout, stderr)
 	case "replace":
 		return runReplace(args[1:], stdout, stderr)
+	case "renumber":
+		return runRenumber(args[1:], stdout, stderr)
 	case "root":
 		return runRoot(args[1:], stdout, stderr)
 	case "export":
@@ -251,6 +253,7 @@ func writeTopLevelUsage(w io.Writer) {
 	fmt.Fprintln(w, "  cludia remove-counterpoint [--dry-run] [--json] FILE COUNTERPOINT")
 	fmt.Fprintln(w, "  cludia delete [--dry-run] [--json] FILE STATEMENT")
 	fmt.Fprintln(w, "  cludia replace [--json] FILE OLD --with NEW [choices] (--dry-run | --apply-token TOKEN)")
+	fmt.Fprintln(w, "  cludia renumber [--json] FILE (--dry-run | --apply-token TOKEN)")
 	fmt.Fprintln(w, "  cludia root [--json] FILE STATEMENT")
 	fmt.Fprintln(w, "  cludia export [--json] FILE --root STATEMENT --output FILE")
 	fmt.Fprintln(w, "  cludia rename-slug [--json] FILE STATEMENT (--slug SLUG | --from-text | --clear)")

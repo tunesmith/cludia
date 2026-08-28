@@ -35,6 +35,8 @@ not silently redefine the format or semantics in implementation.
 - Statement IDs are durable proposition-record identities. Use text editing only
   when explicitly asserting the same proposition; materially different claims
   receive new IDs and relation-by-relation review.
+- Focused P/L/C/CP/J allocation is monotonic and deletion leaves gaps. Only the
+  state-bound whole-document `renumber` operation may compact IDs.
 - Slugs are optional mutable aliases, not identity. Keep only the current slug
   and warn about external references outside the checked scope.
 - Identity guidance must remain use-case neutral; do not assume users maintain

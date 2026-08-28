@@ -203,7 +203,9 @@ node implement-monotonic-next-id-metadata-focused-authoring: Implement monotonic
   parent review-deleted-id-reuse-evidence-decide-tracked-lineage  # Review deleted-ID reuse evidence and decide tracked-lineage...
 
 node implement-state-bound-whole-document-renumber-command: Implement state-bound whole-document renumber command
+  complete
   parent implement-monotonic-next-id-metadata-focused-authoring  # Implement monotonic next-ID metadata and focused authoring...
 
 node review-monotonic-allocation-renumbering-through-cli-dogfood: Review monotonic allocation and renumbering through CLI dogfood and compatibility validation
+  complete
   parent implement-state-bound-whole-document-renumber-command  # Implement state-bound whole-document renumber command

@@ -65,9 +65,10 @@ cludia add case.arg \
 For scripted or agent-driven capture, a generated ID becomes authoritative
 only in the successful mutation result. An agent must not predict a sequence of
 future IDs across independent mutations: a rejected add does not reserve its
-candidate ID. Either pass an explicit `--id` for every planned statement or
-read `statement.id` from each successful `add --json` response before using it
-in a later command.
+candidate ID. Omit `--id` and read `statement.id` from each successful
+`add --json` response before using it in a later command. If an explicit ID is
+provided, focused authoring accepts it only when it is the role-appropriate
+exact next canonical ID.
 
 When several statements are already known, prefer one atomic batch over a
 sequence whose later references depend on predicted allocations. For example,
@@ -94,6 +95,11 @@ The result returns each caller key beside its complete assigned statement. If
 any entry is invalid, no statement is written and no generated ID is consumed.
 Treat IDs in a dry-run mapping as tentative and use the applied mutation's
 mapping for later derives or other references.
+
+Ordinary deletion leaves numeric gaps because Cludia does not reuse retired IDs
+during focused authoring. When a user explicitly wants compact labels, first
+review the complete mapping from `renumber --dry-run`; apply it only with the
+returned state-bound token and review unknown external references afterward.
 
 ### 2. Inspect
 

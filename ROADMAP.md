@@ -101,6 +101,8 @@ any necessary CLI contract changes.
 
 ## Milestone 5: Read-only terminal navigator
 
+Status: implemented, reviewed, and committed on 2026-08-26.
+
 - Add deterministic Top and Derivation Ledger query surfaces with versioned
   JSON output.
 - Open `cludia FILE` into a read-only Top view with full wrapped statements,
@@ -113,7 +115,21 @@ Exit criterion: the TUI can navigate the tracked dogfood workspace through Top,
 Detail, and Ledger without truncating text or writing the workspace, and every
 displayed fact is available through structured CLI output.
 
-## Milestone 6: MCP adapter
+## Milestone 6: Monotonic identifier lifecycle
+
+Status: implemented, self-reviewed, and compatibility-validated on 2026-08-28.
+
+- Persist exact next IDs for canonical focused authoring.
+- Preserve deletion gaps and reject individual retired-ID reuse.
+- Add state-bound whole-document renumbering with a complete mapping.
+- Preserve Concludia `.arg` compatibility without introducing opaque local
+  identities.
+
+Exit criterion: all ID-creating and ID-deleting operations maintain monotonic
+allocator state, and reviewed renumbering rewrites every modeled reference
+atomically.
+
+## Milestone 7: MCP adapter
 
 - Expose the stable CLI/domain operations through MCP.
 - Keep MCP thin: no separate model, mutations, or hidden LLM calls.
@@ -122,7 +138,7 @@ displayed fact is available through structured CLI output.
 Exit criterion: an MCP client and the CLI produce equivalent reads and
 mutations against the same fixtures.
 
-## Milestone 7: Minimal local web UI
+## Milestone 8: Minimal local web UI
 
 - Statement inbox/list and search.
 - Multi-selection and combine/justify flow.

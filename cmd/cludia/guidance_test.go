@@ -15,7 +15,7 @@ func TestGuidanceJSONContractIsUseCaseNeutral(t *testing.T) {
 	if err := json.Unmarshal(stdout.Bytes(), &raw); err != nil {
 		t.Fatal(err)
 	}
-	assertExactKeys(t, raw, "schema_version", "use_case_neutral", "statement_identity", "text_edits", "slugs", "scripted_authoring", "deletion", "material_replacement")
+	assertExactKeys(t, raw, "schema_version", "use_case_neutral", "statement_identity", "text_edits", "slugs", "scripted_authoring", "deletion", "material_replacement", "renumbering")
 	var output guidanceOutput
 	if err := json.Unmarshal(stdout.Bytes(), &output); err != nil {
 		t.Fatal(err)
@@ -37,5 +37,8 @@ func TestGuidanceJSONContractIsUseCaseNeutral(t *testing.T) {
 	}
 	if output.MaterialReplacement.EditCommandAppropriate || output.MaterialReplacement.Command != "replace" || !output.MaterialReplacement.TwoPhase || !output.MaterialReplacement.DryRunRequired || !output.MaterialReplacement.ApplyTokenRequired || !output.MaterialReplacement.RelationChoicesExplicit || !output.MaterialReplacement.OldRetainedByDefault || output.MaterialReplacement.AutomaticRetargetAll {
 		t.Fatalf("replacement guidance = %#v", output.MaterialReplacement)
+	}
+	if output.Renumbering.Command != "renumber" || !output.Renumbering.OrdinaryAllocationMonotonic || output.Renumbering.DeletedIDsReusedOrdinarily || !output.Renumbering.SoleNumberingReset || !output.Renumbering.TwoPhase || !output.Renumbering.ApplyTokenRequired || !output.Renumbering.CompleteMapping || !output.Renumbering.ExternalScopeWarning || output.Renumbering.TUIHotkey {
+		t.Fatalf("renumbering guidance = %#v", output.Renumbering)
 	}
 }

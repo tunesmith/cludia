@@ -490,6 +490,11 @@ V1 is complete when automated tests demonstrate at least:
 14. Material replacement requires a reviewed state-bound plan, retargets only
     selected downstream sources, reports affected defeats, and cannot delete
     the old statement while an unreviewed incident relation remains.
+15. Successful focused allocation advances exact next IDs, deletion leaves
+    gaps, and failed or dry-run mutation consumes no number.
+16. Whole-document renumbering requires a reviewed state-bound plan, rewrites
+    every modeled reference, preserves non-identity content, and reports the
+    complete old-to-new mapping.
 
 ## 14. Open decisions
 

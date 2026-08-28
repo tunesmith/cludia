@@ -181,6 +181,18 @@ func namespaceForRole(role Role) (string, bool) {
 	}
 }
 
+func CanonicalStatementID(role Role, number int) (string, bool) {
+	namespace, ok := namespaceForRole(role)
+	if !ok || number < 1 {
+		return "", false
+	}
+	return fmt.Sprintf("%s%d", namespace, number), true
+}
+
+func CanonicalJunctorID(number int) string {
+	return fmt.Sprintf("J%d", number)
+}
+
 // IDAllocationError is a stable focused-authoring failure.
 type IDAllocationError struct {
 	Code    string

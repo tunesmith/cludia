@@ -51,11 +51,11 @@ func runDerive(args []string, stdout, stderr io.Writer) error {
 	fs.Var(&sources, "source", "source statement id or slug (repeat at least twice)")
 	targetRef := fs.String("target", "", "existing target statement id or slug")
 	targetText := fs.String("target-text", "", "text for a new lemma target")
-	targetID := fs.String("target-id", "", "id for a new target (generated if omitted)")
+	targetID := fs.String("target-id", "", "exact next role-appropriate id for a new target (generated if omitted)")
 	targetSlug := fs.String("target-slug", "", "slug for a new target (generated if omitted)")
 	targetKind := fs.String("target-kind", "fact", "kind for a new target: fact or value")
 	targetRole := fs.String("target-role", "lemma", "role for a new target: lemma or conclusion")
-	junctorID := fs.String("junctor-id", "", "stable junctor id (generated if omitted)")
+	junctorID := fs.String("junctor-id", "", "exact next J id (generated if omitted)")
 	fs.Usage = func() { writeDeriveUsage(fs.Output()) }
 	valueFlags := map[string]bool{
 		"source": true, "target": true, "target-text": true, "target-id": true,

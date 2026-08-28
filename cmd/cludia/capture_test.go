@@ -157,6 +157,33 @@ func TestLegacyWorkspaceBootstrapsNextIDsOnFirstCreation(t *testing.T) {
 	}
 }
 
+func TestCreationRepairsStaleNextIDMetadataSafely(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "stale.arg")
+	doc := &argument.Document{
+		ID: "stale", Title: "Stale",
+		Metadata: []argument.Metadata{
+			{Key: "profile", Value: "workspace"},
+			{Key: argument.NextIDsMetadataKey, Value: "v1;P=2;L=1;C=1;CP=1;J=1"},
+		},
+		Statements: []argument.Statement{{ID: "P3", Role: argument.RolePremise, Kind: argument.KindFact, Truth: argument.TruthTrue, Text: "Third"}},
+	}
+	if err := argfile.SaveAtomic(path, doc); err != nil {
+		t.Fatal(err)
+	}
+	var stdout, stderr bytes.Buffer
+	if err := run([]string{"add", path, "--text", "Fourth", "--json"}, &stdout, &stderr); err != nil {
+		t.Fatalf("stale allocator add: %v", err)
+	}
+	var output mutationOutput
+	if err := json.Unmarshal(stdout.Bytes(), &output); err != nil || output.Statement.ID != "P4" {
+		t.Fatalf("stale allocator output = %#v, decode %v", output, err)
+	}
+	parsed := argfile.ParseFile(path)
+	if value, _ := parsed.Document.MetadataValue(argument.NextIDsMetadataKey); value != "v1;P=5;L=1;C=1;CP=1;J=1" {
+		t.Fatalf("repaired next ids = %q", value)
+	}
+}
+
 func TestInitRefusesExistingFile(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "existing.arg")
 	const original = "existing\n"

@@ -45,6 +45,9 @@ The principal decisions are:
 - Include undermines, undercuts, and recursively chained counterpoints in v1.
 - Preserve contested or obsolete junctors until an explicit repair or removal;
   their presence is valid in a living workspace and does not block export.
+- Allocate canonical statement and junctor IDs monotonically, preserve deletion
+  gaps, and compact them only through an explicit reviewed whole-document
+  renumber.
 - Keep abductive discovery in the human/LLM conversation while persisting only
   asserted entailment-style inferences.
 - Do not add probabilistic scores, evidence weights, or Bayesian machinery.
@@ -142,6 +145,9 @@ bin/cludia replace inquiry.arg L1 --with L2 \
   --remove-justification J1 \
   --delete-old --dry-run --json
 
+bin/cludia renumber inquiry.arg --dry-run --json
+bin/cludia renumber inquiry.arg --apply-token REVIEWED_TOKEN --json
+
 bin/cludia derive inquiry.arg \
   --source P1 \
   --source P2 \
@@ -195,6 +201,13 @@ plus optional `id`, `slug`, `truth`, and `kind`. The result preserves input orde
 and maps every caller key to its complete assigned statement; any invalid item
 rejects the whole batch without writing or consuming IDs.
 
+Focused creation assigns role-appropriate canonical IDs from the exact next
+values stored in `cludia-next-ids`. Automatic IDs increase monotonically;
+deletion leaves gaps, and failed mutations or dry runs consume nothing. An
+explicit ID is accepted only when it equals the relevant exact next value.
+Existing custom IDs remain readable and survive ordinary round trips, but new
+focused authoring does not create them.
+
 Focused inference repair uses `add-source`, `replace-source`, `remove-source`,
 and `remove-junctor`. Source editing applies only to `AND` junctors and must
 leave at least two distinct sources. `replace-source` substitutes one source in
@@ -212,10 +225,10 @@ identity-continuity intent; truth- and kind-only edits do not require it.
 `rename-slug` can explicitly rename, regenerate, or clear the optional current
 slug while preserving ID and relations. `guidance` exposes the use-case-neutral
 identity and replacement contract in human or versioned JSON form. Its
-scripted-authoring guidance requires callers to provide explicit IDs or consume
-the returned `statement.id` instead of predicting allocations across
-mutations, and its deletion guidance explains counterpoint-removal
-preconditions.
+scripted-authoring guidance requires callers to consume the returned
+`statement.id` instead of predicting allocations across mutations; any
+explicit ID must equal the exact next canonical value. Its deletion guidance
+explains counterpoint-removal preconditions.
 
 `delete` supports `--dry-run`, removes all incident relations rather than
 silently changing an inference's sources, reports component changes and newly
@@ -231,6 +244,14 @@ affected defeats, blockers, and component changes and returns a plan token.
 Application repeats the same choices with `--apply-token`; any intervening
 workspace or choice change makes the token stale. The old statement remains by
 default, and there is no retarget-all mode.
+
+`renumber` is the sole numbering reset. Its dry run reports every statement and
+junctor old-to-new mapping, root-metadata effects, resulting next-ID state, and
+a token bound to the current file. Applying that token rewrites all modeled
+references atomically and warns that references in Markdown, scripts, other
+workspaces, prior exports, or published graphs remain outside Cludia's checked
+scope. Slugs and non-identity content are preserved. The read-only TUI has no
+renumber hotkey.
 
 `root` computes the complete upstream support closure and attached recursive
 defeat chains for a selected non-counterpoint statement, reconciles roles, and

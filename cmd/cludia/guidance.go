@@ -16,6 +16,7 @@ type guidanceOutput struct {
 	ScriptedAuthoring   scriptedAuthoringGuidance   `json:"scripted_authoring"`
 	Deletion            deletionGuidance            `json:"deletion"`
 	MaterialReplacement materialReplacementGuidance `json:"material_replacement"`
+	Renumbering         renumberingGuidance         `json:"renumbering"`
 }
 
 type statementIdentityGuidance struct {
@@ -73,6 +74,18 @@ type materialReplacementGuidance struct {
 	AutomaticRetargetAll    bool     `json:"automatic_retarget_all"`
 }
 
+type renumberingGuidance struct {
+	Command                     string `json:"command"`
+	OrdinaryAllocationMonotonic bool   `json:"ordinary_allocation_monotonic"`
+	DeletedIDsReusedOrdinarily  bool   `json:"deleted_ids_reused_ordinarily"`
+	SoleNumberingReset          bool   `json:"sole_numbering_reset"`
+	TwoPhase                    bool   `json:"two_phase"`
+	ApplyTokenRequired          bool   `json:"apply_token_required"`
+	CompleteMapping             bool   `json:"complete_mapping"`
+	ExternalScopeWarning        bool   `json:"external_scope_warning"`
+	TUIHotkey                   bool   `json:"tui_hotkey"`
+}
+
 func runGuidance(args []string, stdout, stderr io.Writer) error {
 	fs := flag.NewFlagSet("guidance", flag.ContinueOnError)
 	fs.SetOutput(stderr)
@@ -105,6 +118,7 @@ func runGuidance(args []string, stdout, stderr io.Writer) error {
 	fmt.Fprintln(stdout, "- Before deleting a challenged element, remove attached counterpoints with remove-counterpoint; use delete --dry-run to inspect structural effects.")
 	fmt.Fprintln(stdout, "- Materially different propositions receive new IDs; audit each relation before retargeting.")
 	fmt.Fprintln(stdout, "- Material replacement uses replace --dry-run followed by the same explicit relation choices and --apply-token; there is no retarget-all mode.")
+	fmt.Fprintln(stdout, "- Identifier compaction uses renumber --dry-run followed by --apply-token; it is the sole numbering reset and reports a complete mapping plus external-reference warning.")
 	fmt.Fprintln(stdout, "- These rules do not assume any particular workspace organization or use case.")
 	return nil
 }
@@ -140,10 +154,15 @@ func identityGuidance() guidanceOutput {
 			Command:                "replace", TwoPhase: true, DryRunRequired: true, ApplyTokenRequired: true,
 			RelationChoicesExplicit: true, OldRetainedByDefault: true, AutomaticRetargetAll: false,
 		},
+		Renumbering: renumberingGuidance{
+			Command: "renumber", OrdinaryAllocationMonotonic: true, DeletedIDsReusedOrdinarily: false,
+			SoleNumberingReset: true, TwoPhase: true, ApplyTokenRequired: true,
+			CompleteMapping: true, ExternalScopeWarning: true, TUIHotkey: false,
+		},
 	}
 }
 
 func writeGuidanceUsage(w io.Writer) {
 	fmt.Fprintln(w, "Usage: cludia guidance [--json]")
-	fmt.Fprintln(w, "Explain the use-case-neutral statement identity, edit, slug, and replacement contract.")
+	fmt.Fprintln(w, "Explain the use-case-neutral identity, allocation, edit, replacement, and renumbering contract.")
 }
