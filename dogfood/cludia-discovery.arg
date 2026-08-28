@@ -62,3 +62,22 @@ premise[fact] P72:read-only-tui-final-validation-checkpoint ::T "At the final re
 
 lemma[value] L36:read-only-tui-complete-installed "The accepted read-only Cludia TUI and deterministic Top and Ledger surfaces are complete and installed."
   <- AND#J35(L35, P72)
+
+premise[fact] P73:monotonic-id-policy-accepted ::T "The accepted identifier policy requires canonical P, L, C, CP, and J numbers to increase monotonically during ordinary focused authoring."
+
+premise[value] P74:deletion-gaps-preferable-to-reuse ::T "Deletion gaps are preferable to silent reuse because cross-revision conversations and adjacent artifacts may retain old numeric references."
+
+premise[value] P75:reviewed-renumber-sole-reset ::T "A state-bound whole-document renumber can compact identifiers explicitly and report every old-to-new mapping."
+
+premise[fact] P76:concludia-dsl-label-layer ::T "Concludia's portable .arg DSL uses labels as local identifiers while opaque identities remain server-side."
+
+premise[fact] P77:opaque-id-deferred-until-sync ::T "No current Cludia use case requires bidirectional synchronization that would make an opaque cross-system identity necessary."
+
+lemma[value] L37:monotonic-allocation-policy-accepted "Cludia should prevent ordinary deleted-ID reuse through compact exact-next metadata and monotonic canonical allocation."
+  <- AND#J36(L30, P73, P74)
+
+lemma[value] L38:explicit-renumber-compatible-with-portable-arg "Explicit whole-document renumbering is compatible with Cludia's portable .arg role without requiring opaque identities now."
+  <- AND#J37(P75, P76, P77)
+
+lemma[value] L39:adr-0009-monotonic-ids-explicit-renumber "ADR 0009 should adopt monotonic canonical IDs and make reviewed whole-document renumbering the sole numbering reset."
+  <- AND#J38(L37, L38)

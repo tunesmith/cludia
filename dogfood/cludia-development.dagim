@@ -173,6 +173,7 @@ node review-deterministic-textual-inspection-candidate-decide: Review determinis
   complete
 
 node review-deleted-id-reuse-evidence-decide-tracked-lineage: Review deleted-ID reuse evidence and decide tracked-lineage allocation policy
+  complete
 
 node record-accepted-adr-0008-read-only-terminal-navigation: Record accepted ADR 0008 read-only terminal navigation decision
   complete
@@ -196,3 +197,12 @@ node review-dogfood-read-only-cludia-tui: Review and dogfood read-only Cludia TU
 node commit-install-read-only-cludia-tui: Commit and install read-only Cludia TUI
   complete
   parent review-dogfood-read-only-cludia-tui  # Review and dogfood read-only Cludia TUI
+
+node implement-monotonic-next-id-metadata-focused-authoring: Implement monotonic next-ID metadata and focused authoring enforcement
+  parent review-deleted-id-reuse-evidence-decide-tracked-lineage  # Review deleted-ID reuse evidence and decide tracked-lineage...
+
+node implement-state-bound-whole-document-renumber-command: Implement state-bound whole-document renumber command
+  parent implement-monotonic-next-id-metadata-focused-authoring  # Implement monotonic next-ID metadata and focused authoring...
+
+node review-monotonic-allocation-renumbering-through-cli-dogfood: Review monotonic allocation and renumbering through CLI dogfood and compatibility validation
+  parent implement-state-bound-whole-document-renumber-command  # Implement state-bound whole-document renumber command

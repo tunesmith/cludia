@@ -45,6 +45,13 @@ The workspace-profile metadata value is provisional. Format profile and
 content version MUST remain conceptually distinct even if the initial syntax
 stores both in `meta`.
 
+New Cludia workspaces MUST record the exact next numeric identifier for every
+focused namespace in versioned `cludia-next-ids` metadata. A legacy document
+without this metadata remains valid and bootstraps it from current canonical
+IDs on its first successful ID-creating or ID-deleting mutation. Deletion MUST
+NOT lower a recorded next value. Failed mutations and dry runs MUST NOT consume
+an ID.
+
 ### 3.2 Statement
 
 A statement MUST have:
@@ -80,6 +87,17 @@ Statement identity, wording, and slug semantics follow ADR 0007:
 - the slug is an optional mutable human-readable alias with at most one current
   value and no retained alias history in v1;
 - Cludia MUST NOT claim to determine semantic equivalence mechanically.
+
+Identifier allocation and exceptional rewriting follow ADR 0009:
+
+- focused creation MUST author role-appropriate canonical numeric IDs;
+- `P`, `L`, `C`, `CP`, and `J` namespaces MUST advance independently and MUST
+  NOT reuse deleted numbers during ordinary mutation;
+- a caller-supplied ID MUST equal the exact next canonical ID for the relevant
+  namespace;
+- existing custom or noncanonical IDs MUST remain readable and preserved by
+  ordinary round trips;
+- only an explicit whole-document renumber operation may compact identifiers.
 
 Agent-facing CLI guidance and future MCP descriptions MUST expose this contract
 without assuming a particular workspace organization or use case.
@@ -228,6 +246,8 @@ capabilities.
 - Plan and apply material replacement between two existing non-counterpoint
   statement records through explicit per-relation choices and a state-bound
   apply token.
+- Plan and apply deterministic whole-document renumbering through a state-bound
+  old-to-new mapping that rewrites all modeled internal references atomically.
 
 ### 6.3 Construct and repair
 
@@ -320,6 +340,15 @@ unselected support, direct support, defeat, or recognized root reference remains
 incident to the old record. Counterpoint records are excluded from focused
 material replacement and continue to use counterpoint-specific operations.
 
+Whole-document renumbering MUST also be a two-phase operation. A dry run MUST
+report the complete statement and junctor mapping, recognized root-metadata
+effects, before/after next-ID state, external-reference warning, and a token
+bound to the current document and mapping. Application MUST require that token,
+refuse stale plans without writing, validate the complete rewritten document,
+and save atomically. Statements MUST be numbered by current role in document
+order; junctors MUST be numbered in stored relation order. Slugs and all
+non-identity content MUST remain unchanged.
+
 The CLI MUST NOT require installation when run from a checkout. Once Go code
 exists, ordinary validation will include:
 
@@ -374,6 +403,11 @@ Round-tripping it without an explicit transforming operation MUST preserve:
 - direct supports;
 - defeats and recursive counterpoint chains;
 - metadata not owned by the focused operation.
+
+Cludia's `cludia-next-ids` metadata is allocator state for the workspace layer,
+not part of a published argument, and MUST be omitted from rooted Concludia
+export. Concludia's server-side opaque identities are not represented in the
+portable label-based `.arg` syntax.
 
 A workspace document is not necessarily importable by Concludia. Exporting a
 rooted structure is the explicit boundary.

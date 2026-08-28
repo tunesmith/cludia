@@ -59,16 +59,16 @@ The connected argument supporting this decision is
 
 ### Identifier lifetime after deletion
 
-- This ADR does not decide whether a deleted statement or junctor ID may be
-  reused in a later revision of the same document lineage.
-- “Durable identity” here means continuity while a proposition record exists
-  and across explicitly meaning-preserving edits; it does not introduce
-  tombstones or permanent ID reservation.
+- [ADR 0009](0009-monotonic-identifiers-and-renumbering.md) resolves the
+  previously deferred lifetime question. Ordinary focused allocation is
+  monotonic and never reuses a deleted number; an explicit state-bound
+  whole-document renumber is the sole numbering reset.
+- “Durable identity” continues to mean continuity while a proposition record
+  exists and across explicitly meaning-preserving edits. Renumbering is an
+  exceptional reviewed identity migration rather than an ordinary edit.
 - Concludia's separation between durable server identity and renumberable
-  display labels is relevant prior art for a future decision.
-- The full-investigation pilot should determine whether cross-revision or
-  external references create enough ambiguity to require retired-ID metadata or
-  a separate opaque identity/display-label model.
+  display labels remains relevant future prior art, but an opaque Cludia
+  identity is not required without a concrete synchronization use case.
 
 ### Slugs
 
@@ -151,8 +151,9 @@ slugs, not an embedded alias or replacement history.
   `--same-proposition`.
 - Agents can apply the identity contract without being instructed to create or
   maintain files that are irrelevant to the user's chosen workflow.
-- Deleted-ID reuse remains unchanged and explicitly unresolved; this decision
-  adds no allocator metadata or tombstone semantics.
+- ADR 0009 subsequently adds compact next-ID metadata and explicit
+  whole-document renumbering without changing this ADR's proposition-continuity
+  rules.
 
 ## Alternatives considered
 

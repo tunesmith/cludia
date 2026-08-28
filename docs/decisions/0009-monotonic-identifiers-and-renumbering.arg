@@ -1,0 +1,28 @@
+argument monotonic-identifier-renumbering-decision "Monotonic identifier and renumbering decision"
+meta version="0.1.0", root="cludia-should-use-monotonic-ids-and-explicit-renumber"
+
+premise[fact] P1:reuse-creates-cross-revision-ambiguity ::T "Automatic identifier reuse after deletion can make the same label refer to different records across revisions."
+
+premise[fact] P2:dogfood-observed-junctor-id-reuse ::T "Tracked dogfooding observed automatic reuse of deleted junctor IDs."
+
+premise[fact] P3:next-id-state-prevents-ordinary-reuse ::T "A compact exact-next record can prevent ordinary numeric reuse without cataloguing every deleted identifier."
+
+premise[value] P4:deletion-gaps-are-cheap ::T "Leaving identifier gaps after deletion is cheaper than making cross-revision references ambiguous."
+
+premise[value] P5:reviewed-renumber-can-compact ::T "A reviewed whole-document mapping can compact identifiers while making every identity change explicit."
+
+premise[fact] P6:concludia-dsl-uses-local-labels ::T "Concludia's portable .arg DSL uses display labels as file-local identifiers while its server retains separate opaque identities."
+
+premise[fact] P7:opaque-identity-needs-sync-use-case ::T "Cludia has no established bidirectional synchronization requirement that currently justifies adding opaque identities to the shared DSL."
+
+lemma[value] L1:observed-ambiguity-warrants-reuse-protection "Observed cross-revision ambiguity warrants preventing ordinary identifier reuse after deletion."
+  <- AND#J1(P1, P2)
+
+lemma[value] L2:focused-allocation-should-be-monotonic "Focused Cludia allocation should advance exact next IDs monotonically and preserve deletion gaps."
+  <- AND#J2(P3, P4)
+
+lemma[value] L3:explicit-renumber-needs-no-opaque-prerequisite "An explicit whole-document renumber can provide deliberate compaction without making an opaque Cludia identity a prerequisite."
+  <- AND#J3(P5, P6, P7)
+
+conclusion[value] C1:cludia-should-use-monotonic-ids-and-explicit-renumber "Cludia should use monotonic canonical IDs during ordinary authoring and permit reuse only through reviewed whole-document renumbering."
+  <- AND#J4(L1, L2, L3)

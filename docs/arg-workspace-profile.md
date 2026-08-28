@@ -47,6 +47,19 @@ is an open design decision.
 If `profile` is absent, the document retains ordinary Concludia semantics. The
 new tool may still open it in workspace mode without rewriting the file.
 
+Focused Cludia authoring records exact next numeric IDs in one metadata value:
+
+```text
+meta profile="workspace", version="0.1.0", cludia-next-ids="v1;P=2;L=1;C=1;CP=1;J=1"
+```
+
+The five namespaces advance independently. Deletion leaves gaps and does not
+lower these values. Existing files without the field remain compatible and
+bootstrap it from their current canonical IDs when an ID-creating or
+ID-deleting mutation next succeeds. Malformed versions or values are errors;
+values behind IDs already present are diagnosed and safely advanced by the
+next such mutation.
+
 ## Statements
 
 Examples:
@@ -65,6 +78,12 @@ The statement ID is required durable identity. The slug remains optional and is
 a mutable human-readable alias with one current value; durable relations are
 resolved and canonically written by ID. Text edits that preserve an ID require
 explicit same-proposition intent under ADR 0007.
+
+Focused creation authors only canonical role-appropriate IDs (`P`, `L`, `C`,
+or `CP` plus a positive decimal suffix) and accepts an explicit ID only when it
+is the exact recorded next value. Ordinary reads and round trips continue to
+preserve broader valid IDs from existing `.arg` files. ADR 0009's explicit
+whole-document renumber is the only operation that compacts these labels.
 
 The workspace allows a premise to be isolated. Once it becomes the target of a
 support relation, focused mutations promote it to a lemma.

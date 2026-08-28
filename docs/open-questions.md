@@ -116,13 +116,12 @@ replacement command, explicit per-relation selection, old-record retention, and
 state-bound plan/application workflow. Replacement coordination across multiple
 known files remains open.
 
-It also leaves identifier lifetime after deletion open:
-
-- whether IDs are unique only while present in a current document revision or
-  across the document's full Git lineage;
-- whether observed ambiguity warrants retired-ID metadata;
-- whether a later model should separate opaque durable identity from
-  renumberable display labels as Concludia does.
+[ADR 0009](decisions/0009-monotonic-identifiers-and-renumbering.md) resolves
+identifier lifetime after deletion for focused authoring: compact next-ID
+metadata prevents ordinary reuse, and an explicit state-bound whole-document
+renumber is the sole reset. A separate opaque identity remains deferred until a
+concrete bidirectional or incremental Concludia synchronization use case
+requires it.
 
 ## License and distribution
 

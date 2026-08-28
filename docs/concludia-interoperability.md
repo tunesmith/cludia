@@ -28,6 +28,18 @@ loss. This includes:
 Focused editing may be narrower than the representable format. Unsupported
 focused creation does not authorize dropping or rewriting existing constructs.
 
+Concludia's JSON model distinguishes opaque server step identities from
+display labels. Its human-oriented `.arg` DSL substitutes labels into the
+declaration and relation positions, so those labels act as portable file-local
+IDs. Cludia continues to model this portable layer rather than adding an opaque
+identity field that Concludia's DSL does not carry.
+
+Ordinary Cludia allocation keeps these local IDs monotonic. An explicit
+`renumber` is a reviewed file-level identity migration and produces a complete
+mapping; it is not equivalent to Concludia changing labels over unchanged
+server identities. Stable cross-system provenance remains future integration
+work if incremental synchronization is later required.
+
 ## Rooted export algorithm
 
 Given selected root statement `R`:
@@ -55,8 +67,9 @@ Given selected root statement `R`:
    selected root into unrelated conclusions.
 10. Reconcile statement roles.
 11. Set the selected root in export metadata.
-12. Validate under the Concludia profile.
-13. Write the output atomically only if validation succeeds.
+12. Remove Cludia-owned allocator metadata such as `cludia-next-ids`.
+13. Validate under the Concludia profile.
+14. Write the output atomically only if validation succeeds.
 
 This is the **entire rooted structure**: all available upstream justifications
 and their attached contestation, rather than one selected path.
