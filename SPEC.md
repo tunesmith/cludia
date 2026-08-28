@@ -293,8 +293,9 @@ Mutation commands that can remove or cascade through relations SHOULD support
 `--dry-run`.
 
 Agent-facing guidance MUST instruct scripted callers not to predict generated
-IDs across independent mutations. Callers can instead provide explicit IDs or
-consume the assigned ID from each successful structured mutation result.
+IDs across independent mutations. Callers SHOULD omit explicit IDs and consume
+the assigned ID from each successful structured mutation result; any explicit
+ID MUST equal the role-appropriate exact next ID.
 Guidance MUST also state that attached counterpoints are removed explicitly
 before deleting their target or an incident inference.
 

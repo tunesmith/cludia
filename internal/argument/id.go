@@ -84,44 +84,27 @@ func compactSlug(tokens []string) string {
 }
 
 func NextStatementID(doc *Document, role Role) string {
-	prefix := "P"
-	switch role {
-	case RoleLemma:
-		prefix = "L"
-	case RoleConclusion:
-		prefix = "C"
-	case RoleCounterpoint:
-		prefix = "CP"
+	allocator, err := NewIDAllocator(doc)
+	if err != nil {
+		return ""
 	}
-	used := make(map[string]bool, len(doc.Statements)+len(doc.Junctors))
-	for _, statement := range doc.Statements {
-		used[statement.ID] = true
+	id, err := allocator.Statement(role, "")
+	if err != nil {
+		return ""
 	}
-	for _, junctor := range doc.Junctors {
-		used[junctor.ID] = true
-	}
-	for n := 1; ; n++ {
-		candidate := fmt.Sprintf("%s%d", prefix, n)
-		if !used[candidate] {
-			return candidate
-		}
-	}
+	return id
 }
 
 func NextJunctorID(doc *Document) string {
-	used := make(map[string]bool, len(doc.Junctors)+len(doc.Statements))
-	for _, junctor := range doc.Junctors {
-		used[junctor.ID] = true
+	allocator, err := NewIDAllocator(doc)
+	if err != nil {
+		return ""
 	}
-	for _, statement := range doc.Statements {
-		used[statement.ID] = true
+	id, err := allocator.Junctor("")
+	if err != nil {
+		return ""
 	}
-	for n := 1; ; n++ {
-		candidate := fmt.Sprintf("J%d", n)
-		if !used[candidate] {
-			return candidate
-		}
-	}
+	return id
 }
 
 func UniqueSlug(doc *Document, text string) string {

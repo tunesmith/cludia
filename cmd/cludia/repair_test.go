@@ -256,6 +256,17 @@ func TestRemoveJunctorDryRunAndMutation(t *testing.T) {
 	if parsed := argfile.ParseFile(path); len(parsed.Document.Junctors) != 0 {
 		t.Fatalf("junctor remains: %#v", parsed.Document.Junctors)
 	}
+	stdout.Reset()
+	stderr.Reset()
+	if err := run([]string{
+		"derive", path, "--source", "P1", "--source", "P2", "--target", "L1", "--json",
+	}, &stdout, &stderr); err != nil {
+		t.Fatalf("derive after junctor deletion: %v", err)
+	}
+	var derived deriveOutput
+	if err := json.Unmarshal(stdout.Bytes(), &derived); err != nil || derived.Junctor.ID != "J2" {
+		t.Fatalf("post-deletion junctor = %#v, decode %v", derived.Junctor, err)
+	}
 }
 
 func TestRemoveJunctorRefusesDanglingUndercut(t *testing.T) {

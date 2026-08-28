@@ -137,6 +137,15 @@ func TestRemoveCounterpointRequiresLeafFirstAndSupportsDryRun(t *testing.T) {
 	if len(parsed.Document.Defeats) != 0 {
 		t.Fatalf("defeats remain: %#v", parsed.Document.Defeats)
 	}
+	stdout.Reset()
+	stderr.Reset()
+	if err := run([]string{"undermine", path, "P1", "--text", "Later challenge", "--json"}, &stdout, &stderr); err != nil {
+		t.Fatalf("challenge after deletion gap: %v", err)
+	}
+	var later defeatMutationOutput
+	if err := json.Unmarshal(stdout.Bytes(), &later); err != nil || later.Counterpoint.ID != "CP3" {
+		t.Fatalf("later counterpoint = %#v, decode %v", later, err)
+	}
 }
 
 func TestRemovingUndercutAllowsJunctorRemoval(t *testing.T) {

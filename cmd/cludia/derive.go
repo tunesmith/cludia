@@ -93,6 +93,10 @@ func runDerive(args []string, stdout, stderr io.Writer) error {
 		return errValidationFailed
 	}
 	next := doc.Clone()
+	allocator, err := argument.NewIDAllocator(next)
+	if err != nil {
+		return err
+	}
 	resolvedSources := make([]string, 0, len(sources))
 	for _, reference := range sources {
 		statement, ok := next.Statement(strings.TrimSpace(reference))
@@ -148,9 +152,9 @@ func runDerive(args []string, stdout, stderr io.Writer) error {
 			}
 			return errValidationFailed
 		}
-		id := strings.TrimSpace(*targetID)
-		if id == "" {
-			id = argument.NextStatementID(next, role)
+		id, allocationErr := allocator.Statement(role, strings.TrimSpace(*targetID))
+		if allocationErr != nil {
+			return writeIDAllocationFailure(stdout, *jsonOutput, profile, allocationErr)
 		}
 		slug := strings.TrimSpace(*targetSlug)
 		if slug == "" {
@@ -164,9 +168,9 @@ func runDerive(args []string, stdout, stderr io.Writer) error {
 		changes = append(changes, changeOutput{Operation: "added", ElementType: "statement", ID: target.ID})
 	}
 
-	id := strings.TrimSpace(*junctorID)
-	if id == "" {
-		id = argument.NextJunctorID(next)
+	id, allocationErr := allocator.Junctor(strings.TrimSpace(*junctorID))
+	if allocationErr != nil {
+		return writeIDAllocationFailure(stdout, *jsonOutput, profile, allocationErr)
 	}
 	junctor := argument.Junctor{
 		ID: id, Connector: argument.ConnectorAND,
@@ -175,6 +179,7 @@ func runDerive(args []string, stdout, stderr io.Writer) error {
 	}
 	next.Junctors = append(next.Junctors, junctor)
 	changes = append(changes, changeOutput{Operation: "added", ElementType: "junctor", ID: junctor.ID})
+	changes = appendMetadataChange(changes, persistIDAllocator(next, allocator))
 	validated := validation.Validate(next, profile)
 	if !validated.OK() {
 		if err := writeFailure(stdout, *jsonOutput, profile, validated.Diagnostics); err != nil {

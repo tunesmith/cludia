@@ -126,6 +126,10 @@ func createDefeat(path, action string, scope argument.DefeatScope, targetRef str
 		return errValidationFailed
 	}
 	next := doc.Clone()
+	allocator, err := argument.NewIDAllocator(next)
+	if err != nil {
+		return err
+	}
 	defeat := argument.Defeat{Scope: scope}
 	switch scope {
 	case argument.DefeatPremise:
@@ -155,9 +159,9 @@ func createDefeat(path, action string, scope argument.DefeatScope, targetRef str
 	}
 	truth, truthOK := parseTruth(*flags.truth)
 	kind, kindOK := parseKind(*flags.kind)
-	id := strings.TrimSpace(*flags.id)
-	if id == "" {
-		id = argument.NextStatementID(next, argument.RoleCounterpoint)
+	id, allocationErr := allocator.Statement(argument.RoleCounterpoint, strings.TrimSpace(*flags.id))
+	if allocationErr != nil {
+		return writeIDAllocationFailure(stdout, *flags.jsonOutput, profile, allocationErr)
 	}
 	slug := strings.TrimSpace(*flags.slug)
 	if slug == "" {
@@ -170,6 +174,7 @@ func createDefeat(path, action string, scope argument.DefeatScope, targetRef str
 	defeat.From = id
 	next.Statements = append(next.Statements, statement)
 	next.Defeats = append(next.Defeats, defeat)
+	metadataChange := persistIDAllocator(next, allocator)
 	if !truthOK {
 		diagnostics = append(diagnostics, diagnostic.Diagnostic{Code: "truth_invalid", Message: fmt.Sprintf("invalid truth %q; expected T, F, or U", *flags.truth), Severity: diagnostic.SeverityError, Element: id})
 	}
@@ -195,10 +200,10 @@ func createDefeat(path, action string, scope argument.DefeatScope, targetRef str
 	output := defeatMutationOutput{
 		SchemaVersion: outputSchemaVersion, Action: action, DryRun: false,
 		Profile: profile, Document: documentSummary(next), Counterpoint: statement, Defeat: defeat,
-		Changes: []changeOutput{
+		Changes: appendMetadataChange([]changeOutput{
 			{Operation: "added", ElementType: "statement", ID: statement.ID},
 			{Operation: "added", ElementType: "defeat", ID: statement.ID},
-		},
+		}, metadataChange),
 		Diagnostics: diagnostics,
 	}
 	if *flags.jsonOutput {
@@ -236,6 +241,10 @@ func runRemoveCounterpoint(args []string, stdout, stderr io.Writer) error {
 		return errValidationFailed
 	}
 	next := doc.Clone()
+	metadataChange, err := ensureNextIDs(next)
+	if err != nil {
+		return err
+	}
 	statement, ok := next.Statement(fs.Arg(1))
 	if !ok {
 		return writeMutationFailure(stdout, *jsonOutput, profile, "counterpoint_not_found", fmt.Sprintf("counterpoint %q not found", fs.Arg(1)), fs.Arg(1))
@@ -305,6 +314,7 @@ func runRemoveCounterpoint(args []string, stdout, stderr io.Writer) error {
 	for range removedDefeats {
 		changes = append(changes, changeOutput{Operation: "removed", ElementType: "defeat", ID: removed.ID})
 	}
+	changes = appendMetadataChange(changes, metadataChange)
 	output := counterpointRemovalOutput{
 		SchemaVersion: outputSchemaVersion, Action: "remove-counterpoint", DryRun: *dryRun,
 		Profile: profile, Document: documentSummary(next), Counterpoint: removed,

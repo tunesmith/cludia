@@ -45,6 +45,16 @@ func Validate(doc *argument.Document, profile Profile) Result {
 		result.error("statements_required", "document must contain at least one statement", doc.ID)
 		return result
 	}
+	_, _, _, present, staleNamespaces, nextIDsErr := argument.InspectNextIDs(doc)
+	if nextIDsErr != nil {
+		result.error("next_ids_invalid", nextIDsErr.Error(), argument.NextIDsMetadataKey)
+	} else if present && len(staleNamespaces) > 0 {
+		result.warning(
+			"next_ids_stale",
+			fmt.Sprintf("%s is behind current canonical IDs in namespaces %s; the next ID-affecting mutation will advance it safely", argument.NextIDsMetadataKey, strings.Join(staleNamespaces, ", ")),
+			argument.NextIDsMetadataKey,
+		)
+	}
 
 	statementByID := make(map[string]argument.Statement, len(doc.Statements))
 	slugOwner := make(map[string]string, len(doc.Statements))

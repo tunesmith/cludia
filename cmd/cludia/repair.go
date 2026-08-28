@@ -251,6 +251,10 @@ func runRemoveJunctor(args []string, stdout, stderr io.Writer) error {
 		return errValidationFailed
 	}
 	next := doc.Clone()
+	metadataChange, err := ensureNextIDs(next)
+	if err != nil {
+		return err
+	}
 	junctor, ok := next.Junctor(fs.Arg(1))
 	if !ok {
 		return writeMutationFailure(stdout, *jsonOutput, profile, "junctor_not_found", fmt.Sprintf("junctor %q not found", fs.Arg(1)), fs.Arg(1))
@@ -286,7 +290,10 @@ func runRemoveJunctor(args []string, stdout, stderr io.Writer) error {
 	output := junctorMutationOutput{
 		SchemaVersion: outputSchemaVersion, Action: "remove-junctor", DryRun: *dryRun,
 		Profile: profile, Document: documentSummary(next), PreviousJunctor: previous,
-		Changes:     []changeOutput{{Operation: "removed", ElementType: "junctor", ID: previous.ID}},
+		Changes: appendMetadataChange(
+			[]changeOutput{{Operation: "removed", ElementType: "junctor", ID: previous.ID}},
+			metadataChange,
+		),
 		Diagnostics: diagnostics,
 	}
 	return writeJunctorMutation(stdout, *jsonOutput, output)

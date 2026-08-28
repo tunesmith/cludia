@@ -65,6 +65,32 @@ func TestRootedDoesNotFollowDownstreamSupport(t *testing.T) {
 	}
 }
 
+func TestRootedOmitsCludiaNextIDMetadata(t *testing.T) {
+	doc := &argument.Document{
+		ID: "allocator-metadata", Title: "Allocator metadata",
+		Metadata: []argument.Metadata{
+			{Key: "author", Value: "test"},
+			{Key: argument.NextIDsMetadataKey, Value: "v1;P=3;L=2;C=1;CP=1;J=2"},
+		},
+		Statements: []argument.Statement{
+			rootedStatement("P1", argument.RolePremise),
+			rootedStatement("P2", argument.RolePremise),
+			rootedStatement("L1", argument.RoleLemma),
+		},
+		Junctors: []argument.Junctor{{ID: "J1", Connector: argument.ConnectorAND, Sources: []string{"P1", "P2"}, Target: "L1"}},
+	}
+	rooted, err := Rooted(doc, "L1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, exists := rooted.MetadataValue(argument.NextIDsMetadataKey); exists {
+		t.Fatal("rooted export retained Cludia allocator metadata")
+	}
+	if author, exists := rooted.MetadataValue("author"); !exists || author != "test" {
+		t.Fatalf("unrelated metadata was not preserved: %q, %t", author, exists)
+	}
+}
+
 func TestRootedFixedPointIncludesCounterpointSupportAndRecursiveDefeat(t *testing.T) {
 	doc := &argument.Document{
 		ID: "counterpoint-support", Title: "Counterpoint support",

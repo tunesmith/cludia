@@ -84,7 +84,7 @@ func Rooted(doc *argument.Document, reference string) (*argument.Document, error
 		Defeats: []argument.Defeat{},
 	}
 	for _, metadata := range doc.Metadata {
-		if metadata.Key != "profile" && metadata.Key != "root" {
+		if metadata.Key != "profile" && metadata.Key != "root" && metadata.Key != argument.NextIDsMetadataKey {
 			result.Metadata = append(result.Metadata, metadata)
 		}
 	}

@@ -53,9 +53,17 @@ func runInit(args []string, stdout, stderr io.Writer) error {
 			id = "workspace"
 		}
 	}
-	firstID := strings.TrimSpace(*statementID)
-	if firstID == "" {
-		firstID = "P1"
+	doc := &argument.Document{
+		ID: id, Title: cleanTitle,
+		Metadata: []argument.Metadata{{Key: "profile", Value: "workspace"}, {Key: "version", Value: "0.1.0"}},
+	}
+	allocator, err := argument.NewIDAllocator(doc)
+	if err != nil {
+		return err
+	}
+	firstID, err := allocator.Statement(argument.RolePremise, strings.TrimSpace(*statementID))
+	if err != nil {
+		return writeIDAllocationFailure(stdout, *jsonOutput, validation.ProfileWorkspace, err)
 	}
 	truth, truthOK := parseTruth(*truthName)
 	kind, kindOK := parseKind(*kindName)
@@ -63,11 +71,8 @@ func runInit(args []string, stdout, stderr io.Writer) error {
 	if firstSlug == "" {
 		firstSlug = argument.UniqueSlug(&argument.Document{}, cleanText)
 	}
-	doc := &argument.Document{
-		ID: id, Title: cleanTitle,
-		Metadata:   []argument.Metadata{{Key: "profile", Value: "workspace"}, {Key: "version", Value: "0.1.0"}},
-		Statements: []argument.Statement{{ID: firstID, Slug: firstSlug, Role: argument.RolePremise, Kind: kind, Truth: truth, Text: cleanText}},
-	}
+	doc.Statements = []argument.Statement{{ID: firstID, Slug: firstSlug, Role: argument.RolePremise, Kind: kind, Truth: truth, Text: cleanText}}
+	metadataChange := persistIDAllocator(doc, allocator)
 	var diagnostics []diagnostic.Diagnostic
 	if !truthOK {
 		diagnostics = append(diagnostics, diagnostic.Diagnostic{Code: "truth_invalid", Message: fmt.Sprintf("invalid truth %q; expected T, F, or U", *truthName), Severity: diagnostic.SeverityError, Element: firstID})
@@ -94,7 +99,10 @@ func runInit(args []string, stdout, stderr io.Writer) error {
 	output := mutationOutput{
 		SchemaVersion: outputSchemaVersion, Action: "init", DryRun: false,
 		Profile: validation.ProfileWorkspace, Document: documentSummary(doc), Statement: doc.Statements[0],
-		Changes:     []changeOutput{{Operation: "created", ElementType: "document", ID: doc.ID}, {Operation: "added", ElementType: "statement", ID: firstID}},
+		Changes: appendMetadataChange([]changeOutput{
+			{Operation: "created", ElementType: "document", ID: doc.ID},
+			{Operation: "added", ElementType: "statement", ID: firstID},
+		}, metadataChange),
 		Diagnostics: []diagnostic.Diagnostic{},
 	}
 	return writeMutation(stdout, *jsonOutput, output)
@@ -130,9 +138,13 @@ func runAdd(args []string, stdout, stderr io.Writer) error {
 	}
 
 	next := doc.Clone()
-	id := strings.TrimSpace(*idName)
-	if id == "" {
-		id = argument.NextStatementID(next, argument.RolePremise)
+	allocator, err := argument.NewIDAllocator(next)
+	if err != nil {
+		return err
+	}
+	id, err := allocator.Statement(argument.RolePremise, strings.TrimSpace(*idName))
+	if err != nil {
+		return writeIDAllocationFailure(stdout, *jsonOutput, profile, err)
 	}
 	slug := strings.TrimSpace(*slugName)
 	if slug == "" {
@@ -142,6 +154,7 @@ func runAdd(args []string, stdout, stderr io.Writer) error {
 	kind, kindOK := parseKind(*kindName)
 	statement := argument.Statement{ID: id, Slug: slug, Role: argument.RolePremise, Kind: kind, Truth: truth, Text: strings.TrimSpace(*text)}
 	next.Statements = append(next.Statements, statement)
+	metadataChange := persistIDAllocator(next, allocator)
 	if !truthOK {
 		diagnostics = append(diagnostics, diagnostic.Diagnostic{Code: "truth_invalid", Message: fmt.Sprintf("invalid truth %q; expected T, F, or U", *truthName), Severity: diagnostic.SeverityError, Element: id})
 	}
@@ -167,7 +180,7 @@ func runAdd(args []string, stdout, stderr io.Writer) error {
 	output := mutationOutput{
 		SchemaVersion: outputSchemaVersion, Action: "add", DryRun: false,
 		Profile: profile, Document: documentSummary(next), Statement: statement,
-		Changes: []changeOutput{{Operation: "added", ElementType: "statement", ID: id}}, Diagnostics: diagnostics,
+		Changes: appendMetadataChange([]changeOutput{{Operation: "added", ElementType: "statement", ID: id}}, metadataChange), Diagnostics: diagnostics,
 	}
 	return writeMutation(stdout, *jsonOutput, output)
 }

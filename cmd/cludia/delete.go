@@ -55,6 +55,10 @@ func runDelete(args []string, stdout, stderr io.Writer) error {
 		return errValidationFailed
 	}
 	next := doc.Clone()
+	metadataChange, err := ensureNextIDs(next)
+	if err != nil {
+		return err
+	}
 	statement, ok := next.Statement(fs.Arg(1))
 	if !ok {
 		return writeMutationFailure(stdout, *jsonOutput, profile, "statement_not_found", fmt.Sprintf("statement %q not found", fs.Arg(1)), fs.Arg(1))
@@ -145,6 +149,7 @@ func runDelete(args []string, stdout, stderr io.Writer) error {
 	for _, defeat := range defeatsRemoved {
 		changes = append(changes, changeOutput{Operation: "removed", ElementType: "defeat", ID: defeat.From})
 	}
+	changes = appendMetadataChange(changes, metadataChange)
 	output := statementDeletionOutput{
 		SchemaVersion: outputSchemaVersion, Action: "delete", DryRun: *dryRun,
 		Profile: profile, Document: documentSummary(next), Statement: removed,

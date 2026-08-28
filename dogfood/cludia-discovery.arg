@@ -1,5 +1,5 @@
 argument cludia-discovery "Cludia Discovery"
-meta profile="workspace", version="0.1.0"
+meta profile="workspace", version="0.1.0", cludia-next-ids="v1;P=79;L=41;C=1;CP=1;J=40"
 
 premise[fact] P47:external-claude-agent-dogfooded-cludia-work-investigation ::T "An external Claude agent dogfooded Cludia during a multi-session work investigation and reported that dependency inspection made affected conclusions easier to find than rereading a growing prose summary."
 
@@ -81,3 +81,8 @@ lemma[value] L38:explicit-renumber-compatible-with-portable-arg "Explicit whole-
 
 lemma[value] L39:adr-0009-monotonic-ids-explicit-renumber "ADR 0009 should adopt monotonic canonical IDs and make reviewed whole-document renumbering the sole numbering reset."
   <- AND#J38(L37, L38)
+
+premise[fact] P78:monotonic-allocator-checkpoint-passed ::T "At the monotonic allocator checkpoint, focused creation used exact-next canonical IDs, failed and dry-run mutations consumed nothing, deletion preserved gaps, and legacy files bootstrapped compact next-ID metadata."
+
+lemma[value] L40:monotonic-allocator-ready-for-renumber "The accepted monotonic allocator and next-ID metadata are implemented and ready to support explicit whole-document renumbering."
+  <- AND#J39(L39, P78)

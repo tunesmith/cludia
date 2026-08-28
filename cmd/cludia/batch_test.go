@@ -38,7 +38,7 @@ func TestAddBatchDryRunAndMutationReturnsKeyMapping(t *testing.T) {
 	if err := json.Unmarshal(stdout.Bytes(), &dryRun); err != nil {
 		t.Fatal(err)
 	}
-	if !dryRun.DryRun || len(dryRun.Statements) != 2 || len(dryRun.Changes) != 2 {
+	if !dryRun.DryRun || len(dryRun.Statements) != 2 || len(dryRun.Changes) != 3 {
 		t.Fatalf("dry-run output = %#v", dryRun)
 	}
 	if got := dryRun.Statements[0]; got.Key != "migration-status" || got.Statement.ID != "P3" {
@@ -102,7 +102,7 @@ func TestAddBatchRejectsInvalidInputWithoutWriting(t *testing.T) {
 		{name: "unsupported schema", input: `{"schema_version": 2, "statements": [{"key": "one", "text": "One"}]}`, code: "batch_schema_version_unsupported"},
 		{name: "no statements", input: `{"schema_version": 1, "statements": []}`, code: "batch_statements_required"},
 		{name: "duplicate key", input: `{"schema_version": 1, "statements": [{"key": "same", "text": "One"}, {"key": "same", "text": "Two"}]}`, code: "batch_key_duplicate"},
-		{name: "duplicate durable id", input: `{"schema_version": 1, "statements": [{"key": "duplicate-id", "text": "One", "id": "P1"}]}`, code: "id_duplicate"},
+		{name: "retired or duplicate durable id", input: `{"schema_version": 1, "statements": [{"key": "duplicate-id", "text": "One", "id": "P1"}]}`, code: "id_not_next"},
 		{name: "duplicate slug", input: `{"schema_version": 1, "statements": [{"key": "duplicate-slug", "text": "One", "slug": "first"}]}`, code: "statement_slug_duplicate"},
 		{name: "unknown field", input: `{"schema_version": 1, "statements": [{"key": "one", "text": "One", "extra": true}]}`, code: "batch_input_invalid"},
 	}

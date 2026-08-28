@@ -103,3 +103,39 @@ func documentSummary(doc *argument.Document) documentOutput {
 func diagnosticError(code, message, element string) []diagnostic.Diagnostic {
 	return []diagnostic.Diagnostic{{Code: code, Message: message, Severity: diagnostic.SeverityError, Element: element}}
 }
+
+func writeIDAllocationFailure(stdout io.Writer, jsonOutput bool, profile validation.Profile, err error) error {
+	if allocationErr, ok := err.(*argument.IDAllocationError); ok {
+		return writeMutationFailure(stdout, jsonOutput, profile, allocationErr.Code, allocationErr.Message, allocationErr.Element)
+	}
+	return err
+}
+
+func persistIDAllocator(doc *argument.Document, allocator *argument.IDAllocator) *changeOutput {
+	previous, existed := doc.MetadataValue(argument.NextIDsMetadataKey)
+	allocator.Persist(doc)
+	current, _ := doc.MetadataValue(argument.NextIDsMetadataKey)
+	if existed && previous == current {
+		return nil
+	}
+	operation := "added"
+	if existed {
+		operation = "updated"
+	}
+	return &changeOutput{Operation: operation, ElementType: "metadata", ID: argument.NextIDsMetadataKey}
+}
+
+func ensureNextIDs(doc *argument.Document) (*changeOutput, error) {
+	allocator, err := argument.NewIDAllocator(doc)
+	if err != nil {
+		return nil, err
+	}
+	return persistIDAllocator(doc, allocator), nil
+}
+
+func appendMetadataChange(changes []changeOutput, change *changeOutput) []changeOutput {
+	if change != nil {
+		return append(changes, *change)
+	}
+	return changes
+}

@@ -43,6 +43,9 @@ type slugGuidance struct {
 type scriptedAuthoringGuidance struct {
 	PredictGeneratedIDs                   bool   `json:"predict_generated_ids"`
 	ExplicitIDFlag                        string `json:"explicit_id_flag"`
+	ExplicitIDMustEqualNext               bool   `json:"explicit_id_must_equal_next"`
+	CustomIDsAuthored                     bool   `json:"custom_ids_authored"`
+	NextIDsMetadata                       string `json:"next_ids_metadata"`
 	AddResultIDField                      string `json:"add_result_id_field"`
 	SuccessfulMutationResultAuthoritative bool   `json:"successful_mutation_result_authoritative"`
 	AtomicBatchCommand                    string `json:"atomic_batch_command"`
@@ -94,7 +97,9 @@ func runGuidance(args []string, stdout, stderr io.Writer) error {
 	fmt.Fprintln(stdout, "- Text edits require --same-proposition; Cludia does not verify semantic equivalence.")
 	fmt.Fprintln(stdout, "- Truth- and kind-only edits do not require --same-proposition.")
 	fmt.Fprintln(stdout, "- Slugs are optional mutable aliases with one current value and no retained alias history.")
-	fmt.Fprintln(stdout, "- Scripted capture must not predict generated IDs across mutations; pass --id or read statement.id from each successful add --json result.")
+	fmt.Fprintln(stdout, "- Focused authoring uses monotonic canonical P/L/C/CP/J IDs; deleted numbers are not reused during ordinary mutation.")
+	fmt.Fprintln(stdout, "- Scripted capture must not predict generated IDs across mutations; omit --id and read statement.id from each successful add --json result.")
+	fmt.Fprintln(stdout, "- An explicit ID is accepted only when it is the role-appropriate exact next ID recorded by cludia-next-ids.")
 	fmt.Fprintln(stdout, "- Use add-batch with versioned JSON input for all-or-nothing multi-statement capture and caller-key-to-statement mappings.")
 	fmt.Fprintln(stdout, "- A batch dry-run mapping is tentative; use IDs from the applied mutation result for later references.")
 	fmt.Fprintln(stdout, "- Before deleting a challenged element, remove attached counterpoints with remove-counterpoint; use delete --dry-run to inspect structural effects.")
@@ -120,7 +125,8 @@ func identityGuidance() guidanceOutput {
 			Operations: []string{"--slug", "--from-text", "--clear"}, ExternalScopeWarning: true,
 		},
 		ScriptedAuthoring: scriptedAuthoringGuidance{
-			PredictGeneratedIDs: false, ExplicitIDFlag: "--id", AddResultIDField: "statement.id",
+			PredictGeneratedIDs: false, ExplicitIDFlag: "--id", ExplicitIDMustEqualNext: true,
+			CustomIDsAuthored: false, NextIDsMetadata: "cludia-next-ids", AddResultIDField: "statement.id",
 			SuccessfulMutationResultAuthoritative: true, AtomicBatchCommand: "add-batch",
 			BatchInputSchemaVersion: 1, BatchResultMappingField: "statements", BatchDryRunMappingTentative: true,
 		},

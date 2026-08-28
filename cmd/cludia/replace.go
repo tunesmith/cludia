@@ -135,6 +135,13 @@ func runReplace(args []string, stdout, stderr io.Writer) error {
 	}
 
 	next := doc.Clone()
+	var deletionAllocator *argument.IDAllocator
+	if len(removeJustifications) > 0 || *deleteOld {
+		deletionAllocator, err = argument.NewIDAllocator(next)
+		if err != nil {
+			return err
+		}
+	}
 	oldNext, _ := next.Statement(old.ID)
 	replacementNext, _ := next.Statement(replacement.ID)
 	beforeComponents := len(query.Components(next))
@@ -234,6 +241,9 @@ func runReplace(args []string, stdout, stderr io.Writer) error {
 		}
 		next.Statements = statements
 		changes = append(changes, changeOutput{Operation: "removed", ElementType: "statement", ID: oldNext.ID})
+	}
+	if deletionAllocator != nil && (len(removeSet) > 0 || len(blockers) == 0 && *deleteOld) {
+		changes = appendMetadataChange(changes, persistIDAllocator(next, deletionAllocator))
 	}
 
 	validated := validation.Validate(next, profile)

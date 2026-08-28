@@ -42,6 +42,26 @@ func TestCurrentConcludiaFixtureValidates(t *testing.T) {
 	}
 }
 
+func TestNextIDMetadataValidation(t *testing.T) {
+	doc := &argument.Document{
+		ID: "next-ids", Title: "Next IDs",
+		Metadata:   []argument.Metadata{{Key: argument.NextIDsMetadataKey, Value: "v1;P=2;L=1;C=1;CP=1;J=1"}},
+		Statements: []argument.Statement{statement("P3", argument.RolePremise)},
+	}
+	result := Validate(doc, ProfileWorkspace)
+	if !result.OK() {
+		t.Fatalf("stale allocator metadata should warn rather than fail: %#v", result.Diagnostics)
+	}
+	assertCode(t, result.Diagnostics, "next_ids_stale")
+
+	doc.Metadata[0].Value = "v2;P=4;L=1;C=1;CP=1;J=1"
+	result = Validate(doc, ProfileWorkspace)
+	if result.OK() {
+		t.Fatal("unsupported next-id metadata version validated")
+	}
+	assertCode(t, result.Diagnostics, "next_ids_invalid")
+}
+
 func TestDirectedSupportCycleIsRejected(t *testing.T) {
 	doc := &argument.Document{
 		ID: "cycle", Title: "Cycle",

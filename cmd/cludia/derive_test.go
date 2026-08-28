@@ -136,6 +136,41 @@ func TestFailedDeriveLeavesWorkspaceUnchanged(t *testing.T) {
 	}
 }
 
+func TestFailedExplicitDeriveDoesNotConsumeTargetOrJunctorIDs(t *testing.T) {
+	path := twoPremiseWorkspace(t)
+	before, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var stdout, stderr bytes.Buffer
+	err = run([]string{
+		"derive", path, "--source", "P1", "--source", "P2",
+		"--target-text", "Rejected", "--target-id", "L1", "--junctor-id", "J2", "--json",
+	}, &stdout, &stderr)
+	if !errors.Is(err, errValidationFailed) {
+		t.Fatalf("derive error = %v", err)
+	}
+	var failure failureOutput
+	if err := json.Unmarshal(stdout.Bytes(), &failure); err != nil || len(failure.Diagnostics) != 1 || failure.Diagnostics[0].Code != "id_not_next" {
+		t.Fatalf("failure = %#v, decode %v", failure, err)
+	}
+	after, readErr := os.ReadFile(path)
+	if readErr != nil || !bytes.Equal(before, after) {
+		t.Fatalf("failed explicit derive changed workspace: %v", readErr)
+	}
+	stdout.Reset()
+	stderr.Reset()
+	if err := run([]string{
+		"derive", path, "--source", "P1", "--source", "P2", "--target-text", "Accepted", "--json",
+	}, &stdout, &stderr); err != nil {
+		t.Fatalf("derive after failure: %v", err)
+	}
+	var output deriveOutput
+	if err := json.Unmarshal(stdout.Bytes(), &output); err != nil || output.Target.ID != "L1" || output.Junctor.ID != "J1" {
+		t.Fatalf("derive after failure = %#v, decode %v", output, err)
+	}
+}
+
 func TestCycleCreatingDeriveLeavesWorkspaceUnchanged(t *testing.T) {
 	path := twoPremiseWorkspace(t)
 	var stdout, stderr bytes.Buffer

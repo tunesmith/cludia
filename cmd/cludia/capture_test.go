@@ -57,6 +57,104 @@ func TestInitAndAddCreateValidWorkspace(t *testing.T) {
 	if diagnostic.HasErrors(parsed.Diagnostics) || len(parsed.Document.Statements) != 2 {
 		t.Fatalf("created workspace: %#v, diagnostics %#v", parsed.Document, parsed.Diagnostics)
 	}
+	if value, _ := parsed.Document.MetadataValue(argument.NextIDsMetadataKey); value != "v1;P=3;L=1;C=1;CP=1;J=1" {
+		t.Fatalf("next-id metadata = %q", value)
+	}
+}
+
+func TestFocusedExplicitIDsMustBeCanonicalExactNext(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "workspace.arg")
+	var stdout, stderr bytes.Buffer
+	if err := run([]string{"init", path, "--title", "Title", "--text", "First"}, &stdout, &stderr); err != nil {
+		t.Fatal(err)
+	}
+	for _, test := range []struct {
+		id, code string
+	}{
+		{id: "custom-id", code: "statement_id_not_canonical"},
+		{id: "L1", code: "statement_id_not_canonical"},
+		{id: "P3", code: "id_not_next"},
+		{id: "P1", code: "id_not_next"},
+	} {
+		before, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		stdout.Reset()
+		stderr.Reset()
+		err = run([]string{"add", path, "--id", test.id, "--text", "Rejected", "--json"}, &stdout, &stderr)
+		if !errors.Is(err, errValidationFailed) {
+			t.Fatalf("add %s error = %v", test.id, err)
+		}
+		var failure failureOutput
+		if err := json.Unmarshal(stdout.Bytes(), &failure); err != nil || len(failure.Diagnostics) != 1 || failure.Diagnostics[0].Code != test.code {
+			t.Fatalf("add %s failure = %#v, decode %v", test.id, failure, err)
+		}
+		after, readErr := os.ReadFile(path)
+		if readErr != nil || !bytes.Equal(before, after) {
+			t.Fatalf("rejected add %s changed file: %v", test.id, readErr)
+		}
+	}
+	stdout.Reset()
+	stderr.Reset()
+	if err := run([]string{"add", path, "--id", "P2", "--text", "Accepted", "--json"}, &stdout, &stderr); err != nil {
+		t.Fatalf("exact-next add: %v", err)
+	}
+}
+
+func TestDeletionLeavesMonotonicGap(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "workspace.arg")
+	var stdout, stderr bytes.Buffer
+	if err := run([]string{"init", path, "--title", "Title", "--text", "First"}, &stdout, &stderr); err != nil {
+		t.Fatal(err)
+	}
+	stdout.Reset()
+	if err := run([]string{"add", path, "--text", "Second"}, &stdout, &stderr); err != nil {
+		t.Fatal(err)
+	}
+	stdout.Reset()
+	if err := run([]string{"delete", path, "P2"}, &stdout, &stderr); err != nil {
+		t.Fatal(err)
+	}
+	stdout.Reset()
+	if err := run([]string{"add", path, "--text", "Third", "--json"}, &stdout, &stderr); err != nil {
+		t.Fatal(err)
+	}
+	var output mutationOutput
+	if err := json.Unmarshal(stdout.Bytes(), &output); err != nil || output.Statement.ID != "P3" {
+		t.Fatalf("post-deletion add = %#v, decode %v", output, err)
+	}
+}
+
+func TestLegacyWorkspaceBootstrapsNextIDsOnFirstCreation(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "legacy.arg")
+	doc := &argument.Document{
+		ID: "legacy", Title: "Legacy",
+		Metadata: []argument.Metadata{{Key: "profile", Value: "workspace"}},
+		Statements: []argument.Statement{
+			{ID: "P1", Role: argument.RolePremise, Kind: argument.KindFact, Truth: argument.TruthTrue, Text: "First"},
+			{ID: "P3", Role: argument.RolePremise, Kind: argument.KindFact, Truth: argument.TruthTrue, Text: "Third"},
+			{ID: "custom-id", Role: argument.RolePremise, Kind: argument.KindFact, Truth: argument.TruthTrue, Text: "Custom"},
+		},
+	}
+	if err := argfile.SaveAtomic(path, doc); err != nil {
+		t.Fatal(err)
+	}
+	var stdout, stderr bytes.Buffer
+	if err := run([]string{"add", path, "--text", "Fourth", "--json"}, &stdout, &stderr); err != nil {
+		t.Fatalf("legacy add: %v", err)
+	}
+	var output mutationOutput
+	if err := json.Unmarshal(stdout.Bytes(), &output); err != nil || output.Statement.ID != "P4" {
+		t.Fatalf("legacy output = %#v, decode %v", output, err)
+	}
+	parsed := argfile.ParseFile(path)
+	if _, ok := parsed.Document.Statement("custom-id"); !ok {
+		t.Fatal("ordinary mutation did not preserve existing custom id")
+	}
+	if value, _ := parsed.Document.MetadataValue(argument.NextIDsMetadataKey); value != "v1;P=5;L=1;C=1;CP=1;J=1" {
+		t.Fatalf("bootstrapped next ids = %q", value)
+	}
 }
 
 func TestInitRefusesExistingFile(t *testing.T) {

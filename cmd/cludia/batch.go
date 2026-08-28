@@ -81,6 +81,10 @@ func runAddBatch(args []string, stdout, stderr io.Writer) error {
 	}
 
 	next := doc.Clone()
+	allocator, err := argument.NewIDAllocator(next)
+	if err != nil {
+		return err
+	}
 	outputs := make([]batchAddStatementOutput, 0, len(input.Statements))
 	changes := make([]changeOutput, 0, len(input.Statements))
 	keys := make(map[string]bool, len(input.Statements))
@@ -108,9 +112,9 @@ func runAddBatch(args []string, stdout, stderr io.Writer) error {
 		if text == "" {
 			return writeMutationFailure(stdout, *jsonOutput, profile, "batch_text_required", fmt.Sprintf("batch statement %q requires non-empty text", key), key)
 		}
-		id := strings.TrimSpace(item.ID)
-		if id == "" {
-			id = argument.NextStatementID(next, argument.RolePremise)
+		id, allocationErr := allocator.Statement(argument.RolePremise, strings.TrimSpace(item.ID))
+		if allocationErr != nil {
+			return writeIDAllocationFailure(stdout, *jsonOutput, profile, allocationErr)
 		}
 		if !argument.ValidID(id) {
 			return writeMutationFailure(stdout, *jsonOutput, profile, "statement_id_invalid", fmt.Sprintf("batch statement %q has invalid statement id %q", key, id), key)
@@ -151,6 +155,7 @@ func runAddBatch(args []string, stdout, stderr io.Writer) error {
 		outputs = append(outputs, batchAddStatementOutput{Key: key, Statement: statement})
 		changes = append(changes, changeOutput{Operation: "added", ElementType: "statement", ID: id})
 	}
+	changes = appendMetadataChange(changes, persistIDAllocator(next, allocator))
 	validated := validation.Validate(next, profile)
 	if !validated.OK() {
 		if err := writeFailure(stdout, *jsonOutput, profile, validated.Diagnostics); err != nil {
