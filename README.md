@@ -28,9 +28,10 @@ after conversational dogfooding identifies the right visual operations.
 This repository is the permanent project home. The Go CLI implements the v1
 file workflow: capture and editing, inspection and search, multi-premise
 derivation and repair, defeat authoring, lifecycle operations, validation, and
-rooted Concludia export. A read-only terminal navigator adds deterministic Top,
-Statement Detail, and Derivation Ledger views over the same query layer. The
-project is pre-release and remains under active conversational dogfooding. Its
+rooted Concludia export. A terminal navigator adds deterministic Top, Statement
+Detail, and Derivation Ledger views over the same query layer, plus focused
+durable Top reordering. The project is pre-release and remains under active
+conversational dogfooding. Its
 `.arg` syntax and versioned JSON output remain compatibility-sensitive
 interfaces even before the first public release.
 
@@ -48,6 +49,8 @@ The principal decisions are:
 - Allocate canonical statement and junctor IDs monotonically, preserve deletion
   gaps, and compact them only through an explicit reviewed whole-document
   renumber.
+- Use statement sequence as one durable general order, with proof dependencies
+  constraining Ledger presentation.
 - Keep abductive discovery in the human/LLM conversation while persisting only
   asserted entailment-style inferences.
 - Do not add probabilistic scores, evidence weights, or Bayesian machinery.
@@ -70,7 +73,7 @@ The expected human workflow is conversational: an LLM reads the corpus through
 `--json`, proposes a conclusion and audits missing premises in conversation,
 then performs a mutation only after the user approves it.
 
-Open a workspace in the read-only terminal navigator:
+Open a workspace in the terminal navigator:
 
 ```bash
 cludia case.arg
@@ -80,11 +83,12 @@ The default Top view lists non-counterpoint statements with no outgoing support
 in document order, with longest support depth and `!` on challenged statements.
 All statement text wraps without truncation. Enter follows the selected
 statement into exact justification, challenge, and downstream-use detail; `f`
-opens the complete support ledger to that statement. `j/k` navigates and
-Escape returns to the previous view. Press `t` from anywhere to return directly
-to Top. Valid external CLI or agent changes reload automatically; invalid
-contents leave the last valid in-memory view intact. The TUI never writes the
-workspace.
+opens the complete support ledger to that statement. `j/k` selects rows;
+capital `J/K` in Top moves the highlighted statement down/up in durable general
+document order. Escape returns to the previous view, and `t` jumps directly to
+Top. Valid external CLI or agent changes reload automatically; invalid contents
+leave the last valid in-memory view intact. A stale reorder is refused when an
+external change has altered the displayed Top adjacency.
 
 ## Install from source
 
@@ -148,6 +152,8 @@ bin/cludia replace inquiry.arg L1 --with L2 \
 bin/cludia renumber inquiry.arg --dry-run --json
 bin/cludia renumber inquiry.arg --apply-token REVIEWED_TOKEN --json
 
+bin/cludia move-statement inquiry.arg L2 --before L1 --json
+
 bin/cludia derive inquiry.arg \
   --source P1 \
   --source P2 \
@@ -191,9 +197,16 @@ and text. Results preserve document order and report which fields matched.
 
 `top` lists non-counterpoint statements with no outgoing support in document
 order, including longest upstream support depth and challenge state. `ledger`
-shows the complete support derivation to a selected statement in stable
-topological order. Their human output preserves full statement text; their
-versioned JSON is the shared read model for agents and the read-only TUI.
+shows the complete support derivation to a selected statement in stable,
+proof-local topological order: every source precedes its target, while premises
+are delayed toward their first use and document order resolves equivalent
+choices. Their human output preserves full statement text and their versioned
+JSON is the shared read model for agents and the TUI.
+
+`move-statement` moves one statement immediately before or after another in the
+single durable general order. It accepts IDs or slugs, changes no identity or
+relation, and validates and saves atomically. This order also influences search,
+components, rooted export, and later reviewed `renumber` mappings.
 
 `add-batch` atomically captures multiple statements from a versioned JSON input
 file. Each input item has a required unique caller `key` and statement `text`,
@@ -250,8 +263,8 @@ junctor old-to-new mapping, root-metadata effects, resulting next-ID state, and
 a token bound to the current file. Applying that token rewrites all modeled
 references atomically and warns that references in Markdown, scripts, other
 workspaces, prior exports, or published graphs remain outside Cludia's checked
-scope. Slugs and non-identity content are preserved. The read-only TUI has no
-renumber hotkey.
+scope. Slugs and non-identity content are preserved. The TUI has no renumber
+hotkey.
 
 `root` computes the complete upstream support closure and attached recursive
 defeat chains for a selected non-counterpoint statement, reconciles roles, and

@@ -36,7 +36,7 @@ type screenState struct {
 	ledgerScroll int
 }
 
-// Model is the read-only Bubble Tea model.
+// Model is the Bubble Tea navigator with focused durable Top reordering.
 type Model struct {
 	path string
 	doc  *argument.Document
@@ -54,10 +54,11 @@ type Model struct {
 	ledgerScroll int
 	history      []screenState
 
-	width       int
-	height      int
-	message     string
-	messageKind messageKind
+	width          int
+	height         int
+	message        string
+	messageKind    messageKind
+	topMovePending bool
 
 	diskVersion      diskVersion
 	seenDiskVersion  diskVersion
@@ -95,6 +96,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.ensureSelectionVisible(), nil
 	case tea.KeyMsg:
 		return m.updateKey(msg)
+	case topMoveResultMsg:
+		m = m.applyTopMoveResult(msg)
+		return m.ensureSelectionVisible(), nil
 	}
 	return m, nil
 }
@@ -107,23 +111,28 @@ func (m Model) updateKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	if key == "t" {
 		return m.goTop().ensureSelectionVisible(), nil
 	}
+	var cmd tea.Cmd
 	switch m.mode {
 	case modeTop:
-		m = m.updateTop(key)
+		m, cmd = m.updateTop(key)
 	case modeDetail:
 		m = m.updateDetail(key)
 	case modeLedger:
 		m = m.updateLedger(key)
 	}
-	return m.ensureSelectionVisible(), nil
+	return m.ensureSelectionVisible(), cmd
 }
 
-func (m Model) updateTop(key string) Model {
+func (m Model) updateTop(key string) (Model, tea.Cmd) {
 	switch key {
 	case "j", "down":
 		m.topCursor = moveCursor(m.topCursor, len(m.topItems), 1)
 	case "k", "up":
 		m.topCursor = moveCursor(m.topCursor, len(m.topItems), -1)
+	case "J":
+		return m.beginTopMove(1)
+	case "K":
+		return m.beginTopMove(-1)
 	case "pgdown":
 		m.topCursor = moveCursor(m.topCursor, len(m.topItems), 5)
 	case "pgup":
@@ -141,7 +150,7 @@ func (m Model) updateTop(key string) Model {
 			m = m.openLedger(id)
 		}
 	}
-	return m
+	return m, nil
 }
 
 func (m Model) updateDetail(key string) Model {

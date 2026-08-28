@@ -92,6 +92,78 @@ func TestLedgerIncludesCounterpointExplicitlyUsedAsSupportSource(t *testing.T) {
 	}
 }
 
+func TestLedgerIntroducesPremiseNearUseAfterDerivedCompanion(t *testing.T) {
+	statement := func(id string, role argument.Role) argument.Statement {
+		truth := argument.TruthUnknown
+		if role == argument.RolePremise {
+			truth = argument.TruthTrue
+		}
+		return argument.Statement{ID: id, Role: role, Kind: argument.KindFact, Truth: truth, Text: id}
+	}
+	doc := &argument.Document{
+		Statements: []argument.Statement{
+			statement("P3", argument.RolePremise), // General order alone would front-load P3.
+			statement("P1", argument.RolePremise), statement("P2", argument.RolePremise),
+			statement("L34", argument.RoleLemma), statement("L35", argument.RoleLemma),
+		},
+		Junctors: []argument.Junctor{
+			{ID: "J1", Connector: argument.ConnectorAND, Sources: []string{"P1", "P2"}, Target: "L34"},
+			{ID: "J2", Connector: argument.ConnectorAND, Sources: []string{"L34", "P3"}, Target: "L35"},
+		},
+	}
+	_, rows, err := Ledger(doc, "L35")
+	if err != nil {
+		t.Fatal(err)
+	}
+	ids := ledgerIDs(rows)
+	if want := []string{"P1", "P2", "L34", "P3", "L35"}; !reflect.DeepEqual(ids, want) {
+		t.Fatalf("local ledger order = %v, want %v", ids, want)
+	}
+}
+
+func TestLedgerUsesDocumentOrderForEquivalentBranchesAndSharedSources(t *testing.T) {
+	statement := func(id string, role argument.Role) argument.Statement {
+		truth := argument.TruthUnknown
+		if role == argument.RolePremise {
+			truth = argument.TruthTrue
+		}
+		return argument.Statement{ID: id, Role: role, Kind: argument.KindFact, Truth: truth, Text: id}
+	}
+	doc := &argument.Document{
+		Statements: []argument.Statement{
+			statement("P0", argument.RolePremise), statement("P1", argument.RolePremise), statement("P2", argument.RolePremise),
+			statement("L1", argument.RoleLemma), statement("L2", argument.RoleLemma), statement("L3", argument.RoleLemma),
+		},
+		Junctors: []argument.Junctor{
+			{ID: "J1", Connector: argument.ConnectorAND, Sources: []string{"P0", "P1"}, Target: "L1"},
+			{ID: "J2", Connector: argument.ConnectorAND, Sources: []string{"P0", "P2"}, Target: "L2"},
+			{ID: "J3", Connector: argument.ConnectorAND, Sources: []string{"L1", "L2"}, Target: "L3"},
+		},
+	}
+	_, rows, err := Ledger(doc, "L3")
+	if err != nil {
+		t.Fatal(err)
+	}
+	ids := ledgerIDs(rows)
+	if want := []string{"P0", "P1", "L1", "P2", "L2", "L3"}; !reflect.DeepEqual(ids, want) {
+		t.Fatalf("shared-source ledger order = %v, want %v", ids, want)
+	}
+	for i := 0; i < 5; i++ {
+		_, again, repeatErr := Ledger(doc, "L3")
+		if repeatErr != nil || !reflect.DeepEqual(ledgerIDs(again), ids) {
+			t.Fatalf("ledger is not deterministic: %v %v", repeatErr, ledgerIDs(again))
+		}
+	}
+}
+
+func ledgerIDs(rows []LedgerRow) []string {
+	ids := make([]string, 0, len(rows))
+	for _, row := range rows {
+		ids = append(ids, row.Statement.ID)
+	}
+	return ids
+}
+
 func navigationDocument() *argument.Document {
 	statement := func(id, slug string, role argument.Role) argument.Statement {
 		truth := argument.TruthUnknown

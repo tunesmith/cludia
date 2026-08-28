@@ -80,8 +80,9 @@ The connected argument supporting this decision is
   become Concludia labels over server-owned opaque identities.
 - Opaque cross-system provenance remains deferred until an actual incremental
   or bidirectional synchronization requirement exists.
-- The read-only TUI gains no mutation hotkey; an external CLI renumber is
-  handled by its existing live-reload behavior.
+- The TUI gains no renumber hotkey; an external CLI renumber is handled by its
+  existing live-reload behavior. ADR 0010's later Top-order mutation does not
+  change this boundary.
 
 ## Consequences
 

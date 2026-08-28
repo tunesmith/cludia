@@ -79,6 +79,12 @@ a mutable human-readable alias with one current value; durable relations are
 resolved and canonically written by ID. Text edits that preserve an ID require
 explicit same-proposition intent under ADR 0007.
 
+Statement declaration sequence is the durable general order. Reordering moves
+the complete statement block, including support clauses attached to that target,
+without changing any modeled relation. Top, search, components, rooted export,
+and deterministic plans observe this sequence. Dependency-constrained views may
+use it only as a preference. No separate Top or Ledger order is stored.
+
 Focused creation authors only canonical role-appropriate IDs (`P`, `L`, `C`,
 or `CP` plus a positive decimal suffix) and accepts an explicit ID only when it
 is the exact recorded next value. Ordinary reads and round trips continue to
@@ -194,7 +200,7 @@ a defeat as if it were a premise.
 
 Opening and saving without an explicit transforming operation must preserve:
 
-- IDs, roles, kinds, truth, labels, slugs, and statement text;
+- statement order, IDs, roles, kinds, truth, labels, slugs, and statement text;
 - junctor IDs, connectors, source order, and targets;
 - direct supports;
 - all defeat scopes and targets;

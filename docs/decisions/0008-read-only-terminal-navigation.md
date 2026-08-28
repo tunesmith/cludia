@@ -2,6 +2,8 @@
 
 - Status: Accepted
 - Date: 2026-08-26
+- Partial supersession: ADR 0010 later adds focused durable Top reordering while
+  retaining this ADR's navigation model and deferral of general TUI authoring.
 
 ## Context
 

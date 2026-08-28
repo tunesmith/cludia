@@ -33,7 +33,7 @@ func (m Model) View() string {
 func (m Model) viewTop() string {
 	lines, _, _ := m.renderedTopBody()
 	body := renderLineViewport(lines, m.topScroll, m.viewportBudget())
-	return m.frame(m.doc.Title+" — TOP", body, "j/k move  Enter inspect  f derivation  q quit")
+	return m.frame(m.doc.Title+" — TOP", body, "j/k select  J/K reorder  Enter inspect  f derivation  q quit")
 }
 
 func (m Model) viewLedger() string {

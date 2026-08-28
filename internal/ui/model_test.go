@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/tunesmith/cludia/internal/argfile"
 	"github.com/tunesmith/cludia/internal/argument"
+	"github.com/tunesmith/cludia/internal/query"
 )
 
 func TestTopViewWrapsFullTextMarksChallengesAndNavigates(t *testing.T) {
@@ -346,6 +348,120 @@ func TestLiveReloadPreservesSelectionRejectsInvalidAndHandlesDeletion(t *testing
 	}
 }
 
+func TestTopCapitalKeysPersistOrderAndKeepSelection(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "workspace.arg")
+	doc := testUIDocument()
+	if err := argfile.SaveAtomic(path, doc); err != nil {
+		t.Fatal(err)
+	}
+	m := newModel(path, doc, readDisk(path).version)
+
+	updated, cmd := updateWithKey(m, "J")
+	if cmd == nil || !updated.topMovePending {
+		t.Fatalf("J did not start reorder: pending=%t cmd=%v", updated.topMovePending, cmd)
+	}
+	ignored, ignoredCmd := updateWithKey(updated, "K")
+	if ignoredCmd != nil || ignored.selectedTopID() != "L2" {
+		t.Fatalf("pending reorder accepted another move: cmd=%v selected=%s", ignoredCmd, ignored.selectedTopID())
+	}
+	m = applyTeaCmd(ignored, cmd)
+	if m.topMovePending || m.selectedTopID() != "L2" || !strings.Contains(m.message, "moved L2 after P5") {
+		t.Fatalf("completed reorder state=%s pending=%t message=%q", m.debugState(), m.topMovePending, m.message)
+	}
+	if got := []string{m.topItems[0].Statement.ID, m.topItems[1].Statement.ID}; !reflect.DeepEqual(got, []string{"P5", "L2"}) {
+		t.Fatalf("Top order = %v", got)
+	}
+	parsed := argfile.Load(path)
+	if got := []string{query.Top(parsed.Document)[0].Statement.ID, query.Top(parsed.Document)[1].Statement.ID}; !reflect.DeepEqual(got, []string{"P5", "L2"}) {
+		t.Fatalf("persisted Top order = %v", got)
+	}
+
+	beforeNavigation, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	m = pressKey(m, "k")
+	if m.selectedTopID() != "P5" {
+		t.Fatalf("lowercase k did not navigate: %s", m.selectedTopID())
+	}
+	afterNavigation, err := os.ReadFile(path)
+	if err != nil || !bytes.Equal(beforeNavigation, afterNavigation) {
+		t.Fatalf("lowercase navigation wrote workspace: %v", err)
+	}
+
+	restarted, _, err := loadDocument(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := query.Top(restarted); got[0].Statement.ID != "P5" || got[1].Statement.ID != "L2" {
+		t.Fatalf("restart lost Top order: %#v", got)
+	}
+}
+
+func TestTopReorderBoundariesDoNotWrite(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "workspace.arg")
+	doc := testUIDocument()
+	if err := argfile.SaveAtomic(path, doc); err != nil {
+		t.Fatal(err)
+	}
+	before, _ := os.ReadFile(path)
+	m := newModel(path, doc, readDisk(path).version)
+	updated, cmd := updateWithKey(m, "K")
+	if cmd != nil || updated.topMovePending {
+		t.Fatalf("upper boundary started reorder: pending=%t cmd=%v", updated.topMovePending, cmd)
+	}
+	m.topCursor = len(m.topItems) - 1
+	updated, cmd = updateWithKey(m, "J")
+	if cmd != nil || updated.topMovePending {
+		t.Fatalf("lower boundary started reorder: pending=%t cmd=%v", updated.topMovePending, cmd)
+	}
+	after, _ := os.ReadFile(path)
+	if !bytes.Equal(before, after) {
+		t.Fatal("boundary reorder rewrote workspace")
+	}
+}
+
+func TestTopReorderRefreshesOnExternalOrderChange(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "workspace.arg")
+	doc := testUIDocument()
+	if err := argfile.SaveAtomic(path, doc); err != nil {
+		t.Fatal(err)
+	}
+	m := newModel(path, doc, readDisk(path).version)
+	pending, cmd := updateWithKey(m, "J")
+	if cmd == nil {
+		t.Fatal("J did not return reorder command")
+	}
+	external, _, err := argument.MoveStatement(doc, "P5", "L2", argument.MoveBefore)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := argfile.SaveAtomic(path, external); err != nil {
+		t.Fatal(err)
+	}
+	m = applyTeaCmd(pending, cmd)
+	if !strings.Contains(m.message, "changed externally") || m.topItems[0].Statement.ID != "P5" || m.selectedTopID() != "L2" {
+		t.Fatalf("stale reorder did not refresh safely: order=%s,%s selected=%s message=%q", m.topItems[0].Statement.ID, m.topItems[1].Statement.ID, m.selectedTopID(), m.message)
+	}
+}
+
+func TestTopReorderRetainsLastValidDocumentWhenDiskBecomesInvalid(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "workspace.arg")
+	doc := testUIDocument()
+	if err := argfile.SaveAtomic(path, doc); err != nil {
+		t.Fatal(err)
+	}
+	m := newModel(path, doc, readDisk(path).version)
+	pending, cmd := updateWithKey(m, "J")
+	if err := os.WriteFile(path, []byte("invalid"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	m = applyTeaCmd(pending, cmd)
+	if !strings.Contains(m.message, "reorder failed") || m.topItems[0].Statement.ID != "L2" {
+		t.Fatalf("invalid reorder replaced last valid state: first=%s message=%q", m.topItems[0].Statement.ID, m.message)
+	}
+}
+
 func TestBackStackFallsBackWhenPriorStatementWasRemoved(t *testing.T) {
 	m := newModel("", testUIDocument(), diskVersion{})
 	m = m.openDetail("L2")
@@ -368,7 +484,7 @@ func TestBackStackFallsBackWhenPriorStatementWasRemoved(t *testing.T) {
 	}
 }
 
-func TestReadOnlyNavigationDoesNotWriteFile(t *testing.T) {
+func TestNonMutationNavigationDoesNotWriteFile(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "workspace.arg")
 	doc := testUIDocument()
 	if err := argfile.SaveAtomic(path, doc); err != nil {
@@ -385,7 +501,7 @@ func TestReadOnlyNavigationDoesNotWriteFile(t *testing.T) {
 	m = pressKey(m, "esc")
 	after, err := os.ReadFile(path)
 	if err != nil || !bytes.Equal(before, after) {
-		t.Fatalf("read-only navigation wrote workspace: %v", err)
+		t.Fatalf("navigation wrote workspace: %v", err)
 	}
 }
 
@@ -417,6 +533,11 @@ func TestEmptyTopView(t *testing.T) {
 }
 
 func pressKey(m Model, key string) Model {
+	updated, _ := updateWithKey(m, key)
+	return updated
+}
+
+func updateWithKey(m Model, key string) (Model, tea.Cmd) {
 	var msg tea.KeyMsg
 	switch key {
 	case "enter":
@@ -426,7 +547,12 @@ func pressKey(m Model, key string) Model {
 	default:
 		msg = tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune(key)}
 	}
-	updated, _ := m.Update(msg)
+	updated, cmd := m.Update(msg)
+	return updated.(Model), cmd
+}
+
+func applyTeaCmd(m Model, cmd tea.Cmd) Model {
+	updated, _ := m.Update(cmd())
 	return updated.(Model)
 }
 

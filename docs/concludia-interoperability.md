@@ -25,6 +25,10 @@ loss. This includes:
 - counterpoints targeting counterpoints;
 - labels, slugs, truth tokens, kinds, and metadata.
 
+Statement declaration order is preserved as the file's general presentation
+order. Cludia may change it only through an explicit reorder operation; the
+operation does not change logical relations.
+
 Focused editing may be narrower than the representable format. Unsupported
 focused creation does not authorize dropping or rewriting existing constructs.
 
@@ -65,11 +69,12 @@ Given selected root statement `R`:
 9. Exclude workspace statements and components that are not reached by these
    typed traversal rules. Do not follow ordinary downstream support from the
    selected root into unrelated conclusions.
-10. Reconcile statement roles.
-11. Set the selected root in export metadata.
-12. Remove Cludia-owned allocator metadata such as `cludia-next-ids`.
-13. Validate under the Concludia profile.
-14. Write the output atomically only if validation succeeds.
+10. Emit included statements in their general workspace order.
+11. Reconcile statement roles.
+12. Set the selected root in export metadata.
+13. Remove Cludia-owned allocator metadata such as `cludia-next-ids`.
+14. Validate under the Concludia profile.
+15. Write the output atomically only if validation succeeds.
 
 This is the **entire rooted structure**: all available upstream justifications
 and their attached contestation, rather than one selected path.

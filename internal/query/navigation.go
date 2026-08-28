@@ -51,7 +51,8 @@ func Top(doc *argument.Document) []TopItem {
 }
 
 // Ledger returns the support-only upstream closure of a selected statement in
-// stable topological order. Defeats contribute challenge state but not rows.
+// stable, proof-local topological order. Defeats contribute challenge state but
+// not rows.
 func Ledger(doc *argument.Document, reference string) (string, []LedgerRow, error) {
 	if doc == nil {
 		return "", nil, fmt.Errorf("document is nil")
@@ -92,13 +93,12 @@ func Ledger(doc *argument.Document, reference string) (string, []LedgerRow, erro
 	}
 
 	index := make(map[string]int, len(doc.Statements))
-	indegree := make(map[string]int, len(included))
-	outgoing := make(map[string][]string, len(included))
+	outdegree := make(map[string]int, len(included))
 	dependencies := make(map[string]map[string]bool, len(included))
 	for i, statement := range doc.Statements {
 		index[statement.ID] = i
 		if included[statement.ID] {
-			indegree[statement.ID] = 0
+			outdegree[statement.ID] = 0
 			dependencies[statement.ID] = make(map[string]bool)
 		}
 	}
@@ -107,8 +107,7 @@ func Ledger(doc *argument.Document, reference string) (string, []LedgerRow, erro
 			return
 		}
 		dependencies[target][source] = true
-		indegree[target]++
-		outgoing[source] = append(outgoing[source], target)
+		outdegree[source]++
 	}
 	for _, junctor := range doc.Junctors {
 		if !included[junctor.Target] {
@@ -122,31 +121,35 @@ func Ledger(doc *argument.Document, reference string) (string, []LedgerRow, erro
 		addDependency(support.Source, support.Target)
 	}
 
+	depths := supportDepths(doc)
 	ready := make([]string, 0)
 	for _, statement := range doc.Statements {
-		if included[statement.ID] && indegree[statement.ID] == 0 {
+		if included[statement.ID] && outdegree[statement.ID] == 0 {
 			ready = append(ready, statement.ID)
 		}
 	}
-	sortIDsByDocumentOrder(ready, index)
-	ordered := make([]string, 0, len(included))
+	sortIDsForReverseLedger(ready, index, depths)
+	reverseOrdered := make([]string, 0, len(included))
 	for len(ready) > 0 {
 		id := ready[0]
 		ready = ready[1:]
-		ordered = append(ordered, id)
-		for _, target := range outgoing[id] {
-			indegree[target]--
-			if indegree[target] == 0 {
-				ready = append(ready, target)
-				sortIDsByDocumentOrder(ready, index)
+		reverseOrdered = append(reverseOrdered, id)
+		for source := range dependencies[id] {
+			outdegree[source]--
+			if outdegree[source] == 0 {
+				ready = append(ready, source)
+				sortIDsForReverseLedger(ready, index, depths)
 			}
 		}
 	}
-	if len(ordered) != len(included) {
+	if len(reverseOrdered) != len(included) {
 		return "", nil, fmt.Errorf("ledger support graph contains a cycle")
 	}
+	ordered := make([]string, len(reverseOrdered))
+	for i, id := range reverseOrdered {
+		ordered[len(reverseOrdered)-1-i] = id
+	}
 
-	depths := supportDepths(doc)
 	rows := make([]LedgerRow, 0, len(ordered))
 	for _, id := range ordered {
 		statement, _ := doc.Statement(id)
@@ -243,6 +246,11 @@ func supportDepths(doc *argument.Document) map[string]int {
 	return memo
 }
 
-func sortIDsByDocumentOrder(ids []string, index map[string]int) {
-	sort.SliceStable(ids, func(i, j int) bool { return index[ids[i]] < index[ids[j]] })
+func sortIDsForReverseLedger(ids []string, index, depths map[string]int) {
+	sort.SliceStable(ids, func(i, j int) bool {
+		if depths[ids[i]] != depths[ids[j]] {
+			return depths[ids[i]] < depths[ids[j]]
+		}
+		return index[ids[i]] > index[ids[j]]
+	})
 }

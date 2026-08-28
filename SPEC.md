@@ -10,9 +10,9 @@ This document specifies the intended first implementation. `MUST`, `SHOULD`,
 and `MAY` are normative.
 
 The first implementation is a Go CLI over a local `.arg` file. After CLI
-dogfooding, v1 also includes a read-only terminal navigator over the same query
-and persistence layers. A later local web UI MUST have operation and information
-parity with the CLI.
+dogfooding, v1 also includes a terminal navigator over the same query and
+persistence layers, with focused durable Top reordering. A later local web UI
+MUST have operation and information parity with the CLI.
 
 ## 2. Terms
 
@@ -40,6 +40,11 @@ A workspace MUST have:
 - a title;
 - optional string metadata;
 - at least one statement.
+
+Statement sequence is the document's durable general order. Document-ordered
+queries, rooted export, and deterministic mutation plans MUST observe it.
+Interfaces MAY apply hard dependency constraints over that preference, as the
+support Ledger does, but MUST NOT persist a competing view-specific order.
 
 The workspace-profile metadata value is provisional. Format profile and
 content version MUST remain conceptually distinct even if the initial syntax
@@ -226,7 +231,8 @@ capabilities.
 - List non-counterpoint statements with no outgoing support, longest upstream
   support depth, and challenge state.
 - Read a complete, stable, topologically ordered support ledger for a selected
-  non-counterpoint statement.
+  non-counterpoint statement, delaying premises toward their first use while
+  using general document order to resolve equivalent choices.
 - List defeats targeting or originating from an element.
 - Validate under the workspace or Concludia profile.
 - Read versioned machine guidance for statement identity and revision behavior.
@@ -248,6 +254,9 @@ capabilities.
   apply token.
 - Plan and apply deterministic whole-document renumbering through a state-bound
   old-to-new mapping that rewrites all modeled internal references atomically.
+- Move one statement immediately before or after another in durable general
+  document order without changing identity, content, relations, or allocator
+  state.
 
 ### 6.3 Construct and repair
 
@@ -350,6 +359,14 @@ and save atomically. Statements MUST be numbered by current role in document
 order; junctors MUST be numbered in stored relation order. Slugs and all
 non-identity content MUST remain unchanged.
 
+Statement reordering is an immediate, non-destructive structural presentation
+mutation. It MUST accept statement IDs or slugs, report canonical statement and
+anchor IDs plus one-based previous and current positions, validate the complete
+result, and save atomically. An already satisfied immediate placement succeeds
+without rewriting the file. Reordering MAY affect later document-ordered
+queries, rooted export order, and reviewed renumber mappings; it MUST NOT itself
+change any ID or next-ID metadata.
+
 The CLI MUST NOT require installation when run from a checkout. Once Go code
 exists, ordinary validation will include:
 
@@ -427,8 +444,8 @@ be described as proof that the argument is sound.
 
 ## 11. Interface parity
 
-The read-only TUI and a future web UI MUST use the same domain operations as the
-CLI. They MUST NOT interpret or write the `.arg` file through independent
+The TUI and a future web UI MUST use the same domain operations as the CLI.
+They MUST NOT interpret or write the `.arg` file through independent
 implementations.
 
 Parity means:
@@ -438,9 +455,12 @@ Parity means:
   meaningfully inspected in the UI;
 - every fact shown visually is available in structured CLI output.
 
-The initial TUI MUST remain read-only, expose Top, Statement Detail, and
-Derivation Ledger views, and automatically reload valid external file changes
-without replacing its last valid in-memory document with invalid contents.
+The TUI MUST expose Top, Statement Detail, and Derivation Ledger views and
+automatically reload valid external file changes without replacing its last
+valid in-memory document with invalid contents. Capital `J` and `K` in Top MAY
+move the highlighted statement through the shared durable statement-order
+operation. The TUI MUST refuse a stale move when external changes invalidate
+the displayed Top adjacency. Other durable TUI authoring remains deferred.
 
 Pixel layout, graph rendering, keyboard navigation, and batch ergonomics need
 not be identical.
@@ -454,7 +474,8 @@ not be identical.
 - Entity extraction, timelines, maps, or OSINT collection.
 - Collaboration, accounts, hosted storage, or publication.
 - Native macOS packaging.
-- TUI mutation authoring, graphical graph maps, and TUI-only semantic queries.
+- General TUI mutation authoring, graphical graph maps, and TUI-only semantic
+  queries beyond focused statement ordering.
 - A universal format shared with Dagim.
 - New `OR` or direct-support authoring UX.
 - A new truth-propagation or defeat-adjudication engine.
@@ -495,6 +516,10 @@ V1 is complete when automated tests demonstrate at least:
 16. Whole-document renumbering requires a reviewed state-bound plan, rewrites
     every modeled reference, preserves non-identity content, and reports the
     complete old-to-new mapping.
+17. Statement reordering persists one general order atomically, changes no
+    identity or relation, and is shared by CLI and Top `J`/`K` controls.
+18. Ledger order always places sources before targets and delays a premise used
+    only with a derived source until that source's derivation is complete.
 
 ## 14. Open decisions
 
