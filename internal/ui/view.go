@@ -33,7 +33,12 @@ func (m Model) View() string {
 func (m Model) viewTop() string {
 	lines, _, _ := m.renderedTopBody()
 	body := renderLineViewport(lines, m.topScroll, m.viewportBudget())
-	return m.frame(m.doc.Title+" — TOP", body, "j/k select  J/K reorder  Enter inspect  f derivation  q quit")
+	position, total := 0, len(m.topItems)
+	if total > 0 {
+		position = clampCursor(m.topCursor, total) + 1
+	}
+	title := fmt.Sprintf("%s — TOP · %d of %d", m.doc.Title, position, total)
+	return m.frame(title, body, "j/k select  J/K reorder  Enter inspect  f derivation  q quit")
 }
 
 func (m Model) viewLedger() string {
@@ -158,7 +163,7 @@ func (m Model) renderedDetailBody() ([]string, int, int) {
 		for i, text := range wrapped {
 			prefix := strings.Repeat(" ", runeCount(indent)+2+runeCount(label)+2)
 			if i == 0 {
-				prefix = indent + marker + renderID(label, line.challenged) + "  "
+				prefix = indent + marker + renderSelectableID(label, line.challenged, selected) + "  "
 			}
 			value := prefix + text
 			if selected {
@@ -207,7 +212,7 @@ func renderTopItem(item query.TopItem, width, labelWidth int, selected bool) []s
 	}
 	var lines []string
 	if width < 80 {
-		header := marker + renderID(label, item.Challenged)
+		header := marker + renderSelectableID(label, item.Challenged, selected)
 		if depth != "" {
 			header += "  depth " + depth
 		}
@@ -220,7 +225,7 @@ func renderTopItem(item query.TopItem, width, labelWidth int, selected bool) []s
 		wrapped := wrapWords(item.Statement.Text, textWidth)
 		for i, text := range wrapped {
 			if i == 0 {
-				lines = append(lines, marker+pad(renderID(label, item.Challenged), labelWidth)+"  "+pad(depth, 5)+"  "+text)
+				lines = append(lines, marker+pad(renderSelectableID(label, item.Challenged, selected), labelWidth)+"  "+pad(depth, 5)+"  "+text)
 			} else {
 				lines = append(lines, strings.Repeat(" ", 2+labelWidth+2+5+2)+text)
 			}
@@ -243,7 +248,7 @@ func renderLedgerItem(row query.LedgerRow, width, labelWidth int, selected bool)
 	derivations := ledgerNotation(row)
 	var lines []string
 	if width < 80 {
-		lines = append(lines, marker+renderID(label, row.Challenged))
+		lines = append(lines, marker+renderSelectableID(label, row.Challenged, selected))
 		for _, text := range wrapWords(row.Statement.Text, maxInt(10, width-4)) {
 			lines = append(lines, "    "+text)
 		}
@@ -263,7 +268,7 @@ func renderLedgerItem(row query.LedgerRow, width, labelWidth int, selected bool)
 			labelCell, statementCell, derivationCell := "", "", ""
 			lineMarker := "  "
 			if i == 0 {
-				labelCell, lineMarker = renderID(label, row.Challenged), marker
+				labelCell, lineMarker = renderSelectableID(label, row.Challenged, selected), marker
 			}
 			if i < len(statementLines) {
 				statementCell = statementLines[i]
@@ -306,6 +311,16 @@ func renderID(value string, challenged bool) string {
 		return warningStyle.Render(value)
 	}
 	return value
+}
+
+// A nested challenge style resets the outer selection style after the label.
+// The exclamation mark still communicates challenge state while selection owns
+// the complete highlighted row.
+func renderSelectableID(value string, challenged, selected bool) string {
+	if selected {
+		return value
+	}
+	return renderID(value, challenged)
 }
 
 func wrapWords(text string, width int) []string {

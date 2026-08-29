@@ -45,11 +45,22 @@ type batchAddOutput struct {
 	Diagnostics   []diagnostic.Diagnostic   `json:"diagnostics"`
 }
 
+const batchAddExample = `{
+  "schema_version": 1,
+  "statements": [
+    {
+      "key": "observation-1",
+      "text": "The window was open."
+    }
+  ]
+}`
+
 func runAddBatch(args []string, stdout, stderr io.Writer) error {
 	fs := flag.NewFlagSet("add-batch", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 	jsonOutput := fs.Bool("json", false, "output versioned JSON")
 	dryRun := fs.Bool("dry-run", false, "validate and report without saving")
+	example := fs.Bool("example", false, "print a minimal input JSON example and exit")
 	inputPath := fs.String("input", "", "versioned JSON batch input file")
 	fs.Usage = func() { writeAddBatchUsage(fs.Output()) }
 	if err := fs.Parse(flagsFirst(args, map[string]bool{"input": true})); err != nil {
@@ -57,6 +68,14 @@ func runAddBatch(args []string, stdout, stderr io.Writer) error {
 			return nil
 		}
 		return err
+	}
+	if *example {
+		if fs.NArg() != 0 || strings.TrimSpace(*inputPath) != "" || *dryRun || *jsonOutput {
+			fs.Usage()
+			return fmt.Errorf("add-batch --example does not accept a workspace file or other options")
+		}
+		fmt.Fprintln(stdout, batchAddExample)
+		return nil
 	}
 	if fs.NArg() != 1 || strings.TrimSpace(*inputPath) == "" {
 		fs.Usage()
@@ -221,5 +240,11 @@ func writeBatchAdd(w io.Writer, jsonOutput bool, output batchAddOutput) error {
 
 func writeAddBatchUsage(w io.Writer) {
 	fmt.Fprintln(w, "Usage: cludia add-batch [--dry-run] [--json] FILE --input FILE")
+	fmt.Fprintln(w, "       cludia add-batch --example")
 	fmt.Fprintln(w, "Atomically add statements from a versioned JSON batch and return each caller key with its assigned statement.")
+	fmt.Fprintln(w)
+	fmt.Fprintln(w, "Minimal input JSON:")
+	fmt.Fprintln(w, batchAddExample)
+	fmt.Fprintln(w)
+	fmt.Fprintln(w, "Each statement requires unique key and non-empty text fields; id, slug, truth (T|F|U), and kind (fact|value) are optional.")
 }

@@ -236,6 +236,7 @@ func writeTopLevelUsage(w io.Writer) {
 	fmt.Fprintln(w, "  cludia init [--json] FILE --title TITLE --text TEXT")
 	fmt.Fprintln(w, "  cludia add [--json] FILE --text TEXT")
 	fmt.Fprintln(w, "  cludia add-batch [--dry-run] [--json] FILE --input FILE")
+	fmt.Fprintln(w, "  cludia add-batch --example")
 	fmt.Fprintln(w, "  cludia edit [--json] FILE STATEMENT --text TEXT --same-proposition")
 	fmt.Fprintln(w, "  cludia derive [--json] FILE --source STATEMENT --source STATEMENT (--target STATEMENT | --target-text TEXT)")
 	fmt.Fprintln(w, "  cludia list [--state all|isolated] [--json] FILE")

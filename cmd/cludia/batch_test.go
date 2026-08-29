@@ -6,11 +6,38 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/tunesmith/cludia/internal/argfile"
 	"github.com/tunesmith/cludia/internal/argument"
 )
+
+func TestAddBatchHelpIncludesSchemaAndExampleCommand(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	if err := run([]string{"add-batch", "--help"}, &stdout, &stderr); err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{"cludia add-batch --example", `"schema_version": 1`, `"key": "observation-1"`, "id, slug, truth (T|F|U), and kind (fact|value) are optional"} {
+		if !strings.Contains(stderr.String(), want) {
+			t.Fatalf("add-batch help missing %q:\n%s", want, stderr.String())
+		}
+	}
+}
+
+func TestAddBatchExamplePrintsValidMinimalInput(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	if err := run([]string{"add-batch", "--example"}, &stdout, &stderr); err != nil {
+		t.Fatalf("add-batch --example: %v\nstderr: %s", err, stderr.String())
+	}
+	var input batchAddInput
+	if err := json.Unmarshal(stdout.Bytes(), &input); err != nil {
+		t.Fatalf("example is not valid JSON: %v\n%s", err, stdout.String())
+	}
+	if input.SchemaVersion != 1 || len(input.Statements) != 1 || input.Statements[0].Key == "" || input.Statements[0].Text == "" {
+		t.Fatalf("example is not a minimal valid batch: %#v", input)
+	}
+}
 
 func TestAddBatchDryRunAndMutationReturnsKeyMapping(t *testing.T) {
 	path := twoPremiseWorkspace(t)

@@ -81,6 +81,7 @@ cludia case.arg
 
 The default Top view lists non-counterpoint statements with no outgoing support
 in document order, with longest support depth and `!` on challenged statements.
+Its title shows the selected row as `current of total` for a quick sense of place.
 All statement text wraps without truncation. Enter follows the selected
 statement into exact justification, challenge, and downstream-use detail; `f`
 opens the complete support ledger to that statement. `j/k` selects rows;
@@ -132,6 +133,7 @@ bin/cludia add inquiry.arg \
   --text "Cludia supports direct CLI use and conversational agent use."
 
 bin/cludia add-batch inquiry.arg --input statements.json --dry-run --json
+bin/cludia add-batch --example
 
 bin/cludia edit inquiry.arg P1 \
   --text "Marlow completed Cludia's first format-core milestone." \
@@ -212,7 +214,8 @@ components, rooted export, and later reviewed `renumber` mappings.
 file. Each input item has a required unique caller `key` and statement `text`,
 plus optional `id`, `slug`, `truth`, and `kind`. The result preserves input order
 and maps every caller key to its complete assigned statement; any invalid item
-rejects the whole batch without writing or consuming IDs.
+rejects the whole batch without writing or consuming IDs. Run `add-batch --help`
+to see the schema inline or `add-batch --example` to print minimal valid JSON.
 
 Focused creation assigns role-appropriate canonical IDs from the exact next
 values stored in `cludia-next-ids`. Automatic IDs increase monotonically;

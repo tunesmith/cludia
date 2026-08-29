@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/tunesmith/cludia/internal/argfile"
 	"github.com/tunesmith/cludia/internal/argument"
 	"github.com/tunesmith/cludia/internal/query"
@@ -19,7 +20,7 @@ func TestTopViewWrapsFullTextMarksChallengesAndNavigates(t *testing.T) {
 	m.width, m.height = 90, 24
 	view := m.View()
 	flat := strings.Join(strings.Fields(view), " ")
-	for _, want := range []string{"TOP", "LABEL", "DEPTH", "STATEMENT", "L2!", "A deliberately long final statement whose complete text must wrap without being summarized or omitted", "P5!"} {
+	for _, want := range []string{"TOP · 1 of 2", "LABEL", "DEPTH", "STATEMENT", "L2!", "A deliberately long final statement whose complete text must wrap without being summarized or omitted", "P5!"} {
 		if !strings.Contains(flat, want) {
 			t.Fatalf("top view missing %q:\n%s", want, view)
 		}
@@ -31,9 +32,36 @@ func TestTopViewWrapsFullTextMarksChallengesAndNavigates(t *testing.T) {
 	if m.selectedTopID() != "P5" {
 		t.Fatalf("selected top = %q", m.selectedTopID())
 	}
+	if view := m.View(); !strings.Contains(view, "TOP · 2 of 2") {
+		t.Fatalf("top view did not update position:\n%s", view)
+	}
 	m = pressKey(m, "enter")
 	if m.mode != modeDetail || m.current != "P5" {
 		t.Fatalf("detail state: %s", m.debugState())
+	}
+}
+
+func TestSelectedChallengedTopRowKeepsOneStyleAcrossFirstLine(t *testing.T) {
+	originalSelected, originalWarning := selectedStyle, warningStyle
+	selectedStyle = lipgloss.NewStyle().Transform(func(value string) string { return "SELECT[" + value + "]" })
+	warningStyle = lipgloss.NewStyle().Transform(func(value string) string { return "WARN[" + value + "]" })
+	t.Cleanup(func() {
+		selectedStyle, warningStyle = originalSelected, originalWarning
+	})
+
+	item := query.Top(testUIDocument())[0]
+	lines := renderTopItem(item, 90, 5, true)
+	if len(lines) < 2 {
+		t.Fatalf("test row did not wrap: %#v", lines)
+	}
+	for _, line := range lines {
+		if !strings.HasPrefix(line, "SELECT[") || !strings.HasSuffix(line, "]") || strings.Contains(line, "WARN[") {
+			t.Fatalf("selected challenged row has interrupted selection styling: %q", line)
+		}
+	}
+	unselected := renderTopItem(item, 90, 5, false)
+	if !strings.Contains(unselected[0], "WARN[L2!]") {
+		t.Fatalf("unselected challenged label lost warning styling: %q", unselected[0])
 	}
 }
 
@@ -527,7 +555,7 @@ func TestMissingFileReloadRetainsLastValidDocument(t *testing.T) {
 func TestEmptyTopView(t *testing.T) {
 	doc := &argument.Document{ID: "empty-top", Title: "Empty Top", Statements: []argument.Statement{{ID: "CP1", Role: argument.RoleCounterpoint, Kind: argument.KindFact, Truth: argument.TruthTrue, Text: "Challenge"}}}
 	m := newModel("", doc, diskVersion{})
-	if view := m.View(); !strings.Contains(view, "no top statements") {
+	if view := m.View(); !strings.Contains(view, "TOP · 0 of 0") || !strings.Contains(view, "no top statements") {
 		t.Fatalf("empty top view:\n%s", view)
 	}
 }
