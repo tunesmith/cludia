@@ -1,36 +1,52 @@
 # The Ninth Room
 
-## Part III: The Alibi and the Missing Ampoule
+## Part III: The Alibi
 
 Constable Merritt reconstructed the movements between 9:05 and 10:30.
 
-Gideon and Cassian began playing billiards at approximately 9:10. Felix entered at 9:25 to deliver Gideon a telegram and saw both men.
+At approximately 9:10, Gideon invited Cassian to play billiards. Felix entered the billiard room at 9:25 to deliver Gideon a telegram and saw both men there.
 
-Merritt then sat in the hall opposite the billiard room from 9:25 until 9:50 while reviewing Ruth's effects. The billiard room had one door, which remained open. Merritt had an uninterrupted view of it; neither Gideon nor Cassian left during that interval. Mrs. Wren saw both men inside shortly before 10:00.
+Merritt had been sorting Ruth's effects in the hall opposite the billiard room from 9:25 until 9:50. The room had one door. It remained propped open, and Merritt had an uninterrupted view of it. Neither Gideon nor Cassian left during that interval.
 
-Their presence in the billiard room from 9:25 through 9:50 may therefore be treated as established rather than merely mutually asserted.
+Mrs. Wren saw them both inside shortly before ten.
 
-Miriam said she had worked alone in her laboratory from shortly after nine until Dr. Pike joined her at approximately 9:40. Dr. Pike confirmed remaining with Miriam until shortly after ten.
+Miriam said she had worked alone in her laboratory from shortly after nine until Dr. Pike joined her at approximately 9:40. Pike confirmed remaining with Miriam until shortly after ten. Pike did not claim to know where Miriam had been before 9:40; Miriam did not claim to know where Pike had been.
 
 Felix said that, apart from delivering the telegram, he had been typing in the library. Beatrice said she had been checking shelf records in the catalogue room. Neither had a continuous witness.
 
-At approximately 9:40, Mrs. Wren passed beneath the Ninth Room and heard a short scraping sound overhead, like a chair driven abruptly across the floor. She heard no cry.
+At approximately 9:40, Mrs. Wren passed through the room directly beneath the Ninth Room. She heard a short scraping sound overhead, like a chair driven abruptly across the floor.
 
-Miriam inspected her locked poison cabinet. One sealed ampoule of aconitine was missing. Her inventory recorded it as present on September 30.
+She heard no cry.
 
-Miriam's current key remained on her watch chain. A duplicate had existed. Aldous borrowed it in June for an inventory of hazardous materials and later told Miriam that it had been lost. The lock showed no damage.
+Miriam returned to her laboratory and opened the locked poison cabinet. One sealed ampoule of aconitine was missing. Her September 30 inventory listed it as present.
 
-Cassian then described an illusion he had designed years earlier, the **Self-Concealing Thorn**. A spring projected a fine needle and immediately withdrew it into an apparently solid fitting. The only mechanism Cassian personally built had been dismantled after injuring a stagehand.
+Her current key remained on her watch chain. The lock showed no damage.
 
-The plans survived because they had been exhibits in a 1918 patent dispute. Cassian retained his originals. Aldous received a reference copy because he financed the case. Gideon, as solicitor, kept a working copy. Felix had catalogued Aldous's litigation papers during the previous winter and therefore had handled Aldous's copy.
+> “There was a duplicate,” Miriam said. “Uncle Aldous borrowed it in June when he and Mr. Rusk inventoried the hazardous materials. Later he told me he had lost it.”
 
-Four people had consequently possessed either the plans or direct access to them: Cassian, Aldous, Gideon, and Felix.
+Merritt recalled Aldous's broad June memorandum assigning Gideon to review spare keys, chemical stores, and other security miscellany. The memorandum did not record what happened to any particular key.
+
+Merritt returned to Cassian's answer about the clasp.
+
+> “You said you had not seen *this* fitting,” he reminded him. “What other fitting did you mean?”
+
+Cassian first said that stage apparatus often contained spring catches. When Merritt asked him to name one that left a narrow empty groove, Cassian admitted that he had designed an illusion years earlier called the **Self-Concealing Thorn**. A spring projected a fine needle and immediately withdrew it into an apparently solid fitting.
+
+> “The only mechanism I personally built was dismantled after it injured a stagehand,” he said.
+
+The plans survived because they had been exhibits in a 1918 patent dispute. Cassian retained his originals. Aldous received a reference copy because he financed the case. Gideon, as solicitor, kept a working court copy. Felix had catalogued Aldous's litigation papers during the previous winter and had handled Aldous's copy.
+
+No one yet knew whether the clasp followed the Thorn plans or merely resembled them.
 
 The telegram Felix delivered to Gideon at 9:25 read:
 
-> RETAINED COPY OF DALLOW MESSAGE LOCATED. SIGNATURE TYPED. WILL BRING AFTER TIDE.  
-> —FALLOWMERE STATIONMASTER
+> **RETAINED COPY OF DALLOW MESSAGE LOCATED. SIGNATURE TYPED. WILL BRING AFTER TIDE.**  
+> **—FALLOWMERE STATIONMASTER**
 
 Gideon said the stationmaster had contacted him because he represented the Bell estate.
 
+Merritt asked why a stationmaster had retained a copy of a message addressed to Ruth.
 
+Gideon folded the telegram along its original crease.
+
+> “That,” he said, “you must ask the stationmaster.”

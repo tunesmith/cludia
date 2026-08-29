@@ -2,50 +2,72 @@
 
 ## Part V: Two Seventeens
 
-Confronted with Ruth's notebook, Beatrice withdrew her restoration story.
+Merritt had shown Ruth's notebook impressions and the porter's account to Aldous at 6:35 on October 18, before dinner. Aldous had then asked to see the Vesper Psalter and spoken privately with Beatrice.
 
-Three years earlier, she had badly damaged the original Vesper Psalter during an unauthorized chemical treatment. Terrified of professional disgrace, she constructed a facsimile and substituted it in Row 17. Ruth discovered the modern fibers on October 15 and confronted her. Beatrice begged for one night in which to confess to Aldous herself.
+Among the notes in Aldous's waistcoat was a statement in Beatrice's hand, signed and timed 7:12 that evening:
 
-Beatrice could not have met Ruth at Fallowmere that evening. From 7:45 until after 9:00, she dined at Vesper House with Aldous and Dr. Pike. Mrs. Wren served them repeatedly, and the causeway and train timetable made a journey to the 8:20 meeting impossible.
+> Three years ago I damaged the original Vesper Psalter through an unauthorized chemical treatment. I constructed the volume now in Row 17 and substituted it because I feared dismissal and disgrace. Ruth discovered the modern paper on 15 October. My account of an earlier restoration is false.
 
-The false object had been identified. Attention shifted to Aldous's private ledger.
+Confronted with the statement, Beatrice withdrew her restoration story.
 
-It contained an account headed:
+She said Ruth had challenged her at 5:40 on October 15. Beatrice had begged for one night in which to confess to Aldous herself. Ruth agreed to wait until morning. After Ruth died, Beatrice lost her nerve. She confessed only when Aldous confronted her with the notebook evidence on October 18, then panicked and repeated the restoration lie after his death.
+
+The Psalter's binding was opened in the presence of Merritt, Miriam, and Cassian. Modern machine-made paper extended throughout the substituted leaves, including places that no localized repair could explain. Fragments of the original manuscript were later found in a locked conservation drawer assigned to Beatrice.
+
+From 7:45 until after 9:00 on October 15, Beatrice dined at Vesper House with Aldous and Dr. Pike. Mrs. Wren's serving book recorded their three places at 7:52, 8:18, and 8:44. She remembered all three being present each time.
+
+The estate route book allowed thirty-one minutes for the fastest journey from the Vesper dining room to Fallowmere parcels office while the causeway was uncovered. No train or boat shortened it.
+
+Merritt next opened Aldous's private ledger.
+
+One account was headed:
 
 > **ESCROW—17: SPECIAL ACQUISITIONS**
 
-Substantial sums had entered the account and then left through supposed payments to March & Rowe. Two payments were dated after the firm ceased trading. No corresponding books or manuscripts appeared in Beatrice's catalogues.
+Substantial sums had entered it and then left through supposed payments to March & Rowe. Two authorizations were dated after the bookseller ceased trading. Beatrice's catalogues contained no books or manuscripts corresponding to the payments.
 
-Every payment authorization bore Aldous's signature, but the signatures were perfectly identical, including a small failure of ink in the same place. They had been made with Aldous's rubber signature stamp.
+Every authorization bore Aldous's signature. Merritt placed transparent copies over one another. The signatures coincided perfectly, including a small failure of ink beneath the second `l` in `Bell`.
 
-The stamp was stored in the Fallowmere estate office. Felix and Gideon both used it legitimately.
+Aldous's rubber signature stamp produced the same failure. It was stored in the Fallowmere estate office. The stamp register named Felix and Gideon as routine authorized users.
 
-Escrow 17 was not part of the ordinary bookkeeping Felix maintained. The account agreement named only Aldous and Gideon. Bank statements were sent under seal to Gideon's chambers, then forwarded to Aldous for his private ledger. Before Ruth's death, no other guest was shown to have known that the account was numbered seventeen.
+Felix's ordinary bookkeeping index contained this instruction in Aldous's hand:
 
-Gideon acknowledged administering the account. He said Aldous had ordered him to conceal purchases from rival collectors by using March & Rowe's old name. The money had been withdrawn through bearer drafts, so the bank could not identify the person who ultimately received it.
+> **SPECIAL ESCROWS ARE EXCLUDED. MAINTAINED BY PRINCIPAL AND SOLICITOR.**
 
-The most recent Escrow 17 bank statement was missing from Aldous's ledger. A narrow scorched strip remained where the page had been torn from its binding.
+The Escrow 17 account agreement named Aldous Bell as principal and Gideon Rusk as administering solicitor. Bank statements were addressed under seal to Gideon's chambers. Gideon's forwarding book recorded their sealed transmission to Aldous. Felix's mail ledger contained no entry for them.
 
-Merritt compared that strip with the burned fragment from the Ninth Room. The paper, ruling, and torn edge matched exactly. The complete heading had once read:
+Gideon acknowledged administering the account.
 
-> **ESCROW—17**
+> “Aldous ordered me to conceal purchases from rival collectors,” he said. “March & Rowe's old name was convenient. The missing objects may have been stored elsewhere at his instruction.”
 
-The burned fragment preserved only its final portion:
+The withdrawals had been made through bearer drafts. The bank records named no ultimate recipient.
+
+The latest bank statement was missing from the ledger. A narrow scorched strip remained caught in the binding. Three letters survived on it:
+
+> **ESC**
+
+Merritt brought the burned fragment found against the Ninth Room's cold hearth fender. It began:
 
 > **ROW—17**
 
-On the ledger's flyleaf, Aldous had written in his own hand:
+The strip and fragment were the same ruled paper. Their scorch pattern continued from one to the other. Under magnification, the torn fibers interlocked. When the pieces were placed together, the heading read:
 
-> "Statement returned by G.R. already scorched, 17 October. Obtain bank duplicate."
+> **ESCROW—17**
+
+On the ledger's flyleaf, Aldous had written:
+
+> **Statement returned by G.R. already scorched, 17 October. Obtain bank duplicate.**
 
 Gideon said a candle had overturned at his chambers and that the damage was accidental.
 
-Felix recalled seeing Aldous detach the loose burned fragment from the statement before dinner and place it in his waistcoat pocket with his notes.
+Felix recalled seeing Aldous detach the loose right-hand fragment before dinner and place it in his waistcoat pocket with his notes. The hearth had been cold all day.
 
-One more document altered the chronology. On October 16, the day after Ruth died, Aldous sent Gideon a written demand to bring every Escrow 17 voucher to Vesper House on October 18. Aldous wrote:
+One final exchange of documents was dated.
 
-> "The discrepancies will be explained before the evening is finished."
+On October 16, the morning after Ruth died, Aldous sent Gideon a written demand:
 
-Gideon therefore knew before the dinner—not merely after Aldous's announcement—that the account was about to be exposed.
+> **Bring every Escrow 17 voucher to Vesper House on 18 October. The discrepancies will be explained before the evening is finished.**
 
+Gideon's chambers receipt book bore the delivery time, 11:20 a.m., and the receiving initials `G.R.`
 
+The scorched statement was returned the following day.
