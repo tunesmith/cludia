@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/tunesmith/cludia/internal/argfile"
@@ -59,6 +61,93 @@ func TestAllDefeatScopesCanBeAuthored(t *testing.T) {
 	parsed := argfile.ParseFile(path)
 	if diagnostic.HasErrors(parsed.Diagnostics) || len(parsed.Document.Defeats) != 3 {
 		t.Fatalf("saved defeats = %#v, diagnostics %#v", parsed.Document.Defeats, parsed.Diagnostics)
+	}
+}
+
+func TestChallengeRoutesPremiseDerivedStatementCounterpointAndJunctor(t *testing.T) {
+	path := repairWorkspace(t)
+	tests := []struct {
+		target      string
+		text        string
+		wantScope   argument.DefeatScope
+		wantTo      string
+		wantJunctor string
+	}{
+		{target: "P1", text: "Challenge the premise", wantScope: argument.DefeatPremise, wantTo: "P1"},
+		{target: "L1", text: "Challenge its only derivation", wantScope: argument.DefeatInference, wantJunctor: "J1"},
+		{target: "CP1", text: "Challenge the counterpoint", wantScope: argument.DefeatCounterpoint, wantTo: "CP1"},
+		{target: "J1", text: "Challenge the junctor directly", wantScope: argument.DefeatInference, wantJunctor: "J1"},
+	}
+	for index, tt := range tests {
+		var stdout, stderr bytes.Buffer
+		if err := run([]string{"challenge", path, tt.target, "--text", tt.text, "--json"}, &stdout, &stderr); err != nil {
+			t.Fatalf("challenge %s: %v\nstderr: %s", tt.target, err, stderr.String())
+		}
+		var output defeatMutationOutput
+		if err := json.Unmarshal(stdout.Bytes(), &output); err != nil {
+			t.Fatal(err)
+		}
+		if output.Action != "challenge" || output.Counterpoint.ID != fmt.Sprintf("CP%d", index+1) || output.Defeat.Scope != tt.wantScope || output.Defeat.To != tt.wantTo || output.Defeat.JunctorID != tt.wantJunctor {
+			t.Fatalf("challenge %s output = %#v", tt.target, output)
+		}
+	}
+}
+
+func TestChallengeDerivedStatementRequiresExplicitAmbiguousInference(t *testing.T) {
+	path := repairWorkspace(t)
+	var stdout, stderr bytes.Buffer
+	if err := run([]string{"derive", path, "--source", "P1", "--source", "P3", "--target", "L1"}, &stdout, &stderr); err != nil {
+		t.Fatal(err)
+	}
+	before, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	stdout.Reset()
+	stderr.Reset()
+	err = run([]string{"challenge", path, "L1", "--text", "Ambiguous challenge", "--json"}, &stdout, &stderr)
+	if !errors.Is(err, errValidationFailed) {
+		t.Fatalf("ambiguous challenge error = %v", err)
+	}
+	var failure failureOutput
+	if err := json.Unmarshal(stdout.Bytes(), &failure); err != nil {
+		t.Fatal(err)
+	}
+	if len(failure.Diagnostics) != 1 || failure.Diagnostics[0].Code != "challenge_inference_ambiguous" || !strings.Contains(failure.Diagnostics[0].Message, "J1, J2") || !strings.Contains(failure.Diagnostics[0].Message, "--inference") {
+		t.Fatalf("ambiguous challenge diagnostics = %#v", failure.Diagnostics)
+	}
+	after, err := os.ReadFile(path)
+	if err != nil || !bytes.Equal(before, after) {
+		t.Fatalf("ambiguous challenge changed workspace: %v", err)
+	}
+
+	stdout.Reset()
+	stderr.Reset()
+	if err := run([]string{"challenge", path, "L1", "--inference", "J2", "--text", "Selected challenge", "--json"}, &stdout, &stderr); err != nil {
+		t.Fatalf("selected challenge: %v\nstderr: %s", err, stderr.String())
+	}
+	var output defeatMutationOutput
+	if err := json.Unmarshal(stdout.Bytes(), &output); err != nil {
+		t.Fatal(err)
+	}
+	if output.Defeat.JunctorID != "J2" || output.Defeat.AtTarget != "L1" {
+		t.Fatalf("selected challenge output = %#v", output)
+	}
+}
+
+func TestChallengeDoesNotGuessAcrossLegacyDirectSupport(t *testing.T) {
+	path := textViewWorkspace(t)
+	var stdout, stderr bytes.Buffer
+	err := run([]string{"challenge", path, "L2", "--text", "Do not guess", "--json"}, &stdout, &stderr)
+	if !errors.Is(err, errValidationFailed) {
+		t.Fatalf("direct-support challenge error = %v", err)
+	}
+	var failure failureOutput
+	if err := json.Unmarshal(stdout.Bytes(), &failure); err != nil {
+		t.Fatal(err)
+	}
+	if len(failure.Diagnostics) != 1 || failure.Diagnostics[0].Code != "challenge_inference_ambiguous" || !strings.Contains(failure.Diagnostics[0].Message, "legacy direct support") || !strings.Contains(failure.Diagnostics[0].Message, "--inference J3") {
+		t.Fatalf("direct-support diagnostics = %#v", failure.Diagnostics)
 	}
 }
 

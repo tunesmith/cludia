@@ -99,6 +99,112 @@ func runUndercut(args []string, stdout, stderr io.Writer) error {
 	return createDefeat(fs.Arg(0), "undercut", argument.DefeatInference, fs.Arg(1), flags, stdout)
 }
 
+func runChallenge(args []string, stdout, stderr io.Writer) error {
+	fs := flag.NewFlagSet("challenge", flag.ContinueOnError)
+	fs.SetOutput(stderr)
+	flags := addDefeatFlags(fs)
+	inferenceRef := fs.String("inference", "", "incoming junctor to challenge when the element has multiple justifications")
+	fs.Usage = func() { writeChallengeUsage(fs.Output()) }
+	valueFlags := map[string]bool{
+		"text": true, "id": true, "slug": true, "truth": true, "kind": true, "inference": true,
+	}
+	if err := fs.Parse(flagsFirst(args, valueFlags)); err != nil {
+		if errors.Is(err, flag.ErrHelp) {
+			return nil
+		}
+		return err
+	}
+	if fs.NArg() != 2 || strings.TrimSpace(*flags.text) == "" {
+		fs.Usage()
+		return fmt.Errorf("challenge expects a file and element and requires --text")
+	}
+
+	path, targetRef := fs.Arg(0), fs.Arg(1)
+	doc, profile, diagnostics := loadValidated(path)
+	if diagnostic.HasErrors(diagnostics) {
+		if err := writeFailure(stdout, *flags.jsonOutput, profile, diagnostics); err != nil {
+			return err
+		}
+		return errValidationFailed
+	}
+	selectedInference := strings.TrimSpace(*inferenceRef)
+	if junctor, ok := doc.Junctor(targetRef); ok {
+		if selectedInference != "" {
+			return writeMutationFailure(stdout, *flags.jsonOutput, profile, "challenge_inference_redundant", "--inference is not used when the challenged element is already a junctor", junctor.ID)
+		}
+		return createDefeatWithDocument(path, doc, profile, diagnostics, "challenge", argument.DefeatInference, junctor.ID, flags, stdout)
+	}
+
+	statement, ok := doc.Statement(targetRef)
+	if !ok {
+		return writeMutationFailure(stdout, *flags.jsonOutput, profile, "challenge_target_not_found", fmt.Sprintf("statement or junctor %q not found", targetRef), targetRef)
+	}
+	switch statement.Role {
+	case argument.RolePremise:
+		if selectedInference != "" {
+			return writeMutationFailure(stdout, *flags.jsonOutput, profile, "challenge_inference_not_applicable", fmt.Sprintf("premise %s is challenged directly; omit --inference", statement.ID), statement.ID)
+		}
+		return createDefeatWithDocument(path, doc, profile, diagnostics, "challenge", argument.DefeatPremise, statement.ID, flags, stdout)
+	case argument.RoleCounterpoint:
+		if selectedInference != "" {
+			return writeMutationFailure(stdout, *flags.jsonOutput, profile, "challenge_inference_not_applicable", fmt.Sprintf("counterpoint %s is challenged directly; omit --inference", statement.ID), statement.ID)
+		}
+		return createDefeatWithDocument(path, doc, profile, diagnostics, "challenge", argument.DefeatCounterpoint, statement.ID, flags, stdout)
+	case argument.RoleLemma, argument.RoleConclusion:
+		return challengeDerivedStatement(path, statement, selectedInference, doc, profile, flags, stdout)
+	default:
+		return writeMutationFailure(stdout, *flags.jsonOutput, profile, "challenge_target_role", fmt.Sprintf("statement %s has unsupported role %s", statement.ID, statement.Role), statement.ID)
+	}
+}
+
+func challengeDerivedStatement(path string, statement *argument.Statement, inferenceRef string, doc *argument.Document, profile validation.Profile, flags defeatFlags, stdout io.Writer) error {
+	incoming := make([]argument.Junctor, 0)
+	for _, junctor := range doc.Junctors {
+		if junctor.Target == statement.ID {
+			incoming = append(incoming, junctor)
+		}
+	}
+	directSources := make([]string, 0)
+	for _, support := range doc.DirectSupports {
+		if support.Target == statement.ID {
+			directSources = append(directSources, support.Source)
+		}
+	}
+	if inferenceRef != "" {
+		junctor, ok := doc.Junctor(inferenceRef)
+		if !ok {
+			return writeMutationFailure(stdout, *flags.jsonOutput, profile, "challenge_inference_not_found", fmt.Sprintf("junctor %q not found", inferenceRef), inferenceRef)
+		}
+		if junctor.Target != statement.ID {
+			return writeMutationFailure(stdout, *flags.jsonOutput, profile, "challenge_inference_target_mismatch", fmt.Sprintf("junctor %s targets %s rather than challenged statement %s", junctor.ID, junctor.Target, statement.ID), junctor.ID)
+		}
+		return createDefeatWithDocument(path, doc, profile, nil, "challenge", argument.DefeatInference, junctor.ID, flags, stdout)
+	}
+	if len(incoming) == 1 && len(directSources) == 0 {
+		return createDefeatWithDocument(path, doc, profile, nil, "challenge", argument.DefeatInference, incoming[0].ID, flags, stdout)
+	}
+	if len(incoming) == 0 {
+		message := fmt.Sprintf("statement %s has no incoming junctor to undercut", statement.ID)
+		if len(directSources) > 0 {
+			message += fmt.Sprintf("; its legacy direct support from %s has no undercuttable junctor", strings.Join(directSources, ", "))
+		}
+		return writeMutationFailure(stdout, *flags.jsonOutput, profile, "challenge_no_inference", message, statement.ID)
+	}
+	if len(incoming) == 1 {
+		message := fmt.Sprintf("statement %s has incoming junctor %s plus legacy direct support from %s; rerun with --inference %s to undercut the junctor explicitly", statement.ID, incoming[0].ID, strings.Join(directSources, ", "), incoming[0].ID)
+		return writeMutationFailure(stdout, *flags.jsonOutput, profile, "challenge_inference_ambiguous", message, statement.ID)
+	}
+	ids := make([]string, 0, len(incoming))
+	for _, junctor := range incoming {
+		ids = append(ids, junctor.ID)
+	}
+	message := fmt.Sprintf("statement %s has multiple incoming junctors (%s); rerun with --inference JUNCTOR", statement.ID, strings.Join(ids, ", "))
+	if len(directSources) > 0 {
+		message += fmt.Sprintf("; legacy direct support from %s cannot be undercut directly", strings.Join(directSources, ", "))
+	}
+	return writeMutationFailure(stdout, *flags.jsonOutput, profile, "challenge_inference_ambiguous", message, statement.ID)
+}
+
 func runCounterpoint(args []string, stdout, stderr io.Writer) error {
 	fs := flag.NewFlagSet("counterpoint", flag.ContinueOnError)
 	fs.SetOutput(stderr)
@@ -119,6 +225,10 @@ func runCounterpoint(args []string, stdout, stderr io.Writer) error {
 
 func createDefeat(path, action string, scope argument.DefeatScope, targetRef string, flags defeatFlags, stdout io.Writer) error {
 	doc, profile, diagnostics := loadValidated(path)
+	return createDefeatWithDocument(path, doc, profile, diagnostics, action, scope, targetRef, flags, stdout)
+}
+
+func createDefeatWithDocument(path string, doc *argument.Document, profile validation.Profile, diagnostics []diagnostic.Diagnostic, action string, scope argument.DefeatScope, targetRef string, flags defeatFlags, stdout io.Writer) error {
 	if diagnostic.HasErrors(diagnostics) {
 		if err := writeFailure(stdout, *flags.jsonOutput, profile, diagnostics); err != nil {
 			return err
@@ -356,6 +466,12 @@ func writeUndermineUsage(w io.Writer) {
 func writeUndercutUsage(w io.Writer) {
 	fmt.Fprintln(w, "Usage: cludia undercut [--json] FILE JUNCTOR --text TEXT")
 	fmt.Fprintln(w, "Add a counterpoint challenging whether a junctor's sources imply its target.")
+}
+
+func writeChallengeUsage(w io.Writer) {
+	fmt.Fprintln(w, "Usage: cludia challenge [--json] FILE ELEMENT --text TEXT [--inference JUNCTOR]")
+	fmt.Fprintln(w, "Challenge a premise, counterpoint, junctor, or a derived statement's selected incoming junctor without changing defeat semantics.")
+	fmt.Fprintln(w, "A derived statement with multiple incoming junctors requires --inference; legacy direct support cannot be undercut directly.")
 }
 
 func writeCounterpointUsage(w io.Writer) {

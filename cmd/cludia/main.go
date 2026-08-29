@@ -59,6 +59,10 @@ func run(args []string, stdout, stderr io.Writer) error {
 		writeTopLevelUsage(stderr)
 		return fmt.Errorf("expected a command")
 	}
+	if args[0] == "--help" || args[0] == "-h" {
+		writeTopLevelUsage(stdout)
+		return nil
+	}
 	switch args[0] {
 	case "init":
 		return runInit(args[1:], stdout, stderr)
@@ -96,6 +100,8 @@ func run(args []string, stdout, stderr io.Writer) error {
 		return runUndermine(args[1:], stdout, stderr)
 	case "undercut":
 		return runUndercut(args[1:], stdout, stderr)
+	case "challenge":
+		return runChallenge(args[1:], stdout, stderr)
 	case "counterpoint":
 		return runCounterpoint(args[1:], stdout, stderr)
 	case "remove-counterpoint":
@@ -119,8 +125,7 @@ func run(args []string, stdout, stderr io.Writer) error {
 	case "validate", "check":
 		return runValidate(args[1:], stdout, stderr)
 	case "help":
-		writeTopLevelUsage(stdout)
-		return nil
+		return runHelp(args[1:], stdout, stderr)
 	case "version", "--version", "-version":
 		fmt.Fprintf(stdout, "cludia %s\n", version)
 		return nil
@@ -131,6 +136,97 @@ func run(args []string, stdout, stderr io.Writer) error {
 		writeTopLevelUsage(stderr)
 		return fmt.Errorf("unknown command %q", args[0])
 	}
+}
+
+func runHelp(args []string, stdout, stderr io.Writer) error {
+	if len(args) == 0 {
+		writeTopLevelUsage(stdout)
+		return nil
+	}
+	if len(args) != 1 {
+		writeTopLevelUsage(stderr)
+		return fmt.Errorf("help expects at most one command")
+	}
+	if writeCommandUsage(stdout, args[0]) {
+		return nil
+	}
+	return fmt.Errorf("unknown help topic %q", args[0])
+}
+
+func writeCommandUsage(w io.Writer, command string) bool {
+	switch command {
+	case "init":
+		writeInitUsage(w)
+	case "add":
+		writeAddUsage(w)
+	case "add-batch":
+		writeAddBatchUsage(w)
+	case "edit":
+		writeEditUsage(w)
+	case "derive":
+		writeDeriveUsage(w)
+	case "list":
+		writeListUsage(w)
+	case "show":
+		writeShowUsage(w)
+	case "components":
+		writeComponentsUsage(w)
+	case "component":
+		writeComponentUsage(w)
+	case "search":
+		writeSearchUsage(w)
+	case "top":
+		writeTopUsage(w)
+	case "ledger":
+		writeLedgerUsage(w)
+	case "add-source":
+		writeAddSourceUsage(w)
+	case "remove-source":
+		writeRemoveSourceUsage(w)
+	case "replace-source":
+		writeReplaceSourceUsage(w)
+	case "remove-junctor":
+		writeRemoveJunctorUsage(w)
+	case "undermine":
+		writeUndermineUsage(w)
+	case "undercut":
+		writeUndercutUsage(w)
+	case "challenge":
+		writeChallengeUsage(w)
+	case "counterpoint":
+		writeCounterpointUsage(w)
+	case "remove-counterpoint":
+		writeRemoveCounterpointUsage(w)
+	case "delete":
+		writeDeleteUsage(w)
+	case "replace":
+		writeReplaceUsage(w)
+	case "renumber":
+		writeRenumberUsage(w)
+	case "move-statement":
+		writeMoveStatementUsage(w)
+	case "root":
+		writeRootUsage(w)
+	case "export":
+		writeExportUsage(w)
+	case "rename-slug":
+		writeRenameSlugUsage(w)
+	case "guidance":
+		writeGuidanceUsage(w)
+	case "validate":
+		writeValidateUsage(w)
+	case "check":
+		fmt.Fprintln(w, "Usage: cludia check [--profile workspace|concludia] [--json] FILE")
+		fmt.Fprintln(w, "Parse and structurally validate an .arg file.")
+	case "version":
+		fmt.Fprintln(w, "Usage: cludia version")
+		fmt.Fprintln(w, "Print the Cludia version.")
+	case "help", "--help", "-h":
+		writeTopLevelUsage(w)
+	default:
+		return false
+	}
+	return true
 }
 
 func runValidate(args []string, stdout, stderr io.Writer) error {
@@ -244,7 +340,7 @@ func writeTopLevelUsage(w io.Writer) {
 	fmt.Fprintln(w, "  cludia components [--json] FILE")
 	fmt.Fprintln(w, "  cludia component [--json] FILE ELEMENT")
 	fmt.Fprintln(w, "  cludia search [--json] FILE QUERY")
-	fmt.Fprintln(w, "  cludia top [--json] FILE")
+	fmt.Fprintln(w, "  cludia top [--challenged] [--limit N] [--offset N] [--json] FILE")
 	fmt.Fprintln(w, "  cludia ledger [--json] FILE STATEMENT")
 	fmt.Fprintln(w, "  cludia add-source [--json] FILE JUNCTOR --source STATEMENT")
 	fmt.Fprintln(w, "  cludia remove-source [--dry-run] [--json] FILE JUNCTOR --source STATEMENT")
@@ -252,6 +348,7 @@ func writeTopLevelUsage(w io.Writer) {
 	fmt.Fprintln(w, "  cludia remove-junctor [--dry-run] [--json] FILE JUNCTOR")
 	fmt.Fprintln(w, "  cludia undermine [--json] FILE PREMISE --text TEXT")
 	fmt.Fprintln(w, "  cludia undercut [--json] FILE JUNCTOR --text TEXT")
+	fmt.Fprintln(w, "  cludia challenge [--json] FILE ELEMENT --text TEXT [--inference JUNCTOR]")
 	fmt.Fprintln(w, "  cludia counterpoint [--json] FILE COUNTERPOINT --text TEXT")
 	fmt.Fprintln(w, "  cludia remove-counterpoint [--dry-run] [--json] FILE COUNTERPOINT")
 	fmt.Fprintln(w, "  cludia delete [--dry-run] [--json] FILE STATEMENT")
@@ -265,6 +362,8 @@ func writeTopLevelUsage(w io.Writer) {
 	fmt.Fprintln(w, "  cludia validate [--profile PROFILE] [--json] FILE")
 	fmt.Fprintln(w, "  cludia check [--profile PROFILE] [--json] FILE")
 	fmt.Fprintln(w, "  cludia version")
+	fmt.Fprintln(w, "  cludia help [COMMAND]")
+	fmt.Fprintln(w, "  cludia --help")
 }
 
 func writeValidateUsage(w io.Writer) {

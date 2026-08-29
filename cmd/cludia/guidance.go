@@ -10,6 +10,7 @@ import (
 type guidanceOutput struct {
 	SchemaVersion       int                         `json:"schema_version"`
 	UseCaseNeutral      bool                        `json:"use_case_neutral"`
+	StatementAuthoring  statementAuthoringGuidance  `json:"statement_authoring"`
 	StatementIdentity   statementIdentityGuidance   `json:"statement_identity"`
 	TextEdits           textEditGuidance            `json:"text_edits"`
 	Slugs               slugGuidance                `json:"slugs"`
@@ -17,6 +18,16 @@ type guidanceOutput struct {
 	Deletion            deletionGuidance            `json:"deletion"`
 	MaterialReplacement materialReplacementGuidance `json:"material_replacement"`
 	Renumbering         renumberingGuidance         `json:"renumbering"`
+}
+
+type statementAuthoringGuidance struct {
+	TruthAptRequired                bool   `json:"truth_apt_required"`
+	QuestionsSupported              bool   `json:"questions_supported"`
+	QuestionAlternative             string `json:"question_alternative"`
+	HypothesesAsUnknownPropositions bool   `json:"hypotheses_as_unknown_propositions"`
+	UnknownTruthFlag                string `json:"unknown_truth_flag"`
+	DefaultTruth                    string `json:"default_truth"`
+	ConfidenceSupported             bool   `json:"confidence_supported"`
 }
 
 type statementIdentityGuidance struct {
@@ -105,6 +116,12 @@ func runGuidance(args []string, stdout, stderr io.Writer) error {
 	if *jsonOutput {
 		return writeIndentedJSON(stdout, output)
 	}
+	fmt.Fprintln(stdout, "Statement authoring contract:")
+	fmt.Fprintln(stdout, "- Capture truth-apt propositions, not questions or prompts.")
+	fmt.Fprintln(stdout, "- Keep questions in conversation or adjacent notes until they can be stated as propositions.")
+	fmt.Fprintln(stdout, "- Add hypotheses, disputed claims, and other unresolved propositions with --truth U; capture defaults to --truth T.")
+	fmt.Fprintln(stdout, "- Cludia does not author confidence scores or probabilities.")
+	fmt.Fprintln(stdout)
 	fmt.Fprintln(stdout, "Statement identity contract:")
 	fmt.Fprintln(stdout, "- IDs are required durable proposition-record identities.")
 	fmt.Fprintln(stdout, "- Text edits require --same-proposition; Cludia does not verify semantic equivalence.")
@@ -127,6 +144,12 @@ func identityGuidance() guidanceOutput {
 	return guidanceOutput{
 		SchemaVersion:  outputSchemaVersion,
 		UseCaseNeutral: true,
+		StatementAuthoring: statementAuthoringGuidance{
+			TruthAptRequired: true, QuestionsSupported: false,
+			QuestionAlternative:             "conversation or adjacent notes",
+			HypothesesAsUnknownPropositions: true, UnknownTruthFlag: "--truth U",
+			DefaultTruth: "T", ConfidenceSupported: false,
+		},
 		StatementIdentity: statementIdentityGuidance{
 			IDRequired: true, IDMeaning: "durable proposition record identity",
 			MateriallyDifferentGetsNewID: true, SemanticEquivalenceMechanical: false,
@@ -164,5 +187,5 @@ func identityGuidance() guidanceOutput {
 
 func writeGuidanceUsage(w io.Writer) {
 	fmt.Fprintln(w, "Usage: cludia guidance [--json]")
-	fmt.Fprintln(w, "Explain the use-case-neutral identity, allocation, edit, replacement, and renumbering contract.")
+	fmt.Fprintln(w, "Explain truth-apt authoring plus the use-case-neutral identity, allocation, edit, replacement, and renumbering contract.")
 }

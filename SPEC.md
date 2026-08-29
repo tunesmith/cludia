@@ -229,7 +229,8 @@ capabilities.
 - List connected components.
 - Read a complete rooted structure.
 - List non-counterpoint statements with no outgoing support, longest upstream
-  support depth, and challenge state.
+  support depth, and challenge state, with optional challenged-only filtering
+  and document-order offset/limit pagination.
 - Read a complete, stable, topologically ordered support ledger for a selected
   non-counterpoint statement, delaying premises toward their first use while
   using general document order to resolve equivalent choices.
@@ -270,6 +271,10 @@ capabilities.
 - Add an undermine.
 - Add an undercut.
 - Add a counterpoint targeting another counterpoint.
+- Route a convenience challenge by element type without changing defeat
+  semantics: premises are undermined, counterpoints receive counterpoints,
+  junctors are undercut, and a derived statement selects its sole incoming
+  junctor or requires an explicit junctor when the choice is ambiguous.
 - Remove a counterpoint with a dry-run structural plan.
 
 ### 6.4 Export
@@ -301,12 +306,19 @@ Flags SHOULD be accepted consistently before or after positional arguments.
 Mutation commands that can remove or cascade through relations SHOULD support
 `--dry-run`.
 
+Top-level `--help` and `-h` MUST print usage successfully. Command-specific
+usage MUST be reachable through `help COMMAND` as well as the command's normal
+help flag.
+
 Agent-facing guidance MUST instruct scripted callers not to predict generated
 IDs across independent mutations. Callers SHOULD omit explicit IDs and consume
 the assigned ID from each successful structured mutation result; any explicit
 ID MUST equal the role-appropriate exact next ID.
 Guidance MUST also state that attached counterpoints are removed explicitly
-before deleting their target or an incident inference.
+before deleting their target or an incident inference. It MUST state that
+focused capture accepts truth-apt propositions rather than questions, that
+unresolved hypotheses and disputed propositions use truth `U`, and that Cludia
+does not author confidence scores or probabilities.
 
 The version 1 batch-capture input contract is:
 
@@ -520,6 +532,15 @@ V1 is complete when automated tests demonstrate at least:
     identity or relation, and is shared by CLI and Top `J`/`K` controls.
 18. Ledger order always places sources before targets and delays a premise used
     only with a derived source until that source's derivation is complete.
+19. Top-level help exits successfully, and command-specific help is available
+    without executing the command.
+20. Smart challenge routing preserves defeat scope, auto-selects only a sole
+    incoming junctor, and refuses ambiguous or direct-support-only targets
+    without writing.
+21. Top challenged-only filtering and offset/limit pagination preserve document
+    order and do not alter the complete rooted query contract.
+22. Human and versioned machine guidance distinguish truth-apt unknown
+    propositions from unsupported questions and confidence scores.
 
 ## 14. Open decisions
 

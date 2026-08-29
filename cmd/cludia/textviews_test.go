@@ -50,6 +50,57 @@ func TestTopJSONAndHumanContract(t *testing.T) {
 	}
 }
 
+func TestTopFiltersAndPaginatesMatchingStatements(t *testing.T) {
+	path := textViewWorkspace(t)
+	parsed := argfile.Load(path)
+	parsed.Document.Statements = append(parsed.Document.Statements, argument.Statement{
+		ID: "P6", Slug: "unchallenged", Text: "Unchallenged top statement",
+		Role: argument.RolePremise, Kind: argument.KindFact, Truth: argument.TruthTrue,
+	})
+	if err := argfile.SaveAtomic(path, parsed.Document); err != nil {
+		t.Fatal(err)
+	}
+
+	var stdout, stderr bytes.Buffer
+	if err := run([]string{"top", path, "--challenged", "--offset", "1", "--limit", "1", "--json"}, &stdout, &stderr); err != nil {
+		t.Fatalf("filtered top: %v\nstderr: %s", err, stderr.String())
+	}
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(stdout.Bytes(), &raw); err != nil {
+		t.Fatal(err)
+	}
+	assertExactKeys(t, raw, "schema_version", "profile", "document", "statements", "diagnostics")
+	var output topOutput
+	if err := json.Unmarshal(stdout.Bytes(), &output); err != nil {
+		t.Fatal(err)
+	}
+	if len(output.Statements) != 1 || output.Statements[0].Statement.ID != "P5" || !output.Statements[0].Challenged {
+		t.Fatalf("filtered top output = %#v", output.Statements)
+	}
+
+	stdout.Reset()
+	stderr.Reset()
+	if err := run([]string{"top", "--limit", "1", path, "--json"}, &stdout, &stderr); err != nil {
+		t.Fatal(err)
+	}
+	if err := json.Unmarshal(stdout.Bytes(), &output); err != nil {
+		t.Fatal(err)
+	}
+	if len(output.Statements) != 1 || output.Statements[0].Statement.ID != "L2" {
+		t.Fatalf("limited top output = %#v", output.Statements)
+	}
+}
+
+func TestTopRejectsNegativePagination(t *testing.T) {
+	path := textViewWorkspace(t)
+	for _, args := range [][]string{{"top", path, "--limit", "-1"}, {"top", path, "--offset", "-1"}} {
+		var stdout, stderr bytes.Buffer
+		if err := run(args, &stdout, &stderr); err == nil {
+			t.Fatalf("%v unexpectedly succeeded", args)
+		}
+	}
+}
+
 func TestLedgerJSONAndHumanContract(t *testing.T) {
 	path := textViewWorkspace(t)
 	var stdout, stderr bytes.Buffer

@@ -36,8 +36,11 @@ func runTop(args []string, stdout, stderr io.Writer) error {
 	fs := flag.NewFlagSet("top", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 	jsonOutput := fs.Bool("json", false, "output versioned JSON")
+	challengedOnly := fs.Bool("challenged", false, "show only challenged top statements")
+	limit := fs.Int("limit", 0, "maximum number of statements to return (0 means all)")
+	offset := fs.Int("offset", 0, "number of matching statements to skip")
 	fs.Usage = func() { writeTopUsage(fs.Output()) }
-	if err := fs.Parse(flagsFirst(args, map[string]bool{})); err != nil {
+	if err := fs.Parse(flagsFirst(args, map[string]bool{"limit": true, "offset": true})); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
 			return nil
 		}
@@ -47,6 +50,12 @@ func runTop(args []string, stdout, stderr io.Writer) error {
 		fs.Usage()
 		return fmt.Errorf("top expects exactly one file")
 	}
+	if *limit < 0 {
+		return fmt.Errorf("top --limit must be zero or greater")
+	}
+	if *offset < 0 {
+		return fmt.Errorf("top --offset must be zero or greater")
+	}
 	doc, profile, diagnostics := loadValidated(fs.Arg(0))
 	if diagnostic.HasErrors(diagnostics) {
 		if err := writeFailure(stdout, *jsonOutput, profile, diagnostics); err != nil {
@@ -54,9 +63,25 @@ func runTop(args []string, stdout, stderr io.Writer) error {
 		}
 		return errValidationFailed
 	}
+	items := query.Top(doc)
+	if *challengedOnly {
+		filtered := make([]query.TopItem, 0, len(items))
+		for _, item := range items {
+			if item.Challenged {
+				filtered = append(filtered, item)
+			}
+		}
+		items = filtered
+	}
+	start := minInt(*offset, len(items))
+	end := len(items)
+	if *limit > 0 && *limit < end-start {
+		end = start + *limit
+	}
+	items = items[start:end]
 	output := topOutput{
 		SchemaVersion: outputSchemaVersion, Profile: profile, Document: documentSummary(doc),
-		Statements: query.Top(doc), Diagnostics: nonNilDiagnostics(diagnostics),
+		Statements: items, Diagnostics: nonNilDiagnostics(diagnostics),
 	}
 	if *jsonOutput {
 		return writeIndentedJSON(stdout, output)
@@ -301,8 +326,9 @@ func minInt(a, b int) int {
 }
 
 func writeTopUsage(w io.Writer) {
-	fmt.Fprintln(w, "Usage: cludia top [--json] FILE")
+	fmt.Fprintln(w, "Usage: cludia top [--challenged] [--limit N] [--offset N] [--json] FILE")
 	fmt.Fprintln(w, "List non-counterpoint statements with no outgoing support, longest support depth, and challenge state.")
+	fmt.Fprintln(w, "Filtering and pagination preserve document order; root remains the complete rooted-structure query.")
 }
 
 func writeLedgerUsage(w io.Writer) {

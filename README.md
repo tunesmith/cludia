@@ -8,7 +8,8 @@ observations into explicit arguments.
 
 The central workflow is premise-up:
 
-1. Capture short statements believed to be true.
+1. Capture short, truth-apt propositions; record unresolved hypotheses with
+   truth `U` rather than storing questions as statements.
 2. Accumulate them without requiring one connected graph or a conclusion.
 3. Select statements that may work together.
 4. Propose a new conclusion or lemma.
@@ -66,6 +67,8 @@ cludia derive case.arg \
   --target-text "The intruder crossed the garden wall."
 cludia undercut case.arg J1 \
   --text "A vehicle could have collected the intruder at the wall."
+cludia challenge case.arg crossed-wall \
+  --text "The stated sources leave another route open."
 cludia export case.arg --root crossed-wall --output crossed-wall.arg
 ```
 
@@ -168,6 +171,7 @@ bin/cludia remove-junctor inquiry.arg J1 --dry-run
 
 bin/cludia undermine inquiry.arg P1 --text "The observation may be unreliable."
 bin/cludia undercut inquiry.arg J1 --text "The sources leave another possibility open."
+bin/cludia challenge inquiry.arg L1 --inference J1 --text "The sources do not suffice."
 bin/cludia counterpoint inquiry.arg CP1 --text "The challenge is answered by later evidence."
 bin/cludia remove-counterpoint inquiry.arg CP2 --dry-run
 
@@ -176,7 +180,7 @@ bin/cludia export inquiry.arg --root L1 --output conclusion.arg \
   --id conclusion-id --title "Published conclusion" --json
 
 bin/cludia list inquiry.arg --state isolated
-bin/cludia top inquiry.arg --json
+bin/cludia top inquiry.arg --challenged --limit 20 --offset 0 --json
 bin/cludia ledger inquiry.arg L1 --json
 bin/cludia show inquiry.arg P1 --relations
 bin/cludia components inquiry.arg
@@ -198,7 +202,9 @@ conflating their logical meanings.
 and text. Results preserve document order and report which fields matched.
 
 `top` lists non-counterpoint statements with no outgoing support in document
-order, including longest upstream support depth and challenge state. `ledger`
+order, including longest upstream support depth and challenge state. It accepts
+`--challenged`, `--limit`, and `--offset` for ordered summary reads; these do not
+alter `root`, whose contract remains the complete rooted structure. `ledger`
 shows the complete support derivation to a selected statement in stable,
 proof-local topological order: every source precedes its target, while premises
 are delayed toward their first use and document order resolves equivalent
@@ -233,14 +239,21 @@ junctor removal refuses to orphan an attached inference undercut.
 
 Defeat authoring uses `undermine` for premise scope, `undercut` for a specific
 junctor and target, and `counterpoint` for a counterpoint of a counterpoint.
+`challenge` routes to those same semantics from a premise, junctor,
+counterpoint, or derived statement. It selects a derived statement's sole
+incoming junctor but requires `--inference` when multiple justifications or
+legacy direct support make the choice ambiguous.
 `remove-counterpoint` is leaf-first, supports `--dry-run`, and refuses to remove
 a statement that still has dependent counterpoints or support relations.
 
 Text-changing `edit` requires `--same-proposition` and reports that declared
 identity-continuity intent; truth- and kind-only edits do not require it.
 `rename-slug` can explicitly rename, regenerate, or clear the optional current
-slug while preserving ID and relations. `guidance` exposes the use-case-neutral
-identity and replacement contract in human or versioned JSON form. Its
+slug while preserving ID and relations. `guidance` explains that statements
+must be truth-apt, questions stay in conversation or adjacent notes, unresolved
+propositions use `--truth U`, and confidence scores are outside the model. It
+also exposes the use-case-neutral identity and replacement contract in human or
+versioned JSON form. Its
 scripted-authoring guidance requires callers to consume the returned
 `statement.id` instead of predicting allocations across mutations; any
 explicit ID must equal the exact next canonical value. Its deletion guidance

@@ -49,7 +49,10 @@ is the generative layer.
 
 ### 1. Capture
 
-The user mentions an observation. The agent may propose an atomic formulation:
+Cludia captures truth-apt propositions, not questions or prompts. Questions stay
+in conversation or adjacent notes until the human and agent can formulate a
+proposition worth recording. The user may mention an observation, and the agent
+may propose an atomic formulation:
 
 > You said that the footprints stop at the garden wall. Shall I capture “The
 > footprints terminate at the garden wall” as a true factual premise?
@@ -61,6 +64,20 @@ cludia add case.arg \
   --text "The footprints terminate at the garden wall." \
   --json
 ```
+
+An unresolved hypothesis or disputed proposition is still truth-apt, but it
+should be captured explicitly as unknown rather than receiving the default true
+token:
+
+```bash
+cludia add case.arg \
+  --text "The intruder may have left by vehicle." \
+  --truth U --json
+```
+
+Cludia does not assign confidence scores or probabilities. The human supplies
+truth state, and typed challenges preserve reasons to doubt statements or
+inferences.
 
 For scripted or agent-driven capture, a generated ID becomes authoritative
 only in the successful mutation result. An agent must not predict a sequence of
@@ -109,6 +126,7 @@ The agent queries the file rather than asking the user to restate it:
 cludia list case.arg --state isolated --json
 cludia show case.arg footprints-at-wall --relations --json
 cludia component case.arg footprints-at-wall --json
+cludia top case.arg --challenged --limit 20 --offset 0 --json
 ```
 
 ### 3. Propose
@@ -176,6 +194,19 @@ missing. A repair can proceed in either of two explicit ways:
 Until removal, `J1` still means that its sources were authored as sufficient;
 the undercut records that this claim is contested or presently rejected. The
 tool preserves both claims and does not decide which one is semantically right.
+
+The `challenge` convenience command preserves those distinctions while routing
+from the selected element. It undermines a premise, undercuts a junctor,
+counterpoints a counterpoint, and undercuts the sole incoming junctor of a lemma
+or conclusion. When a derived statement has multiple incoming junctors, the
+caller must select one explicitly:
+
+```bash
+cludia challenge case.arg crossed-wall \
+  --inference J1 \
+  --text "The sources leave another physically possible exit." \
+  --json
+```
 
 When one source of an `AND` junctor was selected incorrectly, replace it as one
 atomic operation rather than temporarily adding a third source and then

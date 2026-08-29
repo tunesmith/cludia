@@ -78,6 +78,36 @@ func TestSingleFileArgumentLaunchesTUIAndCommandsTakePrecedence(t *testing.T) {
 	}
 }
 
+func TestStandardHelpFormsSucceedWithoutUnknownCommandError(t *testing.T) {
+	for _, args := range [][]string{{"--help"}, {"-h"}} {
+		var stdout, stderr bytes.Buffer
+		if err := run(args, &stdout, &stderr); err != nil {
+			t.Fatalf("%v: %v", args, err)
+		}
+		if !strings.Contains(stdout.String(), "Usage:") || !strings.Contains(stdout.String(), "cludia help [COMMAND]") || !strings.Contains(stdout.String(), "top [--challenged] [--limit N] [--offset N]") || strings.Contains(stderr.String(), "unknown command") {
+			t.Fatalf("%v help output stdout=%q stderr=%q", args, stdout.String(), stderr.String())
+		}
+	}
+}
+
+func TestHelpCommandShowsSubcommandUsage(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	if err := run([]string{"help", "add-batch"}, &stdout, &stderr); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(stdout.String(), "Minimal input JSON:") || !strings.Contains(stdout.String(), "cludia add-batch --example") || stderr.Len() != 0 {
+		t.Fatalf("subcommand help stdout=%q stderr=%q", stdout.String(), stderr.String())
+	}
+
+	stdout.Reset()
+	if err := run([]string{"help", "challenge"}, &stdout, &stderr); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(stdout.String(), "--inference JUNCTOR") {
+		t.Fatalf("challenge help = %q", stdout.String())
+	}
+}
+
 func assertExactKeys(t *testing.T, object map[string]json.RawMessage, want ...string) {
 	t.Helper()
 	got := make([]string, 0, len(object))
