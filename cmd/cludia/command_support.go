@@ -120,6 +120,18 @@ func writeArgumentMutationFailure(stdout io.Writer, jsonOutput bool, profile val
 	if mutationErr, ok := err.(*argument.MutationError); ok {
 		return writeMutationFailure(stdout, jsonOutput, profile, mutationErr.Code, mutationErr.Message, mutationErr.Element)
 	}
+	if mutationErrs, ok := err.(*argument.MutationErrors); ok {
+		diagnostics := make([]diagnostic.Diagnostic, 0, len(mutationErrs.Failures))
+		for _, failure := range mutationErrs.Failures {
+			diagnostics = append(diagnostics, diagnostic.Diagnostic{
+				Code: failure.Code, Message: failure.Message, Severity: diagnostic.SeverityError, Element: failure.Element,
+			})
+		}
+		if writeErr := writeFailure(stdout, jsonOutput, profile, diagnostics); writeErr != nil {
+			return writeErr
+		}
+		return errValidationFailed
+	}
 	return err
 }
 

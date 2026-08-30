@@ -306,6 +306,48 @@ func TestFocusedAddRejectsSlugThatShadowsDurableID(t *testing.T) {
 	}
 }
 
+func TestStatementInputDiagnosticsAggregateAndUseCanonicalIDs(t *testing.T) {
+	path := twoPremiseWorkspace(t)
+	before, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var stdout, stderr bytes.Buffer
+	err = run([]string{"add", path, "--text", "Invalid", "--truth", "bad-truth", "--kind", "bad-kind", "--json"}, &stdout, &stderr)
+	if !errors.Is(err, errValidationFailed) {
+		t.Fatalf("add error = %v", err)
+	}
+	var failure failureOutput
+	if err := json.Unmarshal(stdout.Bytes(), &failure); err != nil || len(failure.Diagnostics) != 2 {
+		t.Fatalf("add diagnostics = %#v, %v", failure.Diagnostics, err)
+	}
+	for _, item := range failure.Diagnostics {
+		if item.Element != "P3" {
+			t.Fatalf("add diagnostic element = %q, want P3", item.Element)
+		}
+	}
+	after, err := os.ReadFile(path)
+	if err != nil || !bytes.Equal(before, after) {
+		t.Fatalf("invalid add changed workspace: %v", err)
+	}
+
+	stdout.Reset()
+	stderr.Reset()
+	err = run([]string{"edit", path, "first", "--truth", "bad-truth", "--kind", "bad-kind", "--json"}, &stdout, &stderr)
+	if !errors.Is(err, errValidationFailed) {
+		t.Fatalf("edit error = %v", err)
+	}
+	failure = failureOutput{}
+	if err := json.Unmarshal(stdout.Bytes(), &failure); err != nil || len(failure.Diagnostics) != 2 {
+		t.Fatalf("edit diagnostics = %#v, %v", failure.Diagnostics, err)
+	}
+	for _, item := range failure.Diagnostics {
+		if item.Element != "P1" {
+			t.Fatalf("edit diagnostic element = %q, want P1", item.Element)
+		}
+	}
+}
+
 func TestEditChangesOnlyTextAndReportsPreviousStatement(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "workspace.arg")
 	var stdout, stderr bytes.Buffer

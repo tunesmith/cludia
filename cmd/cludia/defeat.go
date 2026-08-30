@@ -236,18 +236,8 @@ func createDefeatWithDocument(path string, doc *argument.Document, profile valid
 		}
 		return errValidationFailed
 	}
-	truth, truthOK := parseTruth(*flags.truth)
-	kind, kindOK := parseKind(*flags.kind)
-	element := strings.TrimSpace(*flags.id)
-	if element == "" {
-		element = argument.NextStatementID(doc, argument.RoleCounterpoint)
-	}
-	if !truthOK {
-		return writeMutationFailure(stdout, *flags.jsonOutput, profile, "truth_invalid", fmt.Sprintf("invalid truth %q; expected T, F, or U", *flags.truth), element)
-	}
-	if !kindOK {
-		return writeMutationFailure(stdout, *flags.jsonOutput, profile, "kind_invalid", fmt.Sprintf("invalid kind %q; expected fact or value", *flags.kind), element)
-	}
+	truth, _ := parseTruth(*flags.truth)
+	kind, _ := parseKind(*flags.kind)
 
 	next, result, err := argument.AddDefeat(doc, argument.AddDefeatOptions{
 		Scope: scope, TargetRef: targetRef, Text: *flags.text,
@@ -261,7 +251,7 @@ func createDefeatWithDocument(path string, doc *argument.Document, profile valid
 		if addErr, ok := err.(*argument.AddDefeatError); ok {
 			return writeMutationFailure(stdout, *flags.jsonOutput, profile, addErr.Failure.Code, addErr.Failure.Message, addErr.Failure.Element)
 		}
-		return err
+		return writeArgumentMutationFailure(stdout, *flags.jsonOutput, profile, err)
 	}
 	validated, err := validateAndPersistMutation(path, next, profile, true)
 	if err != nil {

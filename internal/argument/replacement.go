@@ -80,6 +80,13 @@ func ReplaceStatement(doc *Document, options ReplacementOptions) (*Document, Rep
 	}
 
 	next := doc.Clone()
+	var deletionAllocator *IDAllocator
+	if len(options.RemoveJustifications) > 0 || options.DeleteOld {
+		deletionAllocator, err = NewIDAllocator(next)
+		if err != nil {
+			return nil, ReplacementResult{}, err
+		}
+	}
 	oldNext, _ := next.Statement(old.ID)
 	replacementNext, _ := next.Statement(replacement.ID)
 	result := ReplacementResult{
@@ -173,10 +180,8 @@ func ReplaceStatement(doc *Document, options ReplacementOptions) (*Document, Rep
 		next.Statements = statements
 		result.OldDeleted = true
 	}
-	if len(removeSet) > 0 || result.OldDeleted {
-		if err := EnsureNextIDs(next); err != nil {
-			return nil, ReplacementResult{}, err
-		}
+	if deletionAllocator != nil && (len(removeSet) > 0 || result.OldDeleted) {
+		deletionAllocator.Persist(next)
 	}
 	result.Applicable = len(result.Blockers) == 0
 	if !result.Applicable {

@@ -54,17 +54,11 @@ func runEdit(args []string, stdout, stderr io.Writer) error {
 		options.Text = &value
 	}
 	if truthName.set {
-		truth, ok := parseTruth(truthName.value)
-		if !ok {
-			return writeMutationFailure(stdout, *jsonOutput, profile, "truth_invalid", fmt.Sprintf("invalid truth %q; expected T, F, or U", truthName.value), fs.Arg(1))
-		}
+		truth, _ := parseTruth(truthName.value)
 		options.Truth = &truth
 	}
 	if kindName.set {
-		kind, ok := parseKind(kindName.value)
-		if !ok {
-			return writeMutationFailure(stdout, *jsonOutput, profile, "kind_invalid", fmt.Sprintf("invalid kind %q; expected fact or value", kindName.value), fs.Arg(1))
-		}
+		kind, _ := parseKind(kindName.value)
 		options.Kind = &kind
 	}
 	next, result, err := argument.EditStatement(doc, options)

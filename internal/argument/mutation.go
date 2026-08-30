@@ -16,6 +16,19 @@ func mutationError(code, message, element string) *MutationError {
 	return &MutationError{Code: code, Message: message, Element: element}
 }
 
+// MutationErrors reports independent semantic input failures discovered after
+// resolving the operation's canonical target and tentative generated ID.
+type MutationErrors struct {
+	Failures []MutationError
+}
+
+func (e *MutationErrors) Error() string {
+	if len(e.Failures) == 0 {
+		return "mutation failed"
+	}
+	return e.Failures[0].Message
+}
+
 func marshalDocumentState(doc *Document) ([]byte, error) {
 	junctorOrders := make([]int, len(doc.Junctors))
 	for index, junctor := range doc.Junctors {

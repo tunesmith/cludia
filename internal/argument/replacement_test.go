@@ -46,6 +46,33 @@ func TestReplacementTokenIsStateBound(t *testing.T) {
 	}
 }
 
+func TestReplacementBootstrapsLegacyAllocatorBeforeRemovingHighestIDs(t *testing.T) {
+	doc := &Document{
+		ID: "legacy", Title: "Legacy", Metadata: []Metadata{{Key: "profile", Value: "workspace"}},
+		Statements: []Statement{
+			{ID: "P1", Role: RolePremise, Kind: KindFact, Truth: TruthTrue, Text: "One"},
+			{ID: "P2", Role: RolePremise, Kind: KindFact, Truth: TruthTrue, Text: "Two"},
+			{ID: "L9", Slug: "old", Role: RoleLemma, Kind: KindFact, Truth: TruthUnknown, Text: "Old"},
+			{ID: "P9", Slug: "replacement", Role: RolePremise, Kind: KindFact, Truth: TruthTrue, Text: "Replacement"},
+		},
+		Junctors: []Junctor{{ID: "J9", Connector: ConnectorAND, Sources: []string{"P1", "P2"}, Target: "L9"}},
+	}
+	next, result, err := ReplaceStatement(doc, ReplacementOptions{
+		OldRef: "old", ReplacementRef: "replacement", RemoveJustifications: []string{"J9"}, DeleteOld: true,
+	})
+	if err != nil || !result.OldDeleted {
+		t.Fatalf("replacement = %#v, %v", result, err)
+	}
+	value, ok := next.MetadataValue(NextIDsMetadataKey)
+	if !ok {
+		t.Fatal("replacement did not bootstrap allocator metadata")
+	}
+	ids, err := ParseNextIDs(value)
+	if err != nil || ids.P != 10 || ids.L != 10 || ids.J != 10 {
+		t.Fatalf("next IDs = %#v from %q, err=%v", ids, value, err)
+	}
+}
+
 func replacementDocument() *Document {
 	return &Document{
 		ID: "replace", Title: "Replace",

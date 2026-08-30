@@ -126,14 +126,8 @@ func runAddBatch(args []string, stdout, stderr io.Writer) error {
 		if kindName == "" {
 			kindName = "fact"
 		}
-		truth, truthOK := parseTruth(truthName)
-		kind, kindOK := parseKind(kindName)
-		if !truthOK {
-			return writeMutationFailure(stdout, *jsonOutput, profile, "truth_invalid", fmt.Sprintf("invalid truth %q for batch statement %q; expected T, F, or U", item.Truth, key), key)
-		}
-		if !kindOK {
-			return writeMutationFailure(stdout, *jsonOutput, profile, "kind_invalid", fmt.Sprintf("invalid kind %q for batch statement %q; expected fact or value", item.Kind, key), key)
-		}
+		truth, _ := parseTruth(truthName)
+		kind, _ := parseKind(kindName)
 		orderedKeys = append(orderedKeys, key)
 		domainInputs = append(domainInputs, argument.StatementInput{
 			Text: text, RequestedID: strings.TrimSpace(item.ID), Slug: slug, Truth: truth, Kind: kind,
@@ -142,10 +136,6 @@ func runAddBatch(args []string, stdout, stderr io.Writer) error {
 	next, statements, err := argument.AddStatements(doc, domainInputs)
 	if err != nil {
 		if batchErr, ok := err.(*argument.BatchStatementError); ok {
-			key := orderedKeys[batchErr.Index]
-			if mutationErr, ok := batchErr.Err.(*argument.MutationError); ok {
-				return writeMutationFailure(stdout, *jsonOutput, profile, mutationErr.Code, mutationErr.Message, key)
-			}
 			return writeArgumentMutationFailure(stdout, *jsonOutput, profile, batchErr.Err)
 		}
 		return writeArgumentMutationFailure(stdout, *jsonOutput, profile, err)

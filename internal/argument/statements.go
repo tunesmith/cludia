@@ -153,17 +153,23 @@ func EditStatement(doc *Document, options EditStatementOptions) (*Document, Edit
 		}
 		statement.Text = text
 	}
+	failures := make([]MutationError, 0, 2)
 	if options.Truth != nil {
 		if !validTruth(*options.Truth) {
-			return nil, EditStatementResult{}, mutationError("truth_invalid", fmt.Sprintf("invalid truth %q; expected T, F, or U", *options.Truth), statement.ID)
+			failures = append(failures, MutationError{Code: "truth_invalid", Message: fmt.Sprintf("invalid truth %q; expected T, F, or U", *options.Truth), Element: statement.ID})
+		} else {
+			statement.Truth = *options.Truth
 		}
-		statement.Truth = *options.Truth
 	}
 	if options.Kind != nil {
 		if !validKind(*options.Kind) {
-			return nil, EditStatementResult{}, mutationError("kind_invalid", fmt.Sprintf("invalid kind %q; expected fact or value", *options.Kind), statement.ID)
+			failures = append(failures, MutationError{Code: "kind_invalid", Message: fmt.Sprintf("invalid kind %q; expected fact or value", *options.Kind), Element: statement.ID})
+		} else {
+			statement.Kind = *options.Kind
 		}
-		statement.Kind = *options.Kind
+	}
+	if len(failures) > 0 {
+		return nil, EditStatementResult{}, &MutationErrors{Failures: failures}
 	}
 	return next, EditStatementResult{Previous: previous, Current: *statement, Changed: previous != *statement}, nil
 }
@@ -240,18 +246,12 @@ func addStatement(doc *Document, input StatementInput) (*Document, Statement, er
 
 func buildStatement(doc *Document, allocator *IDAllocator, input StatementInput) (Statement, error) {
 	text := strings.TrimSpace(input.Text)
-	if text == "" {
-		return Statement{}, mutationError("statement_text_required", "statement text is required", strings.TrimSpace(input.RequestedID))
-	}
-	if !validTruth(input.Truth) {
-		return Statement{}, mutationError("truth_invalid", fmt.Sprintf("invalid truth %q; expected T, F, or U", input.Truth), strings.TrimSpace(input.RequestedID))
-	}
-	if !validKind(input.Kind) {
-		return Statement{}, mutationError("kind_invalid", fmt.Sprintf("invalid kind %q; expected fact or value", input.Kind), strings.TrimSpace(input.RequestedID))
-	}
 	id, err := allocator.Statement(RolePremise, strings.TrimSpace(input.RequestedID))
 	if err != nil {
 		return Statement{}, err
+	}
+	if text == "" {
+		return Statement{}, mutationError("statement_text_required", "statement text is required", id)
 	}
 	slug := strings.TrimSpace(input.Slug)
 	if slug == "" {
@@ -266,6 +266,16 @@ func buildStatement(doc *Document, allocator *IDAllocator, input StatementInput)
 		if elementType, existingID, collides := SlugIDCollision(doc, slug, id); collides {
 			return Statement{}, mutationError("statement_slug_id_collision", fmt.Sprintf("slug %q would be shadowed by %s id %s; choose a different slug", slug, elementType, existingID), id)
 		}
+	}
+	failures := make([]MutationError, 0, 2)
+	if !validTruth(input.Truth) {
+		failures = append(failures, MutationError{Code: "truth_invalid", Message: fmt.Sprintf("invalid truth %q; expected T, F, or U", input.Truth), Element: id})
+	}
+	if !validKind(input.Kind) {
+		failures = append(failures, MutationError{Code: "kind_invalid", Message: fmt.Sprintf("invalid kind %q; expected fact or value", input.Kind), Element: id})
+	}
+	if len(failures) > 0 {
+		return Statement{}, &MutationErrors{Failures: failures}
 	}
 	return Statement{ID: id, Slug: slug, Role: RolePremise, Kind: input.Kind, Truth: input.Truth, Text: text}, nil
 }

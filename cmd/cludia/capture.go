@@ -52,21 +52,8 @@ func runInit(args []string, stdout, stderr io.Writer) error {
 			id = "workspace"
 		}
 	}
-	truth, truthOK := parseTruth(*truthName)
-	kind, kindOK := parseKind(*kindName)
-	var diagnostics []diagnostic.Diagnostic
-	if !truthOK {
-		diagnostics = append(diagnostics, diagnostic.Diagnostic{Code: "truth_invalid", Message: fmt.Sprintf("invalid truth %q; expected T, F, or U", *truthName), Severity: diagnostic.SeverityError, Element: strings.TrimSpace(*statementID)})
-	}
-	if !kindOK {
-		diagnostics = append(diagnostics, diagnostic.Diagnostic{Code: "kind_invalid", Message: fmt.Sprintf("invalid kind %q; expected fact or value", *kindName), Severity: diagnostic.SeverityError, Element: strings.TrimSpace(*statementID)})
-	}
-	if diagnostic.HasErrors(diagnostics) {
-		if err := writeFailure(stdout, *jsonOutput, validation.ProfileWorkspace, diagnostics); err != nil {
-			return err
-		}
-		return errValidationFailed
-	}
+	truth, _ := parseTruth(*truthName)
+	kind, _ := parseKind(*kindName)
 	doc, first, err := argument.InitializeDocument(argument.InitializeOptions{
 		DocumentID: id, Title: cleanTitle,
 		Statement: argument.StatementInput{
@@ -76,6 +63,7 @@ func runInit(args []string, stdout, stderr io.Writer) error {
 	if err != nil {
 		return writeArgumentMutationFailure(stdout, *jsonOutput, validation.ProfileWorkspace, err)
 	}
+	var diagnostics []diagnostic.Diagnostic
 	validated, createErr := validateAndCreateMutation(fs.Arg(0), doc, validation.ProfileWorkspace)
 	diagnostics = append(diagnostics, validated.Diagnostics...)
 	if diagnostic.HasErrors(diagnostics) {
@@ -131,14 +119,8 @@ func runAdd(args []string, stdout, stderr io.Writer) error {
 		return errValidationFailed
 	}
 
-	truth, truthOK := parseTruth(*truthName)
-	kind, kindOK := parseKind(*kindName)
-	if !truthOK {
-		return writeMutationFailure(stdout, *jsonOutput, profile, "truth_invalid", fmt.Sprintf("invalid truth %q; expected T, F, or U", *truthName), strings.TrimSpace(*idName))
-	}
-	if !kindOK {
-		return writeMutationFailure(stdout, *jsonOutput, profile, "kind_invalid", fmt.Sprintf("invalid kind %q; expected fact or value", *kindName), strings.TrimSpace(*idName))
-	}
+	truth, _ := parseTruth(*truthName)
+	kind, _ := parseKind(*kindName)
 	next, statement, err := argument.AddStatement(doc, argument.StatementInput{
 		Text: *text, RequestedID: strings.TrimSpace(*idName), Slug: strings.TrimSpace(*slugName), Truth: truth, Kind: kind,
 	})

@@ -51,13 +51,6 @@ func AddDefeat(doc *Document, options AddDefeatOptions) (*Document, AddDefeatRes
 	if text == "" {
 		return nil, AddDefeatResult{}, addDefeatError("statement_text_required", "counterpoint text is required", strings.TrimSpace(options.RequestedID))
 	}
-	if options.Truth != TruthTrue && options.Truth != TruthFalse && options.Truth != TruthUnknown {
-		return nil, AddDefeatResult{}, addDefeatError("truth_invalid", fmt.Sprintf("invalid truth %q; expected T, F, or U", options.Truth), strings.TrimSpace(options.RequestedID))
-	}
-	if options.Kind != KindFact && options.Kind != KindValue {
-		return nil, AddDefeatResult{}, addDefeatError("kind_invalid", fmt.Sprintf("invalid kind %q; expected fact or value", options.Kind), strings.TrimSpace(options.RequestedID))
-	}
-
 	next := doc.Clone()
 	defeat := Defeat{Scope: options.Scope}
 	switch options.Scope {
@@ -106,6 +99,16 @@ func AddDefeat(doc *Document, options AddDefeatOptions) (*Document, AddDefeatRes
 			fmt.Sprintf("slug %q would be shadowed by %s id %s; choose a different slug", slug, elementType, existingID),
 			id,
 		)
+	}
+	failures := make([]MutationError, 0, 2)
+	if !validTruth(options.Truth) {
+		failures = append(failures, MutationError{Code: "truth_invalid", Message: fmt.Sprintf("invalid truth %q; expected T, F, or U", options.Truth), Element: id})
+	}
+	if !validKind(options.Kind) {
+		failures = append(failures, MutationError{Code: "kind_invalid", Message: fmt.Sprintf("invalid kind %q; expected fact or value", options.Kind), Element: id})
+	}
+	if len(failures) > 0 {
+		return nil, AddDefeatResult{}, &MutationErrors{Failures: failures}
 	}
 	counterpoint := Statement{
 		ID: id, Slug: slug, Role: RoleCounterpoint, Kind: options.Kind,

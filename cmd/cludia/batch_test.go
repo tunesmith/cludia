@@ -161,6 +161,25 @@ func TestAddBatchRejectsInvalidInputWithoutWriting(t *testing.T) {
 	}
 }
 
+func TestBatchFieldDiagnosticsUseTentativeCanonicalID(t *testing.T) {
+	path := twoPremiseWorkspace(t)
+	inputPath := writeBatchInput(t, `{"schema_version":1,"statements":[{"key":"invalid","text":"Invalid","truth":"bad-truth","kind":"bad-kind"}]}`)
+	var stdout, stderr bytes.Buffer
+	err := run([]string{"add-batch", path, "--input", inputPath, "--json"}, &stdout, &stderr)
+	if !errors.Is(err, errValidationFailed) {
+		t.Fatalf("error = %v", err)
+	}
+	var failure failureOutput
+	if err := json.Unmarshal(stdout.Bytes(), &failure); err != nil || len(failure.Diagnostics) != 2 {
+		t.Fatalf("diagnostics = %#v, %v", failure.Diagnostics, err)
+	}
+	for _, item := range failure.Diagnostics {
+		if item.Element != "P3" {
+			t.Fatalf("diagnostic element = %q, want P3", item.Element)
+		}
+	}
+}
+
 func writeBatchInput(t *testing.T, contents string) string {
 	t.Helper()
 	path := filepath.Join(t.TempDir(), "batch.json")
