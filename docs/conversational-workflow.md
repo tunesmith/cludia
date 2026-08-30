@@ -113,6 +113,14 @@ any entry is invalid, no statement is written and no generated ID is consumed.
 Treat IDs in a dry-run mapping as tentative and use the applied mutation's
 mapping for later derives or other references.
 
+Batch capture creates premises. If a later `derive --target` promotes one of
+those statements to a lemma, the derive result assigns and returns the next
+monotonic `L` ID, retires the prior `P` ID, and reports both IDs. Agents must use
+the returned `current_id` or the statement's slug in later commands; they must
+not continue referring to the retired `P` ID. When the derived target does not
+already need to exist independently, `derive --target-text` creates it directly
+with an `L` ID.
+
 Ordinary deletion leaves numeric gaps because Cludia does not reuse retired IDs
 during focused authoring. When a user explicitly wants compact labels, first
 review the complete mapping from `renumber --dry-run`; apply it only with the

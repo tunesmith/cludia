@@ -31,10 +31,14 @@ type statementAuthoringGuidance struct {
 }
 
 type statementIdentityGuidance struct {
-	IDRequired                    bool   `json:"id_required"`
-	IDMeaning                     string `json:"id_meaning"`
-	MateriallyDifferentGetsNewID  bool   `json:"materially_different_gets_new_id"`
-	SemanticEquivalenceMechanical bool   `json:"semantic_equivalence_mechanical"`
+	IDRequired                      bool     `json:"id_required"`
+	IDMeaning                       string   `json:"id_meaning"`
+	MateriallyDifferentGetsNewID    bool     `json:"materially_different_gets_new_id"`
+	SemanticEquivalenceMechanical   bool     `json:"semantic_equivalence_mechanical"`
+	RolePrefixesCurrent             bool     `json:"role_prefixes_current"`
+	PremisePromotionChangesID       bool     `json:"premise_promotion_changes_id"`
+	PremisePromotionMappingFields   []string `json:"premise_promotion_mapping_fields"`
+	PremisePromotionExternalWarning bool     `json:"premise_promotion_external_warning"`
 }
 
 type textEditGuidance struct {
@@ -128,6 +132,7 @@ func runGuidance(args []string, stdout, stderr io.Writer) error {
 	fmt.Fprintln(stdout, "- Truth- and kind-only edits do not require --same-proposition.")
 	fmt.Fprintln(stdout, "- Slugs are optional mutable aliases with one current value and no retained alias history.")
 	fmt.Fprintln(stdout, "- Focused authoring uses monotonic canonical P/L/C/CP/J IDs; deleted numbers are not reused during ordinary mutation.")
+	fmt.Fprintln(stdout, "- Promoting an existing premise to a lemma retires its P ID, assigns the next L ID, rewrites modeled references, and reports previous_id/current_id plus an external-reference warning.")
 	fmt.Fprintln(stdout, "- Scripted capture must not predict generated IDs across mutations; omit --id and read statement.id from each successful add --json result.")
 	fmt.Fprintln(stdout, "- An explicit ID is accepted only when it is the role-appropriate exact next ID recorded by cludia-next-ids.")
 	fmt.Fprintln(stdout, "- Use add-batch with versioned JSON input for all-or-nothing multi-statement capture and caller-key-to-statement mappings.")
@@ -153,6 +158,9 @@ func identityGuidance() guidanceOutput {
 		StatementIdentity: statementIdentityGuidance{
 			IDRequired: true, IDMeaning: "durable proposition record identity",
 			MateriallyDifferentGetsNewID: true, SemanticEquivalenceMechanical: false,
+			RolePrefixesCurrent: true, PremisePromotionChangesID: true,
+			PremisePromotionMappingFields:   []string{"previous_id", "current_id"},
+			PremisePromotionExternalWarning: true,
 		},
 		TextEdits: textEditGuidance{
 			SamePropositionRequired: true, Flag: "--same-proposition", TruthKindRequireFlag: false,

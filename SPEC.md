@@ -88,6 +88,9 @@ Statement identity, wording, and slug semantics follow ADR 0007:
 - the ID is the durable identity of one proposition record;
 - a text edit preserves that ID only when the caller explicitly asserts that
   the new wording expresses the same proposition;
+- focused premise-to-lemma promotion assigns the exact next monotonic `L` ID,
+  retires the previous `P` ID, rewrites modeled references atomically, and
+  reports the mapping under ADR 0011;
 - materially different propositions receive new IDs;
 - the slug is an optional mutable human-readable alias with at most one current
   value and no retained alias history in v1;
@@ -202,14 +205,18 @@ defeat relations.
 On capture, a statement defaults to `premise`.
 
 When an existing premise first becomes the target of a support structure, the
-CLI SHOULD automatically promote it to `lemma`. A selected export root MUST be
-emitted as `conclusion`. Other included targets MUST be emitted as `lemma`, and
-unsupported non-counterpoint leaves MUST be emitted as `premise`.
+CLI MUST automatically promote it to `lemma` and assign the exact next
+monotonic `L` ID. The former `P` ID MUST be retired, every modeled internal
+reference and recognized root-metadata reference MUST be rewritten atomically,
+and the mapping MUST be reported. A selected export root MUST be emitted as
+`conclusion`. Other included targets MUST be emitted as `lemma`, and unsupported
+non-counterpoint leaves MUST be emitted as `premise`.
 
 Counterpoint roles MUST remain counterpoints during role reconciliation.
 
-Automatic role changes MUST be reported in mutation results and MUST preserve
-stable statement identity.
+Automatic role changes MUST be reported in mutation results. Premise-to-lemma
+promotion is the role-consistent reidentification exception defined by ADR
+0011; other ordinary same-role mutations preserve the stable statement ID.
 
 When promotion to `lemma` makes an explicit premise truth token unavailable in
 the shared syntax, the durable truth value MUST normalize to `U` and the
@@ -305,6 +312,12 @@ JSON is a public interface and MUST:
 Flags SHOULD be accepted consistently before or after positional arguments.
 Mutation commands that can remove or cascade through relations SHOULD support
 `--dry-run`.
+
+Successful derive output for premise-to-lemma promotion MUST report
+`role_changes` entries containing `previous_id`, `current_id`, `from`, and `to`.
+Its `changes` collection MUST report the statement reidentification, all
+recognized metadata updates, the new junctor, and allocator metadata changes.
+Diagnostics MUST warn that references outside the workspace were not rewritten.
 
 Top-level `--help` and `-h` MUST print usage successfully. Command-specific
 usage MUST be reachable through `help COMMAND` as well as the command's normal
@@ -500,8 +513,9 @@ V1 is complete when automated tests demonstrate at least:
    validates, and round-trips.
 2. Two captured statements can be combined through a new `AND` junctor and
    target without manual file editing.
-3. An existing premise promoted to a target becomes a lemma without changing
-   ID.
+3. An existing premise promoted to a target receives the exact next `L` ID,
+   retires its `P` ID, and atomically rewrites every modeled reference while
+   reporting the mapping and external-reference warning.
 4. Undermines, undercuts, and counterpoints of counterpoints round-trip and are
    discoverable through JSON.
 5. Directed relation cycles are rejected and malformed cyclic input can still

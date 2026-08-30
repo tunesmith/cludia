@@ -50,6 +50,9 @@ The principal decisions are:
 - Allocate canonical statement and junctor IDs monotonically, preserve deletion
   gaps, and compact them only through an explicit reviewed whole-document
   renumber.
+- Reidentify an existing `P` target with the next `L` ID when derivation
+  promotes it to a lemma, rewriting modeled references and reporting the
+  mapping.
 - Use statement sequence as one durable general order, with proof dependencies
   constraining Ledger presentation.
 - Keep abductive discovery in the human/LLM conversation while persisting only
@@ -229,6 +232,12 @@ deletion leaves gaps, and failed mutations or dry runs consume nothing. An
 explicit ID is accepted only when it equals the relevant exact next value.
 Existing custom IDs remain readable and survive ordinary round trips, but new
 focused authoring does not create them.
+
+When `derive --target` first justifies an existing premise, Cludia promotes it
+with the next `L` ID, retires its former `P` ID, and atomically rewrites modeled
+references. Structured output reports `previous_id` and `current_id`; external
+references remain outside the checked scope. Use `derive --target-text` to
+create a new lemma directly with an `L` ID.
 
 Focused inference repair uses `add-source`, `replace-source`, `remove-source`,
 and `remove-junctor`. Source editing applies only to `AND` junctors and must

@@ -3,6 +3,8 @@
 - Status: Accepted
 - Date: 2026-08-24
 - Replacement refinement: Accepted 2026-08-25
+- Partial supersession: ADR 0011 assigns a new role-consistent ID when focused
+  derivation promotes a premise to a lemma.
 
 ## Context
 
@@ -56,6 +58,9 @@ The connected argument supporting this decision is
 - A materially different proposition receives a new statement ID.
 - Cludia MUST NOT claim to determine natural-language semantic equivalence
   structurally or automatically.
+- [ADR 0011](0011-role-consistent-identifiers-on-promotion.md) defines one
+  same-proposition exception: premise-to-lemma promotion changes a canonical
+  `P` ID to the next monotonic `L` ID so the role-bearing prefix remains true.
 
 ### Identifier lifetime after deletion
 
@@ -64,8 +69,9 @@ The connected argument supporting this decision is
   monotonic and never reuses a deleted number; an explicit state-bound
   whole-document renumber is the sole numbering reset.
 - “Durable identity” continues to mean continuity while a proposition record
-  exists and across explicitly meaning-preserving edits. Renumbering is an
-  exceptional reviewed identity migration rather than an ordinary edit.
+  exists and across explicitly meaning-preserving edits that do not change its
+  role. ADR 0011's reported premise-to-lemma reidentification and renumbering's
+  reviewed whole-document migration are the exceptions.
 - Concludia's separation between durable server identity and renumberable
   display labels remains relevant future prior art, but an opaque Cludia
   identity is not required without a concrete synchronization use case.
@@ -137,7 +143,8 @@ slugs, not an embedded alias or replacement history.
 ## Consequences
 
 - Stable IDs continue to keep graph relations and external references durable
-  across genuine reformulation.
+  across genuine same-role reformulation. ADR 0011 makes premise-to-lemma
+  promotion a reported role-consistent exception.
 - Text edits gain friction because continuity must be declared explicitly.
 - Slugs can remain semantically useful instead of becoming permanent stale
   labels.
@@ -152,8 +159,8 @@ slugs, not an embedded alias or replacement history.
 - Agents can apply the identity contract without being instructed to create or
   maintain files that are irrelevant to the user's chosen workflow.
 - ADR 0009 subsequently adds compact next-ID metadata and explicit
-  whole-document renumbering without changing this ADR's proposition-continuity
-  rules.
+  whole-document renumbering. ADR 0011 later refines proposition continuity for
+  premise-to-lemma role changes.
 
 ## Alternatives considered
 

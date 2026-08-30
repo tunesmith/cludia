@@ -20,7 +20,7 @@ func TestGuidanceJSONContractIsUseCaseNeutral(t *testing.T) {
 	if err := json.Unmarshal(stdout.Bytes(), &output); err != nil {
 		t.Fatal(err)
 	}
-	if !output.UseCaseNeutral || !output.StatementIdentity.IDRequired || !output.StatementIdentity.MateriallyDifferentGetsNewID || output.StatementIdentity.SemanticEquivalenceMechanical {
+	if !output.UseCaseNeutral || !output.StatementIdentity.IDRequired || !output.StatementIdentity.MateriallyDifferentGetsNewID || output.StatementIdentity.SemanticEquivalenceMechanical || !output.StatementIdentity.RolePrefixesCurrent || !output.StatementIdentity.PremisePromotionChangesID || !output.StatementIdentity.PremisePromotionExternalWarning || len(output.StatementIdentity.PremisePromotionMappingFields) != 2 || output.StatementIdentity.PremisePromotionMappingFields[0] != "previous_id" || output.StatementIdentity.PremisePromotionMappingFields[1] != "current_id" {
 		t.Fatalf("identity guidance = %#v", output)
 	}
 	if !output.StatementAuthoring.TruthAptRequired || output.StatementAuthoring.QuestionsSupported || output.StatementAuthoring.QuestionAlternative != "conversation or adjacent notes" || !output.StatementAuthoring.HypothesesAsUnknownPropositions || output.StatementAuthoring.UnknownTruthFlag != "--truth U" || output.StatementAuthoring.DefaultTruth != "T" || output.StatementAuthoring.ConfidenceSupported {

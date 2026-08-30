@@ -25,9 +25,10 @@ func (f *stringListFlag) Set(value string) error {
 }
 
 type roleChangeOutput struct {
-	ID   string        `json:"id"`
-	From argument.Role `json:"from"`
-	To   argument.Role `json:"to"`
+	PreviousID string        `json:"previous_id"`
+	CurrentID  string        `json:"current_id"`
+	From       argument.Role `json:"from"`
+	To         argument.Role `json:"to"`
 }
 
 type deriveOutput struct {
@@ -92,50 +93,11 @@ func runDerive(args []string, stdout, stderr io.Writer) error {
 		}
 		return errValidationFailed
 	}
-	next := doc.Clone()
-	allocator, err := argument.NewIDAllocator(next)
-	if err != nil {
-		return err
+	options := argument.DeriveOptions{
+		SourceRefs: append([]string(nil), sources...), ExistingTargetRef: cleanTargetRef,
+		RequestedJunctorID: strings.TrimSpace(*junctorID),
 	}
-	resolvedSources := make([]string, 0, len(sources))
-	for _, reference := range sources {
-		statement, ok := next.Statement(strings.TrimSpace(reference))
-		if !ok {
-			diagnostics = append(diagnostics, diagnostic.Diagnostic{
-				Code: "source_not_found", Message: fmt.Sprintf("source statement %q not found", reference),
-				Severity: diagnostic.SeverityError, Element: reference,
-			})
-			continue
-		}
-		resolvedSources = append(resolvedSources, statement.ID)
-	}
-	if diagnostic.HasErrors(diagnostics) {
-		if err := writeFailure(stdout, *jsonOutput, profile, diagnostics); err != nil {
-			return err
-		}
-		return errValidationFailed
-	}
-
-	roleChanges := []roleChangeOutput{}
-	changes := []changeOutput{}
-	var target *argument.Statement
-	if cleanTargetRef != "" {
-		var ok bool
-		target, ok = next.Statement(cleanTargetRef)
-		if !ok {
-			diagnostics := diagnosticError("target_not_found", fmt.Sprintf("target statement %q not found", cleanTargetRef), cleanTargetRef)
-			if err := writeFailure(stdout, *jsonOutput, profile, diagnostics); err != nil {
-				return err
-			}
-			return errValidationFailed
-		}
-		if target.Role == argument.RolePremise {
-			roleChanges = append(roleChanges, roleChangeOutput{ID: target.ID, From: target.Role, To: argument.RoleLemma})
-			target.Role = argument.RoleLemma
-			target.Truth = argument.TruthUnknown
-			changes = append(changes, changeOutput{Operation: "updated", ElementType: "statement", ID: target.ID})
-		}
-	} else {
+	if cleanTargetRef == "" {
 		kind, ok := parseKind(*targetKind)
 		if !ok {
 			diagnostics := diagnosticError("kind_invalid", fmt.Sprintf("invalid target kind %q; expected fact or value", *targetKind), strings.TrimSpace(*targetID))
@@ -152,34 +114,55 @@ func runDerive(args []string, stdout, stderr io.Writer) error {
 			}
 			return errValidationFailed
 		}
-		id, allocationErr := allocator.Statement(role, strings.TrimSpace(*targetID))
-		if allocationErr != nil {
-			return writeIDAllocationFailure(stdout, *jsonOutput, profile, allocationErr)
+		options.NewTarget = &argument.NewDerivedTarget{
+			Text: cleanTargetText, RequestedID: strings.TrimSpace(*targetID), Slug: strings.TrimSpace(*targetSlug), Kind: kind, Role: role,
 		}
-		slug := strings.TrimSpace(*targetSlug)
-		if slug == "" {
-			slug = argument.UniqueSlug(next, cleanTargetText)
-		}
-		next.Statements = append(next.Statements, argument.Statement{
-			ID: id, Slug: slug, Role: role, Kind: kind,
-			Truth: argument.TruthUnknown, Text: cleanTargetText,
-		})
-		target = &next.Statements[len(next.Statements)-1]
-		changes = append(changes, changeOutput{Operation: "added", ElementType: "statement", ID: target.ID})
 	}
 
-	id, allocationErr := allocator.Junctor(strings.TrimSpace(*junctorID))
-	if allocationErr != nil {
-		return writeIDAllocationFailure(stdout, *jsonOutput, profile, allocationErr)
+	next, result, err := argument.Derive(doc, options)
+	if err != nil {
+		if _, ok := err.(*argument.IDAllocationError); ok {
+			return writeIDAllocationFailure(stdout, *jsonOutput, profile, err)
+		}
+		if deriveErr, ok := err.(*argument.DeriveError); ok {
+			failures := make([]diagnostic.Diagnostic, 0, len(deriveErr.Failures))
+			for _, failure := range deriveErr.Failures {
+				failures = append(failures, diagnostic.Diagnostic{
+					Code: failure.Code, Message: failure.Message, Severity: diagnostic.SeverityError, Element: failure.Element,
+				})
+			}
+			if writeErr := writeFailure(stdout, *jsonOutput, profile, failures); writeErr != nil {
+				return writeErr
+			}
+			return errValidationFailed
+		}
+		return err
 	}
-	junctor := argument.Junctor{
-		ID: id, Connector: argument.ConnectorAND,
-		Sources: append([]string(nil), resolvedSources...), Target: target.ID,
-		Order: nextRelationOrder(next),
+
+	roleChanges := make([]roleChangeOutput, 0, len(result.RoleChanges))
+	changes := make([]changeOutput, 0)
+	if cleanTargetRef == "" {
+		changes = append(changes, changeOutput{Operation: "added", ElementType: "statement", ID: result.Target.ID})
 	}
-	next.Junctors = append(next.Junctors, junctor)
-	changes = append(changes, changeOutput{Operation: "added", ElementType: "junctor", ID: junctor.ID})
-	changes = appendMetadataChange(changes, persistIDAllocator(next, allocator))
+	for _, change := range result.RoleChanges {
+		roleChanges = append(roleChanges, roleChangeOutput{
+			PreviousID: change.PreviousID, CurrentID: change.CurrentID, From: change.From, To: change.To,
+		})
+		changes = append(changes, changeOutput{Operation: "reidentified", ElementType: "statement", ID: change.CurrentID})
+	}
+	changes = append(changes, changeOutput{Operation: "added", ElementType: "junctor", ID: result.Junctor.ID})
+	if result.RootMetadataUpdated {
+		changes = append(changes, changeOutput{Operation: "updated", ElementType: "metadata", ID: "root"})
+	}
+	previousNextIDs, nextIDsExisted := doc.MetadataValue(argument.NextIDsMetadataKey)
+	currentNextIDs, _ := next.MetadataValue(argument.NextIDsMetadataKey)
+	if !nextIDsExisted || previousNextIDs != currentNextIDs {
+		operation := "added"
+		if nextIDsExisted {
+			operation = "updated"
+		}
+		changes = append(changes, changeOutput{Operation: operation, ElementType: "metadata", ID: argument.NextIDsMetadataKey})
+	}
 	validated := validation.Validate(next, profile)
 	if !validated.OK() {
 		if err := writeFailure(stdout, *jsonOutput, profile, validated.Diagnostics); err != nil {
@@ -194,9 +177,16 @@ func runDerive(args []string, stdout, stderr io.Writer) error {
 	if diagnostics == nil {
 		diagnostics = []diagnostic.Diagnostic{}
 	}
+	for _, change := range result.RoleChanges {
+		diagnostics = append(diagnostics, diagnostic.Diagnostic{
+			Code:     "external_id_references_unchecked",
+			Message:  fmt.Sprintf("promoting %s to lemma %s rewrote references in this workspace and recognized root metadata only; references in conversations, Markdown, scripts, other workspaces, prior exports, or published graphs may require review", change.PreviousID, change.CurrentID),
+			Severity: diagnostic.SeverityWarning, Element: change.CurrentID,
+		})
+	}
 	output := deriveOutput{
 		SchemaVersion: outputSchemaVersion, Action: "derive", DryRun: false,
-		Profile: profile, Document: documentSummary(next), Target: *target, Junctor: junctor,
+		Profile: profile, Document: documentSummary(next), Target: result.Target, Junctor: result.Junctor,
 		RoleChanges: roleChanges, Changes: changes, Diagnostics: diagnostics,
 	}
 	if *jsonOutput {
@@ -204,21 +194,6 @@ func runDerive(args []string, stdout, stderr io.Writer) error {
 	}
 	writeHumanDerive(stdout, output)
 	return nil
-}
-
-func nextRelationOrder(doc *argument.Document) int {
-	maximum := 0
-	for _, junctor := range doc.Junctors {
-		if junctor.Order > maximum {
-			maximum = junctor.Order
-		}
-	}
-	for _, support := range doc.DirectSupports {
-		if support.Order > maximum {
-			maximum = support.Order
-		}
-	}
-	return maximum + 1
 }
 
 func parseDerivedRole(value string) (argument.Role, bool) {
@@ -237,7 +212,7 @@ func writeHumanDerive(w io.Writer, output deriveOutput) {
 	fmt.Fprintf(w, "%s\n", output.Target.Text)
 	fmt.Fprintf(w, "AND#%s(%s) -> %s\n", output.Junctor.ID, strings.Join(output.Junctor.Sources, ", "), output.Junctor.Target)
 	for _, change := range output.RoleChanges {
-		fmt.Fprintf(w, "Promoted %s: %s -> %s\n", change.ID, change.From, change.To)
+		fmt.Fprintf(w, "Promoted %s -> %s: %s -> %s\n", change.PreviousID, change.CurrentID, change.From, change.To)
 	}
 	for _, item := range output.Diagnostics {
 		writeDiagnostic(w, item)
@@ -247,4 +222,5 @@ func writeHumanDerive(w io.Writer, output deriveOutput) {
 func writeDeriveUsage(w io.Writer) {
 	fmt.Fprintln(w, "Usage: cludia derive [--json] FILE --source STATEMENT --source STATEMENT (--target STATEMENT | --target-text TEXT)")
 	fmt.Fprintln(w, "Create a multi-premise AND inference, optionally creating a lemma or conclusion target.")
+	fmt.Fprintln(w, "An existing premise target is promoted with the next L ID; consume current_id from role_changes.")
 }

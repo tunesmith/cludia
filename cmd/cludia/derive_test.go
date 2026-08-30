@@ -69,11 +69,79 @@ func TestDerivePromotesExistingPremise(t *testing.T) {
 	if err := json.Unmarshal(stdout.Bytes(), &output); err != nil {
 		t.Fatalf("decode JSON: %v", err)
 	}
-	if len(output.RoleChanges) != 1 || output.RoleChanges[0].ID != before.ID || output.RoleChanges[0].From != argument.RolePremise || output.RoleChanges[0].To != argument.RoleLemma {
+	var raw struct {
+		RoleChanges []map[string]json.RawMessage `json:"role_changes"`
+	}
+	if err := json.Unmarshal(stdout.Bytes(), &raw); err != nil || len(raw.RoleChanges) != 1 {
+		t.Fatalf("decode role change contract: %v, %#v", err, raw.RoleChanges)
+	}
+	assertExactKeys(t, raw.RoleChanges[0], "previous_id", "current_id", "from", "to")
+	if len(output.RoleChanges) != 1 || output.RoleChanges[0].PreviousID != before.ID || output.RoleChanges[0].CurrentID != "L1" || output.RoleChanges[0].From != argument.RolePremise || output.RoleChanges[0].To != argument.RoleLemma {
 		t.Fatalf("role changes = %#v", output.RoleChanges)
 	}
-	if output.Target.ID != before.ID || output.Target.Slug != before.Slug || output.Target.Role != argument.RoleLemma || output.Target.Truth != argument.TruthUnknown {
+	if output.Target.ID != "L1" || output.Target.Slug != before.Slug || output.Target.Role != argument.RoleLemma || output.Target.Truth != argument.TruthUnknown {
 		t.Fatalf("promoted target = %#v, before %#v", output.Target, before)
+	}
+	if output.Junctor.Target != "L1" {
+		t.Fatalf("junctor target = %q", output.Junctor.Target)
+	}
+	if len(output.Diagnostics) != 1 || output.Diagnostics[0].Code != "external_id_references_unchecked" {
+		t.Fatalf("promotion diagnostics = %#v", output.Diagnostics)
+	}
+	saved := argfile.ParseFile(path)
+	if _, exists := saved.Document.Statement(before.ID); exists {
+		t.Fatalf("retired premise ID %s remains", before.ID)
+	}
+	if promoted, exists := saved.Document.Statement("L1"); !exists || promoted.Role != argument.RoleLemma {
+		t.Fatalf("saved promoted target = %#v, exists %t", promoted, exists)
+	}
+}
+
+func TestDerivePromotionRewritesExistingReferencesAndRootMetadata(t *testing.T) {
+	path := twoPremiseWorkspace(t)
+	var stdout, stderr bytes.Buffer
+	if err := run([]string{"add", path, "--text", "Candidate", "--slug", "candidate"}, &stdout, &stderr); err != nil {
+		t.Fatal(err)
+	}
+	stdout.Reset()
+	stderr.Reset()
+	if err := run([]string{"add", path, "--text", "Existing target", "--slug", "existing-target"}, &stdout, &stderr); err != nil {
+		t.Fatal(err)
+	}
+	stdout.Reset()
+	stderr.Reset()
+	if err := run([]string{
+		"derive", path, "--source", "candidate", "--source", "P1", "--target", "existing-target", "--json",
+	}, &stdout, &stderr); err != nil {
+		t.Fatal(err)
+	}
+	parsed := argfile.ParseFile(path)
+	parsed.Document.Metadata = append(parsed.Document.Metadata, argument.Metadata{Key: "root", Value: "P3"})
+	if err := argfile.SaveAtomic(path, parsed.Document); err != nil {
+		t.Fatal(err)
+	}
+
+	stdout.Reset()
+	stderr.Reset()
+	if err := run([]string{
+		"derive", path, "--source", "P1", "--source", "P2", "--target", "candidate", "--json",
+	}, &stdout, &stderr); err != nil {
+		t.Fatalf("promote candidate: %v\n%s", err, stderr.String())
+	}
+	var output deriveOutput
+	if err := json.Unmarshal(stdout.Bytes(), &output); err != nil {
+		t.Fatal(err)
+	}
+	if output.Target.ID != "L2" || !hasChange(output.Changes, "updated", "metadata", "root") {
+		t.Fatalf("promotion output = %#v", output)
+	}
+	saved := argfile.ParseFile(path).Document
+	existing, exists := saved.Junctor("J1")
+	if !exists || existing.Sources[0] != "L2" {
+		t.Fatalf("existing reference was not rewritten: %#v, exists %t", existing, exists)
+	}
+	if root, _ := saved.MetadataValue("root"); root != "L2" {
+		t.Fatalf("root metadata = %q", root)
 	}
 }
 
@@ -212,4 +280,13 @@ func twoPremiseWorkspace(t *testing.T) string {
 		t.Fatal(err)
 	}
 	return path
+}
+
+func hasChange(changes []changeOutput, operation, elementType, id string) bool {
+	for _, change := range changes {
+		if change.Operation == operation && change.ElementType == elementType && change.ID == id {
+			return true
+		}
+	}
+	return false
 }

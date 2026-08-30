@@ -87,12 +87,16 @@ use it only as a preference. No separate Top or Ledger order is stored.
 
 Focused creation authors only canonical role-appropriate IDs (`P`, `L`, `C`,
 or `CP` plus a positive decimal suffix) and accepts an explicit ID only when it
-is the exact recorded next value. Ordinary reads and round trips continue to
-preserve broader valid IDs from existing `.arg` files. ADR 0009's explicit
-whole-document renumber is the only operation that compacts these labels.
+is the exact recorded next value. Focused premise-to-lemma promotion assigns
+the exact next `L` ID, retires the former `P` ID, and rewrites all modeled
+references under ADR 0011. Ordinary reads and round trips continue to preserve
+broader valid IDs and legacy role-mismatched IDs from existing `.arg` files.
+ADR 0009's explicit whole-document renumber remains the only operation that
+compacts these labels.
 
 The workspace allows a premise to be isolated. Once it becomes the target of a
-support relation, focused mutations promote it to a lemma.
+support relation, focused mutations promote it to a lemma with the exact next
+monotonic `L` ID.
 
 ## Multi-premise support
 
