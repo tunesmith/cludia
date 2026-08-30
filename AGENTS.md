@@ -28,6 +28,9 @@ not silently redefine the format or semantics in implementation.
   remain until explicit repair or removal; this is valid living-workspace state
   and does not by itself block saving or rooted export.
 - Do not add confidence scores, weights, probabilities, or Bayesian machinery.
+- Persist authored truth only on leaf premises and leaf counterpoints. Calculate
+  versioned grounded effective truth from support and defeat structure; never
+  store propagated truth as cache state.
 - Do not embed LLM calls or credentials in v1. External agents use the CLI or
   MCP.
 - `.arg` scriptable JSON and file compatibility are public interfaces.

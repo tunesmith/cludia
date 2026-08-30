@@ -11,6 +11,7 @@ type guidanceOutput struct {
 	SchemaVersion       int                         `json:"schema_version"`
 	UseCaseNeutral      bool                        `json:"use_case_neutral"`
 	StatementAuthoring  statementAuthoringGuidance  `json:"statement_authoring"`
+	TruthEvaluation     truthEvaluationGuidance     `json:"truth_evaluation"`
 	StatementIdentity   statementIdentityGuidance   `json:"statement_identity"`
 	TextEdits           textEditGuidance            `json:"text_edits"`
 	Slugs               slugGuidance                `json:"slugs"`
@@ -18,6 +19,18 @@ type guidanceOutput struct {
 	Deletion            deletionGuidance            `json:"deletion"`
 	MaterialReplacement materialReplacementGuidance `json:"material_replacement"`
 	Renumbering         renumberingGuidance         `json:"renumbering"`
+}
+
+type truthEvaluationGuidance struct {
+	AuthoredTruthLeafOnly bool     `json:"authored_truth_leaf_only"`
+	ManualRoles           []string `json:"manual_roles"`
+	EffectiveCalculated   bool     `json:"effective_truth_calculated"`
+	EffectivePersisted    bool     `json:"effective_truth_persisted"`
+	EvaluationVersion     int      `json:"evaluation_version"`
+	Mode                  string   `json:"mode"`
+	DefeatsIncluded       bool     `json:"defeats_included"`
+	EvaluateCommand       string   `json:"evaluate_command"`
+	NormalizeCommand      string   `json:"normalize_command"`
 }
 
 type statementAuthoringGuidance struct {
@@ -125,6 +138,9 @@ func runGuidance(args []string, stdout, stderr io.Writer) error {
 	fmt.Fprintln(stdout, "- Keep questions in conversation or adjacent notes until they can be stated as propositions.")
 	fmt.Fprintln(stdout, "- Add hypotheses, disputed claims, and other unresolved propositions with --truth U; capture defaults to --truth T.")
 	fmt.Fprintln(stdout, "- Cludia does not author confidence scores or probabilities.")
+	fmt.Fprintln(stdout, "- Only leaf premises and leaf counterpoints carry authored truth; sourced statements store U.")
+	fmt.Fprintln(stdout, "- Effective truth is calculated with grounded three-valued support and defeat semantics and is never persisted as cache state.")
+	fmt.Fprintln(stdout, "- Use evaluate to inspect the complete overlay and normalize-truth to repair legacy sourced T/F tokens.")
 	fmt.Fprintln(stdout)
 	fmt.Fprintln(stdout, "Statement identity contract:")
 	fmt.Fprintln(stdout, "- IDs are required durable proposition-record identities.")
@@ -154,6 +170,12 @@ func identityGuidance() guidanceOutput {
 			QuestionAlternative:             "conversation or adjacent notes",
 			HypothesesAsUnknownPropositions: true, UnknownTruthFlag: "--truth U",
 			DefaultTruth: "T", ConfidenceSupported: false,
+		},
+		TruthEvaluation: truthEvaluationGuidance{
+			AuthoredTruthLeafOnly: true, ManualRoles: []string{"premise", "counterpoint"},
+			EffectiveCalculated: true, EffectivePersisted: false,
+			EvaluationVersion: 1, Mode: "grounded", DefeatsIncluded: true,
+			EvaluateCommand: "evaluate", NormalizeCommand: "normalize-truth",
 		},
 		StatementIdentity: statementIdentityGuidance{
 			IDRequired: true, IDMeaning: "durable proposition record identity",
@@ -195,5 +217,5 @@ func identityGuidance() guidanceOutput {
 
 func writeGuidanceUsage(w io.Writer) {
 	fmt.Fprintln(w, "Usage: cludia guidance [--json]")
-	fmt.Fprintln(w, "Explain truth-apt authoring plus the use-case-neutral identity, allocation, edit, replacement, and renumbering contract.")
+	fmt.Fprintln(w, "Explain leaf truth, grounded evaluation, and the use-case-neutral identity, allocation, edit, replacement, and renumbering contract.")
 }

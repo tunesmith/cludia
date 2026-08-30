@@ -80,6 +80,12 @@ validation. A caller-supplied invalid slug MUST still be rejected.
 The CLI MUST provide explicit ways to capture unknown, false, and value
 statements. It MUST NOT assign numerical confidence, credibility, or weight.
 
+Authored truth MAY be assigned only to an unsourced premise or unsourced
+counterpoint. Statements with incoming junctor or direct support derive their
+effective truth and MUST store `U`. Imported sourced statements carrying `T` or
+`F` remain readable with a compatibility warning until explicit state-bound
+normalization under ADR 0014.
+
 Statement text SHOULD be atomic and SHOULD avoid embedding multiple premises
 that need separate examination.
 
@@ -161,9 +167,10 @@ An undercut MUST identify the junctor and its target. An undermine MUST identify
 the target statement. A counterpoint-scope defeat MUST identify the prior
 counterpoint.
 
-Defeats MUST NOT be represented as scores or probabilities. V1 is required to
-store and traverse them but is not required to implement a new acceptance or
-truth-propagation calculus.
+Defeats MUST NOT be represented as scores or probabilities. Cludia MUST
+calculate versioned grounded acceptance and effective truth under ADR 0014.
+Accepted undermines force their premise target false; accepted undercuts disable
+only their exact junctor-to-target justification.
 
 When an undercut exposes a missing premise or an obsolete inference, adding the
 missing source, replacing the junctor, or removing it is preferred hygiene. A
@@ -223,6 +230,29 @@ When promotion to `lemma` makes an explicit premise truth token unavailable in
 the shared syntax, the durable truth value MUST normalize to `U` and the
 statement update MUST be reported with the role change.
 
+When a counterpoint first gains incoming support, its role remains
+`counterpoint` but its durable truth MUST normalize to `U`. Removing that
+support does not restore an earlier authored truth.
+
+## 5.1 Effective truth evaluation
+
+Every valid read surface MUST calculate effective truth without modifying the
+workspace file:
+
+- `AND`: any false source yields `F`; otherwise any unknown source yields `U`;
+  otherwise `T`.
+- `OR`: any true source yields `T`; otherwise any unknown source yields `U`;
+  otherwise `F`.
+- Alternative incoming justifications and legacy direct supports combine with
+  `OR`.
+- Unsourced lemmas and conclusions evaluate `U`.
+- A sourced statement with every incoming inference disabled evaluates `F`.
+- Base-effective `T` counterpoints participate in grounded acceptance;
+  counterpoint defeats produce `in`, `out`, or `undecided` labels.
+
+Evaluation results MUST declare evaluation schema version and mode. Stored truth
+and calculated effective truth remain distinct public facts.
+
 ## 6. Required capabilities
 
 Exact command spelling is provisional, but v1 MUST provide the following
@@ -254,6 +284,8 @@ capabilities.
 - Edit statement text without changing its stable identity only with an
   explicit same-proposition assertion.
 - Change truth and kind where valid.
+- Calculate complete effective truth and grounded counterpoint acceptance.
+- Plan and atomically normalize legacy authored truth on sourced statements.
 - Rename, regenerate, or clear an optional statement slug without changing the
   statement ID or durable relations.
 - Delete a statement with a dry-run plan showing incident relations and
@@ -313,6 +345,10 @@ JSON is a public interface and MUST:
   references;
 - report all durable changes made by a mutation;
 - avoid silently dropping constructs unknown to a focused command.
+
+CLI response schema version 2 adds calculated effective truth to read surfaces.
+`statement.truth` remains the persisted value. Evaluation results use their own
+schema version 1 and mode `grounded`; batch input remains schema version 1.
 
 Reference resolution follows ADR 0012. In statement contexts, exact statement
 IDs precede slugs. In statement-or-junctor contexts, every exact durable ID
@@ -525,7 +561,6 @@ not be identical.
   queries beyond focused statement ordering.
 - A universal format shared with Dagim.
 - New `OR` or direct-support authoring UX.
-- A new truth-propagation or defeat-adjudication engine.
 
 ## 13. Acceptance scenarios
 
@@ -577,6 +612,11 @@ V1 is complete when automated tests demonstrate at least:
     order and do not alter the complete rooted query contract.
 22. Human and versioned machine guidance distinguish truth-apt unknown
     propositions from unsupported questions and confidence scores.
+23. True, false, and unknown leaves propagate through AND, OR, alternative
+    justifications, and direct support with versioned grounded defeat effects.
+24. Manual truth edits reject sourced statements, supported counterpoints
+    normalize to `U`, and legacy sourced truth is repaired only through a
+    reviewed state-bound normalization operation.
 
 ## 14. Open decisions
 

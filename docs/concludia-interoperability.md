@@ -99,6 +99,11 @@ Any label normalization must be deterministic and reported.
 Truth handling follows the shared `.arg` rules. Export must not invent a
 confidence value or silently assert unknown ground statements as true.
 
+Propagated effective truth is not serialized into rooted exports. Export keeps
+authored leaf tokens and support/defeat structure; Cludia and Concludia can
+recalculate the grounded overlay. Legacy sourced truth remains preserved unless
+the user explicitly applies Cludia's normalization repair before export.
+
 ## Defeats and semantic validity
 
 Defeats are part of the exported argument, not reasons to omit the challenged
@@ -114,6 +119,9 @@ Structural export success means:
 
 It does not mean every premise is true or every junctor semantically entails
 its target. Those remain subject to Concludia's semantic validation process.
+Calculated effective truth describes the structural three-valued consequence of
+the current authored leaves and grounded defeat overlay; it is not a semantic
+proof of the natural-language claims.
 
 ## Diagnostics
 

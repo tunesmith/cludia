@@ -37,8 +37,12 @@ must always inspect the exit status before interpreting either stream.
 ## JSON versions and response families
 
 Every structured top-level response contains integer `schema_version`. Version
-`1` is the current contract. Scripts must read this field and reject versions
+`2` is the current contract. Scripts must read this field and reject versions
 they do not support.
+
+Batch-capture input remains its independent schema version 1. Grounded
+evaluation objects also carry an independent evaluation schema version, which
+is currently 1.
 
 Within one schema version, field names, JSON types, meanings, and required
 collection behavior are stable for each response family. An incompatible

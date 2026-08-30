@@ -76,8 +76,14 @@ cludia add case.arg \
 ```
 
 Cludia does not assign confidence scores or probabilities. The human supplies
-truth state, and typed challenges preserve reasons to doubt statements or
-inferences.
+truth state only for leaf premises and leaf counterpoints. Cludia calculates
+grounded effective truth for sourced statements and typed challenges without
+persisting propagated values.
+
+Use `cludia evaluate case.arg --json` for the complete versioned overlay.
+Existing imported sourced statements with stored `T` or `F` are evaluated from
+their sources and diagnosed until reviewed through `normalize-truth --dry-run`
+and `--apply-token`.
 
 For scripted or agent-driven capture, a generated ID becomes authoritative
 only in the successful mutation result. An agent must not predict a sequence of

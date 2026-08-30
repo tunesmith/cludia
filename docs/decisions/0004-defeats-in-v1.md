@@ -3,6 +3,8 @@
 - Status: Accepted
 - Date: 2026-08-23
 - Amended: 2026-08-24 (retention of contested junctors)
+- Partial supersession: ADR 0014 adds calculated grounded acceptance and
+  effective truth while retaining the prohibition on numerical strength.
 
 ## Context
 
@@ -25,7 +27,8 @@ normalized for compatibility.
 Defeat relations count when discovering components. Directed cycles involving
 support or defeat relations are rejected, and all traversal is cycle-safe.
 
-V1 does not add a new acceptance calculus or numerical strength model.
+ADR 0014 adds deterministic grounded acceptance over these defeat forms. No
+numerical strength model is introduced.
 
 An undercut does not retract or mutate its target junctor. A living workspace
 may retain the challenged junctor while it is evaluated, after it is presently

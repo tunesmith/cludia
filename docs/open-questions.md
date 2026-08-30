@@ -83,14 +83,9 @@ than native packaging.
 
 ## Defeat evaluation
 
-V1 stores and traverses defeats and rejects cycles. It does not introduce a new
-truth-propagation or acceptance calculus.
-
-Future work must decide whether the tool should:
-
-- merely display the Concludia-compatible defeat structure;
-- reproduce Concludia's acceptance semantics locally;
-- delegate evaluation to Concludia at export/import time.
+Resolved by [ADR 0014](decisions/0014-calculated-grounded-truth.md): Cludia
+calculates Concludia-compatible grounded effective truth locally while keeping
+propagated values out of the `.arg` artifact.
 
 ## Time, revision, and statement identity
 

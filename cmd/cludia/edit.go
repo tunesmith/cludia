@@ -97,5 +97,5 @@ func runEdit(args []string, stdout, stderr io.Writer) error {
 
 func writeEditUsage(w io.Writer) {
 	fmt.Fprintln(w, "Usage: cludia edit [--json] FILE STATEMENT [--text TEXT --same-proposition] [--truth T|F|U] [--kind fact|value]")
-	fmt.Fprintln(w, "Change statement text, truth, or kind without changing its stable id or slug.")
+	fmt.Fprintln(w, "Change statement text or kind without changing its stable id or slug; truth may be assigned only to leaf premises and leaf counterpoints.")
 }

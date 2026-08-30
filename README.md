@@ -63,6 +63,8 @@ The principal decisions are:
   constraining Ledger presentation.
 - Keep abductive discovery in the human/LLM conversation while persisting only
   asserted entailment-style inferences.
+- Store truth only on leaf premises/counterpoints and calculate grounded
+  three-valued effective truth across support and defeat structure.
 - Do not add probabilistic scores, evidence weights, or Bayesian machinery.
 
 ## Illustrative session
@@ -70,6 +72,7 @@ The principal decisions are:
 ```bash
 cludia add case.arg --text "The footprints terminate at the garden wall."
 cludia list case.arg --state isolated --json
+cludia evaluate case.arg --json
 cludia derive case.arg \
   --source footprints-at-wall \
   --source no-returning-prints \
@@ -165,6 +168,7 @@ bin/cludia replace inquiry.arg L1 --with L2 \
 
 bin/cludia renumber inquiry.arg --dry-run --json
 bin/cludia renumber inquiry.arg --apply-token REVIEWED_TOKEN --json
+bin/cludia normalize-truth inquiry.arg --dry-run --json
 
 bin/cludia move-statement inquiry.arg L2 --before L1 --json
 

@@ -74,6 +74,11 @@ conclusion[fact] C1:final-finding "The apparent burglary was staged."
 Focused capture defaults to `premise[fact] ... ::T`. Truth tokens remain the
 existing `T`, `F`, and `U`; no numerical confidence field is introduced.
 
+Only unsourced premises and unsourced counterpoints carry authored truth.
+Sourced statements store `U` and receive calculated effective truth under ADR
+0014. Imported sourced `T`/`F` tokens are preserved and warned about until the
+explicit state-bound `normalize-truth` repair is applied.
+
 The statement ID is required durable identity. The slug remains optional and is
 a mutable human-readable alias with one current value; durable relations are
 resolved and canonically written by ID. Text edits that preserve an ID require
@@ -191,6 +196,16 @@ validity.
 | Targetless lemmas | allowed | warning or mutation restriction |
 | Premise targeted by support | focused mutation promotes role | rejected unless promoted |
 | Defeat chains | allowed | allowed |
+| Authored T/F on sourced statement | compatibility warning; ignored by evaluation | compatibility warning; ignored by evaluation |
+
+## Effective truth
+
+Effective truth is a calculated overlay rather than serialized cache state.
+Cludia evaluates strong three-valued `AND`/`OR`, disjunction across alternative
+justifications and direct supports, and grounded counterpoint acceptance.
+Accepted undermines force premise targets false; accepted undercuts disable the
+identified inference edge. Evaluation outputs declare schema version 1 and mode
+`grounded`.
 
 A valid Concludia document should be a valid workspace. A valid workspace is
 not necessarily a valid Concludia argument.
@@ -216,6 +231,9 @@ Opening and saving without an explicit transforming operation must preserve:
 - recognized and unrecognized string metadata;
 - ordinary Concludia documents that use constructs the focused workspace UX
   does not create.
+
+Round trips without explicit normalization preserve legacy sourced truth tokens
+even though evaluation ignores them.
 
 If exact trivia preservation such as comments or whitespace is not supported,
 the first implementation must state that canonical rewrite behavior clearly
