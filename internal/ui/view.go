@@ -153,7 +153,14 @@ func (m Model) renderedDetailBody() ([]string, int, int) {
 	body = append(body, "")
 	selectableIndex := 0
 	selectedStart, selectedEnd := -1, -1
-	for _, line := range m.detailLines() {
+	detailLines := m.detailLines()
+	labelWidth := 1
+	for _, line := range detailLines {
+		if line.selectable {
+			labelWidth = maxInt(labelWidth, displayWidth(displayID(line.id, line.challenged)))
+		}
+	}
+	for _, line := range detailLines {
 		indent := strings.Repeat("  ", line.indent)
 		if line.header != "" {
 			body = append(body, indent+mutedStyle.Render(line.header))
@@ -165,10 +172,11 @@ func (m Model) renderedDetailBody() ([]string, int, int) {
 			marker = "> "
 		}
 		label := displayID(line.id, line.challenged)
+		truth := ""
 		if value, ok := m.evaluation.Statement(line.id); ok {
-			label += " " + string(effectiveTruth(value.StoredTruth, value.EffectiveTruth))
+			truth = string(effectiveTruth(value.StoredTruth, value.EffectiveTruth))
 		}
-		prefixWidth := displayWidth(indent) + 2 + displayWidth(label) + 2
+		prefixWidth := displayWidth(indent) + 2 + labelWidth + 2 + 1 + 2
 		textWidth := maxInt(1, width-prefixWidth)
 		wrapped := wrapWords(line.text, textWidth)
 		if selected {
@@ -177,7 +185,7 @@ func (m Model) renderedDetailBody() ([]string, int, int) {
 		for i, text := range wrapped {
 			prefix := strings.Repeat(" ", prefixWidth)
 			if i == 0 {
-				prefix = indent + marker + renderSelectableID(label, line.challenged, selected) + "  "
+				prefix = indent + marker + pad(renderSelectableID(label, line.challenged, selected), labelWidth) + "  " + truth + "  "
 			}
 			value := prefix + text
 			if selected {

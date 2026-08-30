@@ -174,7 +174,7 @@ func TestDetailScopesChallengesAndSupportsNavigationStack(t *testing.T) {
 	m.width, m.height = 100, 32
 	m = m.openDetail("L2")
 	view := m.View()
-	for _, want := range []string{"STATEMENT DETAIL", "L2!", "lemma[fact]  T", "JUSTIFICATIONS", "1 — AND", "L1 T", "P4 T", "UNDERCUTS", "CP3 T", "P2 T"} {
+	for _, want := range []string{"STATEMENT DETAIL", "L2!", "lemma[fact]  T", "JUSTIFICATIONS", "1 — AND", "L1   T", "P4   T", "UNDERCUTS", "CP3  T", "P2   T"} {
 		if !strings.Contains(view, want) {
 			t.Fatalf("detail view missing %q:\n%s", want, view)
 		}
