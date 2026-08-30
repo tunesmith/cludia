@@ -286,8 +286,9 @@ capabilities.
 ### 6.2 Capture and edit
 
 - Add a statement.
-- Atomically add a non-empty batch of statements from versioned structured
-  input and return an ordered caller-key-to-statement mapping.
+- Atomically add statements from versioned structured input and return an
+  ordered caller-key-to-statement mapping; batch schema version 2 may also
+  create focused `AND` derivations and typed defeats with final mappings.
 - Edit statement text without changing its stable identity only with an
   explicit same-proposition assertion.
 - Change truth and kind where valid.
@@ -355,7 +356,8 @@ JSON is a public interface and MUST:
 
 CLI response schema version 2 adds calculated effective truth to read surfaces.
 `statement.truth` remains the persisted value. Evaluation results use their own
-schema version 1 and mode `grounded`; batch input remains schema version 1.
+schema version 1 and mode `grounded`. Batch input has independent schema version
+2.
 
 Reference resolution follows ADR 0012. In statement contexts, exact statement
 IDs precede slugs. In statement-or-junctor contexts, every exact durable ID
@@ -387,32 +389,67 @@ focused capture accepts truth-apt propositions rather than questions, that
 unresolved hypotheses and disputed propositions use truth `U`, and that Cludia
 does not author confidence scores or probabilities.
 
-The version 1 batch-capture input contract is:
+Batch input version 2 is the atomic authoring transaction over statements,
+focused `AND` derivations, and typed defeats. Its shape is:
 
 ```json
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "statements": [
+    {"key": "source-a", "text": "Source A is true."},
+    {"key": "source-b", "text": "Source B is true."},
+    {"key": "finding", "text": "The finding follows."},
+    {"key": "objection", "role": "counterpoint", "text": "The sources leave another possibility open."}
+  ],
+  "derivations": [
     {
-      "key": "caller-owned-correlation-key",
-      "text": "Required statement text.",
-      "id": "optional-explicit-id",
-      "slug": "optional-explicit-slug",
-      "truth": "T",
-      "kind": "fact"
+      "key": "finding-inference",
+      "sources": [{"key": "source-a"}, {"key": "source-b"}],
+      "target": {"key": "finding"}
+    }
+  ],
+  "defeats": [
+    {
+      "from": {"key": "objection"},
+      "scope": "inference",
+      "target": {"key": "finding-inference"}
     }
   ]
 }
 ```
 
-Within a batch, `key` MUST be non-empty and unique but is not durable workspace
-identity. `text` MUST be non-empty. Omitted `id` and `slug` values are generated
-in batch order; omitted `truth` and `kind` values default to `T` and `fact`.
-Unknown fields, unsupported schema versions, duplicate keys, or any invalid
-resulting statement MUST reject the whole batch without writing. Successful and
-dry-run output MUST preserve input order and return each key with its complete
-assigned statement. A dry-run mapping is tentative; only the result of the
-applied mutation is authoritative for later references.
+Every new statement and derivation MUST have a non-empty caller key that is
+unique across both collections. A reference MUST contain exactly one of:
+
+- `key`, naming a new statement or derivation in the same transaction; or
+- `id`, naming a durable statement or junctor that existed before the
+  transaction.
+
+Batch relation references MUST NOT resolve slugs or tentative generated IDs.
+New statements MAY explicitly request a role; otherwise a statement targeted
+by a batch derivation is created directly as a lemma and any other statement
+defaults to premise. Counterpoints MUST request the counterpoint role. Newly
+sourced statements store `U`; a newly derived target MUST NOT consume and
+retire a transient `P` ID.
+
+Derivations author only focused `AND` junctors with at least two sources.
+Defeats explicitly declare premise, inference, or counterpoint scope. The
+`from` reference must resolve to a counterpoint; an inference target resolves
+to a derivation/junctor, while premise and counterpoint targets resolve to
+statements. Version 2 does not add direct-support authoring or allow one
+counterpoint to acquire multiple `.arg` defeat targets.
+
+The `derivations` and `defeats` collections MAY be empty when the transaction
+only captures statements. At least one statement, derivation, or defeat is
+required.
+
+The complete transaction MUST be planned on a clone, validated once as a
+whole, and saved atomically only when every statement and relation is valid.
+Any parse, reference, allocation, relation, cycle, or profile failure leaves
+the workspace and allocator unchanged. Dry-run mappings are tentative. Applied
+output MUST return final caller-key mappings for statements and junctors,
+including role-consistent final IDs, plus every created defeat and any role or
+truth normalization affecting pre-existing statements.
 
 Material replacement MUST be a two-phase operation. A dry run MUST report the
 old and replacement records, every incident support and defeat, each explicitly
@@ -624,6 +661,10 @@ V1 is complete when automated tests demonstrate at least:
 24. Manual truth edits reject sourced statements, supported counterpoints
     normalize to `U`, and legacy sourced truth is repaired only through a
     reviewed state-bound normalization operation.
+25. Batch schema version 2 can atomically create statements, role-correct
+    derivation targets, generated junctors, undercuts or undermines, and
+    counterpoints of counterpoints through caller keys; any invalid relation or
+    final graph writes nothing and consumes no identifier.
 
 ## 14. Open decisions
 

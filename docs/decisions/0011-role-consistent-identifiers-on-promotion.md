@@ -56,6 +56,9 @@ cannot preserve both literal ID continuity and truthful role notation.
   review after promotion; the mutation output supplies the mapping.
 - Batch-capturing a future target and then deriving into it is still supported,
   but callers must consume the promoted `L` ID from the derive result.
+- Atomic batch-authoring schema version 2 knows the complete proposed topology
+  before allocation, so a new statement targeted by a batch derivation receives
+  its final `L` ID directly and never acquires a transient `P` identity.
 - Slugs provide conversational continuity across promotion but remain mutable
   aliases rather than durable identity.
 - Legacy and imported files can temporarily contain role/ID mismatches without

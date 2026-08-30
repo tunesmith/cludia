@@ -108,6 +108,14 @@ The workspace allows a premise to be isolated. Once it becomes the target of a
 support relation, focused mutations promote it to a lemma with the exact next
 monotonic `L` ID.
 
+Atomic batch input schema version 2 declares its complete new topology before
+allocation. A new statement targeted by a batch derivation is therefore written
+directly as a lemma with the next `L` ID rather than receiving and immediately
+retiring a temporary `P` ID. References to new batch elements use caller keys;
+references to existing workspace elements use exact durable IDs. The final
+transaction must still satisfy this profile and serialize through the unchanged
+`.arg` syntax.
+
 ## Multi-premise support
 
 Focused authoring creates:

@@ -59,13 +59,6 @@ type RenameSlugResult struct {
 	Changed             bool
 }
 
-type BatchStatementError struct {
-	Index int
-	Err   error
-}
-
-func (e *BatchStatementError) Error() string { return e.Err.Error() }
-
 func InitializeDocument(options InitializeOptions) (*Document, Statement, error) {
 	documentID := strings.TrimSpace(options.DocumentID)
 	title := strings.TrimSpace(options.Title)
@@ -109,31 +102,6 @@ func AddStatement(doc *Document, input StatementInput) (*Document, Statement, er
 		return nil, Statement{}, mutationError("document_nil", "document is nil", "")
 	}
 	return addStatement(doc.Clone(), input)
-}
-
-func AddStatements(doc *Document, inputs []StatementInput) (*Document, []Statement, error) {
-	if doc == nil {
-		return nil, nil, mutationError("document_nil", "document is nil", "")
-	}
-	if len(inputs) == 0 {
-		return nil, nil, mutationError("batch_statements_required", "batch requires at least one statement", "")
-	}
-	next := doc.Clone()
-	allocator, err := NewIDAllocator(next)
-	if err != nil {
-		return nil, nil, err
-	}
-	statements := make([]Statement, 0, len(inputs))
-	for index, input := range inputs {
-		statement, err := buildStatement(next, allocator, input)
-		if err != nil {
-			return nil, nil, &BatchStatementError{Index: index, Err: err}
-		}
-		next.Statements = append(next.Statements, statement)
-		statements = append(statements, statement)
-	}
-	allocator.Persist(next)
-	return next, statements, nil
 }
 
 func EditStatement(doc *Document, options EditStatementOptions) (*Document, EditStatementResult, error) {
@@ -253,8 +221,12 @@ func addStatement(doc *Document, input StatementInput) (*Document, Statement, er
 }
 
 func buildStatement(doc *Document, allocator *IDAllocator, input StatementInput) (Statement, error) {
+	return buildStatementForRole(doc, allocator, input, RolePremise)
+}
+
+func buildStatementForRole(doc *Document, allocator *IDAllocator, input StatementInput, role Role) (Statement, error) {
 	text := strings.TrimSpace(input.Text)
-	id, err := allocator.Statement(RolePremise, strings.TrimSpace(input.RequestedID))
+	id, err := allocator.Statement(role, strings.TrimSpace(input.RequestedID))
 	if err != nil {
 		return Statement{}, err
 	}
@@ -285,7 +257,7 @@ func buildStatement(doc *Document, allocator *IDAllocator, input StatementInput)
 	if len(failures) > 0 {
 		return Statement{}, &MutationErrors{Failures: failures}
 	}
-	return Statement{ID: id, Slug: slug, Role: RolePremise, Kind: input.Kind, Truth: input.Truth, Text: text}, nil
+	return Statement{ID: id, Slug: slug, Role: role, Kind: input.Kind, Truth: input.Truth, Text: text}, nil
 }
 
 func slugOwner(doc *Document, slug, exceptID string) string {

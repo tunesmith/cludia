@@ -95,7 +95,7 @@ func TestHelpCommandShowsSubcommandUsage(t *testing.T) {
 	if err := run([]string{"help", "add-batch"}, &stdout, &stderr); err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(stdout.String(), "Minimal input JSON:") || !strings.Contains(stdout.String(), "cludia add-batch --example") || stderr.Len() != 0 {
+	if !strings.Contains(stdout.String(), "Transaction example") || !strings.Contains(stdout.String(), "cludia add-batch --example") || stderr.Len() != 0 {
 		t.Fatalf("subcommand help stdout=%q stderr=%q", stdout.String(), stderr.String())
 	}
 

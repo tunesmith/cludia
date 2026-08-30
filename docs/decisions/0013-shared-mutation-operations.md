@@ -27,6 +27,10 @@ command implementation details.
   derivation, defeat creation, junctor repair/removal, counterpoint removal,
   statement deletion, material replacement, renumbering, and statement order
   movement all follow this contract.
+- Batch schema version 2 composes statement creation, final-role allocation,
+  derivation, and defeat attachment inside one shared clone-returning operation;
+  interfaces do not replay individual mutation commands or persist intermediate
+  states.
 - Replacement and renumbering compute their state-bound opaque plan tokens and
   complete proposed effects in the shared operation. Dry-run and apply invoke
   the same planner; the interface only compares the reviewed token and decides

@@ -93,39 +93,47 @@ candidate ID. Omit `--id` and read `statement.id` from each successful
 provided, focused authoring accepts it only when it is the role-appropriate
 exact next canonical ID.
 
-When several statements are already known, prefer one atomic batch over a
-sequence whose later references depend on predicted allocations. For example,
-`statements.json` may contain:
+When several statements and their relationships are already known, prefer one
+atomic schema 2 transaction over a sequence whose later references depend on
+predicted allocations. For example, `installment.json` may contain:
 
 ```json
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "statements": [
     {"key": "phase-status", "text": "The migration phase is complete."},
-    {"key": "ticket-42061", "text": "42061 blocks the next phase."}
-  ]
+    {"key": "ticket-42061", "text": "42061 blocks the next phase."},
+    {"key": "next-phase", "text": "The next migration phase cannot begin."}
+  ],
+  "derivations": [
+    {
+      "key": "phase-block",
+      "sources": [{"key": "phase-status"}, {"key": "ticket-42061"}],
+      "target": {"key": "next-phase"}
+    }
+  ],
+  "defeats": []
 }
 ```
 
 Then preview or apply it with:
 
 ```bash
-cludia add-batch case.arg --input statements.json --dry-run --json
-cludia add-batch case.arg --input statements.json --json
+cludia add-batch case.arg --input installment.json --dry-run --json
+cludia add-batch case.arg --input installment.json --json
 ```
 
-The result returns each caller key beside its complete assigned statement. If
-any entry is invalid, no statement is written and no generated ID is consumed.
-Treat IDs in a dry-run mapping as tentative and use the applied mutation's
-mapping for later derives or other references.
+The result returns final statement mappings, generated junctor mappings, and
+defeats. `{"key":"..."}` references a new element in this transaction;
+`{"id":"P17"}` references a durable element already in the workspace. Slugs
+are intentionally not accepted as transaction references. If any entry or the
+complete resulting graph is invalid, nothing is written and no generated ID is
+consumed. Treat dry-run mappings as tentative and use the applied result later.
 
-Batch capture creates premises. If a later `derive --target` promotes one of
-those statements to a lemma, the derive result assigns and returns the next
-monotonic `L` ID, retires the prior `P` ID, and reports both IDs. Agents must use
-the returned `current_id` or the statement's slug in later commands; they must
-not continue referring to the retired `P` ID. When the derived target does not
-already need to exist independently, `derive --target-text` creates it directly
-with an `L` ID.
+Because schema 2 sees the complete topology before allocating IDs, a new
+derivation target is created directly as a lemma with an `L` ID. A
+statement-only transaction uses the same schema with empty `derivations` and
+`defeats` arrays.
 
 Ordinary deletion leaves numeric gaps because Cludia does not reuse retired IDs
 during focused authoring. When a user explicitly wants compact labels, first

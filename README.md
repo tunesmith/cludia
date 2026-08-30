@@ -233,12 +233,22 @@ single durable general order. It accepts IDs or slugs, changes no identity or
 relation, and validates and saves atomically. This order also influences search,
 components, rooted export, and later reviewed `renumber` mappings.
 
-`add-batch` atomically captures multiple statements from a versioned JSON input
-file. Each input item has a required unique caller `key` and statement `text`,
-plus optional `id`, `slug`, `truth`, and `kind`. The result preserves input order
-and maps every caller key to its complete assigned statement; any invalid item
-rejects the whole batch without writing or consuming IDs. Run `add-batch --help`
-to see the schema inline or `add-batch --example` to print minimal valid JSON.
+`add-batch` schema 2 atomically creates new statements, focused `AND`
+derivations, and typed defeats. New elements refer to one another by caller key;
+relations may also name pre-existing durable IDs. The relation collections may
+be empty for a statement-only transaction.
+The result returns every statement key with its final role-consistent statement,
+every derivation key with its generated junctor, and every created defeat. Any
+invalid field, reference, relation, cycle, or final graph rejects the complete
+transaction without writing or consuming IDs. Run `add-batch --help` to see the
+contract or `add-batch --example` to print a complete transaction.
+
+Schema 2 deliberately distinguishes `{"key":"finding"}` from
+`{"id":"P17"}`. Keys name new elements in the same transaction; IDs name
+elements that existed before it. Slugs and tentative generated IDs are not
+relation references. A new statement targeted by a derivation receives its
+final `L` ID directly rather than being created and immediately promoted from a
+temporary `P` ID.
 
 Focused creation assigns role-appropriate canonical IDs from the exact next
 values stored in `cludia-next-ids`. Automatic IDs increase monotonically;

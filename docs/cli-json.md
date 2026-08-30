@@ -40,9 +40,10 @@ Every structured top-level response contains integer `schema_version`. Version
 `2` is the current contract. Scripts must read this field and reject versions
 they do not support.
 
-Batch-capture input remains its independent schema version 1. Grounded
-evaluation objects also carry an independent evaluation schema version, which
-is currently 1.
+Batch input carries its own independent schema version. The current and only
+supported version is 2, the atomic statement, derivation, and defeat
+transaction. Grounded evaluation objects also carry an independent evaluation
+schema version, which is currently 1.
 
 Within one schema version, field names, JSON types, meanings, and required
 collection behavior are stable for each response family. An incompatible

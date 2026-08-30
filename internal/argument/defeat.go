@@ -52,34 +52,9 @@ func AddDefeat(doc *Document, options AddDefeatOptions) (*Document, AddDefeatRes
 		return nil, AddDefeatResult{}, addDefeatError("statement_text_required", "counterpoint text is required", strings.TrimSpace(options.RequestedID))
 	}
 	next := doc.Clone()
-	defeat := Defeat{Scope: options.Scope}
-	switch options.Scope {
-	case DefeatPremise:
-		target, ok := next.Statement(targetRef)
-		if !ok {
-			return nil, AddDefeatResult{}, addDefeatError("target_not_found", fmt.Sprintf("premise %q not found", targetRef), targetRef)
-		}
-		if target.Role != RolePremise {
-			return nil, AddDefeatResult{}, addDefeatError("undermine_target_role", fmt.Sprintf("undermine target %s has role %s, expected premise", target.ID, target.Role), target.ID)
-		}
-		defeat.To = target.ID
-	case DefeatInference:
-		junctor, ok := next.Junctor(targetRef)
-		if !ok {
-			return nil, AddDefeatResult{}, addDefeatError("junctor_not_found", fmt.Sprintf("junctor %q not found", targetRef), targetRef)
-		}
-		defeat.JunctorID, defeat.AtTarget = junctor.ID, junctor.Target
-	case DefeatCounterpoint:
-		target, ok := next.Statement(targetRef)
-		if !ok {
-			return nil, AddDefeatResult{}, addDefeatError("target_not_found", fmt.Sprintf("counterpoint %q not found", targetRef), targetRef)
-		}
-		if target.Role != RoleCounterpoint {
-			return nil, AddDefeatResult{}, addDefeatError("counterpoint_target_role", fmt.Sprintf("counterpoint target %s has role %s, expected counterpoint", target.ID, target.Role), target.ID)
-		}
-		defeat.To = target.ID
-	default:
-		return nil, AddDefeatResult{}, addDefeatError("defeat_scope_invalid", fmt.Sprintf("invalid defeat scope %q", options.Scope), string(options.Scope))
+	defeat, err := defeatForTarget(next, "", options.Scope, targetRef)
+	if err != nil {
+		return nil, AddDefeatResult{}, err
 	}
 
 	allocator, err := NewIDAllocator(next)
@@ -120,6 +95,39 @@ func AddDefeat(doc *Document, options AddDefeatOptions) (*Document, AddDefeatRes
 	allocator.Persist(next)
 
 	return next, AddDefeatResult{Counterpoint: counterpoint, Defeat: defeat}, nil
+}
+
+func defeatForTarget(doc *Document, from string, scope DefeatScope, targetRef string) (Defeat, error) {
+	defeat := Defeat{From: from, Scope: scope}
+	switch scope {
+	case DefeatPremise:
+		target, ok := doc.Statement(targetRef)
+		if !ok {
+			return Defeat{}, addDefeatError("target_not_found", fmt.Sprintf("premise %q not found", targetRef), targetRef)
+		}
+		if target.Role != RolePremise {
+			return Defeat{}, addDefeatError("undermine_target_role", fmt.Sprintf("undermine target %s has role %s, expected premise", target.ID, target.Role), target.ID)
+		}
+		defeat.To = target.ID
+	case DefeatInference:
+		junctor, ok := doc.Junctor(targetRef)
+		if !ok {
+			return Defeat{}, addDefeatError("junctor_not_found", fmt.Sprintf("junctor %q not found", targetRef), targetRef)
+		}
+		defeat.JunctorID, defeat.AtTarget = junctor.ID, junctor.Target
+	case DefeatCounterpoint:
+		target, ok := doc.Statement(targetRef)
+		if !ok {
+			return Defeat{}, addDefeatError("target_not_found", fmt.Sprintf("counterpoint %q not found", targetRef), targetRef)
+		}
+		if target.Role != RoleCounterpoint {
+			return Defeat{}, addDefeatError("counterpoint_target_role", fmt.Sprintf("counterpoint target %s has role %s, expected counterpoint", target.ID, target.Role), target.ID)
+		}
+		defeat.To = target.ID
+	default:
+		return Defeat{}, addDefeatError("defeat_scope_invalid", fmt.Sprintf("invalid defeat scope %q", scope), string(scope))
+	}
+	return defeat, nil
 }
 
 func addDefeatError(code, message, element string) *AddDefeatError {

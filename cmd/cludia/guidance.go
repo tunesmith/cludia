@@ -151,7 +151,9 @@ func runGuidance(args []string, stdout, stderr io.Writer) error {
 	fmt.Fprintln(stdout, "- Promoting an existing premise to a lemma retires its P ID, assigns the next L ID, rewrites modeled references, and reports previous_id/current_id plus an external-reference warning.")
 	fmt.Fprintln(stdout, "- Scripted capture must not predict generated IDs across mutations; omit --id and read statement.id from each successful add --json result.")
 	fmt.Fprintln(stdout, "- An explicit ID is accepted only when it is the role-appropriate exact next ID recorded by cludia-next-ids.")
-	fmt.Fprintln(stdout, "- Use add-batch with versioned JSON input for all-or-nothing multi-statement capture and caller-key-to-statement mappings.")
+	fmt.Fprintln(stdout, "- Use add-batch schema 2 for all-or-nothing statement, AND-derivation, and typed-defeat authoring with caller-key mappings.")
+	fmt.Fprintln(stdout, "- In schema 2 relations, {\"key\":\"...\"} names a new batch element and {\"id\":\"P1\"} names a pre-existing durable element; slugs and tentative generated IDs are not references.")
+	fmt.Fprintln(stdout, "- New schema 2 derivation targets receive their final L IDs directly; leave derivations and defeats empty for statement-only capture.")
 	fmt.Fprintln(stdout, "- A batch dry-run mapping is tentative; use IDs from the applied mutation result for later references.")
 	fmt.Fprintln(stdout, "- Before deleting a challenged element, remove attached counterpoints with remove-counterpoint; use delete --dry-run to inspect structural effects.")
 	fmt.Fprintln(stdout, "- Materially different propositions receive new IDs; audit each relation before retargeting.")
@@ -195,7 +197,7 @@ func identityGuidance() guidanceOutput {
 			PredictGeneratedIDs: false, ExplicitIDFlag: "--id", ExplicitIDMustEqualNext: true,
 			CustomIDsAuthored: false, NextIDsMetadata: "cludia-next-ids", AddResultIDField: "statement.id",
 			SuccessfulMutationResultAuthoritative: true, AtomicBatchCommand: "add-batch",
-			BatchInputSchemaVersion: 1, BatchResultMappingField: "statements", BatchDryRunMappingTentative: true,
+			BatchInputSchemaVersion: 2, BatchResultMappingField: "statements, derivations, and defeats", BatchDryRunMappingTentative: true,
 		},
 		Deletion: deletionGuidance{
 			DryRunAvailable: true, DryRunFlag: "--dry-run", RemoveAttachedCounterpointsFirst: true,
