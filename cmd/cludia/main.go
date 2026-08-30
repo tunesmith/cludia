@@ -113,6 +113,8 @@ func run(args []string, stdout, stderr io.Writer) error {
 		return runReplace(args[1:], stdout, stderr)
 	case "renumber":
 		return runRenumber(args[1:], stdout, stderr)
+	case "normalize-truth":
+		return runNormalizeTruth(args[1:], stdout, stderr)
 	case "move-statement":
 		return runMoveStatement(args[1:], stdout, stderr)
 	case "root":
@@ -204,6 +206,8 @@ func writeCommandUsage(w io.Writer, command string) bool {
 		writeReplaceUsage(w)
 	case "renumber":
 		writeRenumberUsage(w)
+	case "normalize-truth":
+		writeNormalizeTruthUsage(w)
 	case "move-statement":
 		writeMoveStatementUsage(w)
 	case "root":
@@ -347,6 +351,7 @@ func writeTopLevelUsage(w io.Writer) {
 	fmt.Fprintln(w, "  cludia delete [--dry-run] [--json] FILE STATEMENT")
 	fmt.Fprintln(w, "  cludia replace [--json] FILE OLD --with NEW [choices] (--dry-run | --apply-token TOKEN)")
 	fmt.Fprintln(w, "  cludia renumber [--json] FILE (--dry-run | --apply-token TOKEN)")
+	fmt.Fprintln(w, "  cludia normalize-truth [--json] FILE (--dry-run | --apply-token TOKEN)")
 	fmt.Fprintln(w, "  cludia move-statement [--json] FILE STATEMENT (--before STATEMENT | --after STATEMENT)")
 	fmt.Fprintln(w, "  cludia root [--json] FILE STATEMENT")
 	fmt.Fprintln(w, "  cludia export [--json] FILE --root STATEMENT --output FILE")

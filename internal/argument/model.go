@@ -147,6 +147,20 @@ func (d *Document) ResolveElement(idOrSlug string) (ElementReference, bool) {
 	return ElementReference{}, false
 }
 
+func (d *Document) HasIncomingSupport(statementID string) bool {
+	for _, junctor := range d.Junctors {
+		if junctor.Target == statementID {
+			return true
+		}
+	}
+	for _, support := range d.DirectSupports {
+		if support.Target == statementID {
+			return true
+		}
+	}
+	return false
+}
+
 func (d *Document) Junctor(id string) (*Junctor, bool) {
 	for i := range d.Junctors {
 		if d.Junctors[i].ID == id {

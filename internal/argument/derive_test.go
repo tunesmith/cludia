@@ -84,6 +84,26 @@ func TestDeriveReportsAllMissingSources(t *testing.T) {
 	}
 }
 
+func TestDeriveNormalizesSupportedCounterpointTruthAndRemovalDoesNotRestoreIt(t *testing.T) {
+	doc := deriveDocument()
+	doc.Statements = append(doc.Statements, Statement{
+		ID: "CP1", Slug: "challenge", Role: RoleCounterpoint, Kind: KindFact, Truth: TruthTrue, Text: "Challenge",
+	})
+	doc.Metadata[1].Value = "v1;P=4;L=1;C=1;CP=2;J=1"
+	next, result, err := Derive(doc, DeriveOptions{SourceRefs: []string{"P1", "P2"}, ExistingTargetRef: "challenge"})
+	if err != nil || result.Target.Truth != TruthUnknown || len(result.TruthChanges) != 1 || result.TruthChanges[0].ID != "CP1" {
+		t.Fatalf("derive = %#v, %v", result, err)
+	}
+	removed, _, err := RemoveJunctor(next, result.Junctor.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	counterpoint, _ := removed.Statement("CP1")
+	if counterpoint.Truth != TruthUnknown {
+		t.Fatalf("truth restored after support removal: %#v", counterpoint)
+	}
+}
+
 func deriveDocument() *Document {
 	return &Document{
 		ID: "derive", Title: "Derive",

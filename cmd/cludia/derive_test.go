@@ -29,7 +29,7 @@ func TestDeriveCreatesLemmaAndANDJunctor(t *testing.T) {
 	if err := json.Unmarshal(stdout.Bytes(), &raw); err != nil {
 		t.Fatalf("decode derive JSON: %v", err)
 	}
-	assertExactKeys(t, raw, "schema_version", "action", "dry_run", "profile", "document", "target", "junctor", "role_changes", "changes", "diagnostics")
+	assertExactKeys(t, raw, "schema_version", "action", "dry_run", "profile", "document", "target", "junctor", "role_changes", "truth_changes", "changes", "diagnostics")
 	var output deriveOutput
 	if err := json.Unmarshal(stdout.Bytes(), &output); err != nil {
 		t.Fatalf("decode typed derive JSON: %v", err)
@@ -43,7 +43,7 @@ func TestDeriveCreatesLemmaAndANDJunctor(t *testing.T) {
 	if len(output.Junctor.Sources) != 2 || output.Junctor.Sources[0] != "P1" || output.Junctor.Sources[1] != "P2" {
 		t.Fatalf("sources = %#v", output.Junctor.Sources)
 	}
-	if output.RoleChanges == nil || output.Diagnostics == nil {
+	if output.RoleChanges == nil || output.TruthChanges == nil || output.Diagnostics == nil {
 		t.Fatalf("empty arrays encoded as null: %#v", output)
 	}
 	parsed := argfile.ParseFile(path)

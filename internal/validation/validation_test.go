@@ -79,6 +79,22 @@ func TestImportedSlugIDCollisionWarnsWithoutInvalidatingWorkspace(t *testing.T) 
 	assertCode(t, result.Diagnostics, "statement_slug_shadows_id")
 }
 
+func TestSourcedAuthoredTruthWarnsWithoutInvalidatingImportedWorkspace(t *testing.T) {
+	doc := &argument.Document{
+		ID: "truth", Title: "Truth",
+		Statements: []argument.Statement{
+			statement("P1", argument.RolePremise), statement("P2", argument.RolePremise),
+			statement("CP1", argument.RoleCounterpoint),
+		},
+		Junctors: []argument.Junctor{{ID: "J1", Connector: argument.ConnectorAND, Sources: []string{"P1", "P2"}, Target: "CP1"}},
+	}
+	result := Validate(doc, ProfileWorkspace)
+	if !result.OK() {
+		t.Fatalf("legacy sourced truth should warn: %#v", result.Diagnostics)
+	}
+	assertCode(t, result.Diagnostics, "nonleaf_authored_truth_ignored")
+}
+
 func TestDirectedSupportCycleIsRejected(t *testing.T) {
 	doc := &argument.Document{
 		ID: "cycle", Title: "Cycle",

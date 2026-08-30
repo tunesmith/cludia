@@ -33,11 +33,18 @@ type StatementRoleChange struct {
 	To         Role
 }
 
+type StatementTruthChange struct {
+	ID   string
+	From Truth
+	To   Truth
+}
+
 // DeriveResult contains presentation-neutral facts about one derivation.
 type DeriveResult struct {
 	Target              Statement
 	Junctor             Junctor
 	RoleChanges         []StatementRoleChange
+	TruthChanges        []StatementTruthChange
 	RootMetadataUpdated bool
 }
 
@@ -103,7 +110,7 @@ func Derive(doc *Document, options DeriveOptions) (*Document, DeriveResult, erro
 		return nil, DeriveResult{}, &DeriveError{Failures: failures}
 	}
 
-	result := DeriveResult{RoleChanges: []StatementRoleChange{}}
+	result := DeriveResult{RoleChanges: []StatementRoleChange{}, TruthChanges: []StatementTruthChange{}}
 	var target *Statement
 	if existingTargetRef != "" {
 		var ok bool
@@ -115,6 +122,7 @@ func Derive(doc *Document, options DeriveOptions) (*Document, DeriveResult, erro
 		}
 		if target.Role == RolePremise {
 			previousID := target.ID
+			previousTruth := target.Truth
 			currentID, allocationErr := allocator.Statement(RoleLemma, "")
 			if allocationErr != nil {
 				return nil, DeriveResult{}, allocationErr
@@ -131,6 +139,13 @@ func Derive(doc *Document, options DeriveOptions) (*Document, DeriveResult, erro
 			result.RoleChanges = append(result.RoleChanges, StatementRoleChange{
 				PreviousID: previousID, CurrentID: currentID, From: RolePremise, To: RoleLemma,
 			})
+			if previousTruth != TruthUnknown {
+				result.TruthChanges = append(result.TruthChanges, StatementTruthChange{ID: currentID, From: previousTruth, To: TruthUnknown})
+			}
+		} else if target.Role == RoleCounterpoint && target.Truth != TruthUnknown {
+			previousTruth := target.Truth
+			target.Truth = TruthUnknown
+			result.TruthChanges = append(result.TruthChanges, StatementTruthChange{ID: target.ID, From: previousTruth, To: TruthUnknown})
 		}
 	} else {
 		newTarget := options.NewTarget

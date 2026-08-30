@@ -30,6 +30,12 @@ type roleChangeOutput struct {
 	To         argument.Role `json:"to"`
 }
 
+type truthChangeOutput struct {
+	ID   string         `json:"id"`
+	From argument.Truth `json:"from"`
+	To   argument.Truth `json:"to"`
+}
+
 type deriveOutput struct {
 	SchemaVersion int                     `json:"schema_version"`
 	Action        string                  `json:"action"`
@@ -39,6 +45,7 @@ type deriveOutput struct {
 	Target        argument.Statement      `json:"target"`
 	Junctor       argument.Junctor        `json:"junctor"`
 	RoleChanges   []roleChangeOutput      `json:"role_changes"`
+	TruthChanges  []truthChangeOutput     `json:"truth_changes"`
 	Changes       []changeOutput          `json:"changes"`
 	Diagnostics   []diagnostic.Diagnostic `json:"diagnostics"`
 }
@@ -139,6 +146,7 @@ func runDerive(args []string, stdout, stderr io.Writer) error {
 	}
 
 	roleChanges := make([]roleChangeOutput, 0, len(result.RoleChanges))
+	truthChanges := make([]truthChangeOutput, 0, len(result.TruthChanges))
 	changes := make([]changeOutput, 0)
 	if cleanTargetRef == "" {
 		changes = append(changes, changeOutput{Operation: "added", ElementType: "statement", ID: result.Target.ID})
@@ -148,6 +156,16 @@ func runDerive(args []string, stdout, stderr io.Writer) error {
 			PreviousID: change.PreviousID, CurrentID: change.CurrentID, From: change.From, To: change.To,
 		})
 		changes = append(changes, changeOutput{Operation: "reidentified", ElementType: "statement", ID: change.CurrentID})
+	}
+	for _, change := range result.TruthChanges {
+		truthChanges = append(truthChanges, truthChangeOutput{ID: change.ID, From: change.From, To: change.To})
+		alreadyReported := false
+		for _, roleChange := range result.RoleChanges {
+			alreadyReported = alreadyReported || roleChange.CurrentID == change.ID
+		}
+		if !alreadyReported {
+			changes = append(changes, changeOutput{Operation: "updated", ElementType: "statement", ID: change.ID})
+		}
 	}
 	changes = append(changes, changeOutput{Operation: "added", ElementType: "junctor", ID: result.Junctor.ID})
 	if result.RootMetadataUpdated {
@@ -186,7 +204,7 @@ func runDerive(args []string, stdout, stderr io.Writer) error {
 	output := deriveOutput{
 		SchemaVersion: outputSchemaVersion, Action: "derive", DryRun: false,
 		Profile: profile, Document: documentSummary(next), Target: result.Target, Junctor: result.Junctor,
-		RoleChanges: roleChanges, Changes: changes, Diagnostics: diagnostics,
+		RoleChanges: roleChanges, TruthChanges: truthChanges, Changes: changes, Diagnostics: diagnostics,
 	}
 	if *jsonOutput {
 		return writeIndentedJSON(stdout, output)
@@ -212,6 +230,9 @@ func writeHumanDerive(w io.Writer, output deriveOutput) {
 	fmt.Fprintf(w, "AND#%s(%s) -> %s\n", output.Junctor.ID, strings.Join(output.Junctor.Sources, ", "), output.Junctor.Target)
 	for _, change := range output.RoleChanges {
 		fmt.Fprintf(w, "Promoted %s -> %s: %s -> %s\n", change.PreviousID, change.CurrentID, change.From, change.To)
+	}
+	for _, change := range output.TruthChanges {
+		fmt.Fprintf(w, "Normalized truth for %s: %s -> %s\n", change.ID, change.From, change.To)
 	}
 	for _, item := range output.Diagnostics {
 		writeDiagnostic(w, item)

@@ -146,6 +146,14 @@ func EditStatement(doc *Document, options EditStatementOptions) (*Document, Edit
 		return nil, EditStatementResult{}, mutationError("statement_not_found", fmt.Sprintf("statement %q not found", options.Reference), options.Reference)
 	}
 	previous := *statement
+	if options.Truth != nil {
+		if next.HasIncomingSupport(statement.ID) {
+			return nil, EditStatementResult{}, mutationError("truth_assignment_nonleaf", fmt.Sprintf("truth can only be assigned to leaf premises and leaf counterpoints; %s has incoming support", statement.ID), statement.ID)
+		}
+		if statement.Role != RolePremise && statement.Role != RoleCounterpoint {
+			return nil, EditStatementResult{}, mutationError("truth_assignment_role", fmt.Sprintf("truth can only be assigned to leaf premises and leaf counterpoints; %s has role %s", statement.ID, statement.Role), statement.ID)
+		}
+	}
 	if options.Text != nil {
 		text := strings.TrimSpace(*options.Text)
 		if text == "" {

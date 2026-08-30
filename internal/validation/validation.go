@@ -206,6 +206,16 @@ func Validate(doc *argument.Document, profile Profile) Result {
 		}
 	}
 
+	for _, statement := range doc.Statements {
+		if incomingSupport[statement.ID] > 0 && statement.Truth != argument.TruthUnknown {
+			result.warning(
+				"nonleaf_authored_truth_ignored",
+				fmt.Sprintf("statement %s has incoming support; stored truth %s is ignored during evaluation and should be normalized to U", statement.ID, statement.Truth),
+				statement.ID,
+			)
+		}
+	}
+
 	defeatsBySource := make(map[string]bool, len(doc.Defeats))
 	for _, defeat := range doc.Defeats {
 		source, sourceExists := statementByID[defeat.From]
