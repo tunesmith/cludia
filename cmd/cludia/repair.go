@@ -7,7 +7,6 @@ import (
 	"io"
 	"strings"
 
-	"github.com/tunesmith/cludia/internal/argfile"
 	"github.com/tunesmith/cludia/internal/argument"
 	"github.com/tunesmith/cludia/internal/diagnostic"
 	"github.com/tunesmith/cludia/internal/validation"
@@ -107,17 +106,15 @@ func mutateJunctorSource(path, junctorID, sourceRef string, add, dryRun, jsonOut
 	if err != nil {
 		return writeArgumentMutationFailure(stdout, jsonOutput, profile, err)
 	}
-	validated := validation.Validate(next, profile)
+	validated, err := validateAndPersistMutation(path, next, profile, !dryRun)
+	if err != nil {
+		return err
+	}
 	if !validated.OK() {
 		if err := writeFailure(stdout, jsonOutput, profile, validated.Diagnostics); err != nil {
 			return err
 		}
 		return errValidationFailed
-	}
-	if !dryRun {
-		if err := argfile.SaveAtomic(path, next); err != nil {
-			return err
-		}
 	}
 	diagnostics = validated.Diagnostics
 	if diagnostics == nil {
@@ -152,17 +149,15 @@ func replaceJunctorSource(path, junctorID, fromRef, toRef string, dryRun, jsonOu
 	if err != nil {
 		return writeArgumentMutationFailure(stdout, jsonOutput, profile, err)
 	}
-	validated := validation.Validate(next, profile)
+	validated, err := validateAndPersistMutation(path, next, profile, !dryRun)
+	if err != nil {
+		return err
+	}
 	if !validated.OK() {
 		if err := writeFailure(stdout, jsonOutput, profile, validated.Diagnostics); err != nil {
 			return err
 		}
 		return errValidationFailed
-	}
-	if !dryRun {
-		if err := argfile.SaveAtomic(path, next); err != nil {
-			return err
-		}
 	}
 	diagnostics = validated.Diagnostics
 	if diagnostics == nil {
@@ -206,17 +201,15 @@ func runRemoveJunctor(args []string, stdout, stderr io.Writer) error {
 	if err != nil {
 		return writeArgumentMutationFailure(stdout, *jsonOutput, profile, err)
 	}
-	validated := validation.Validate(next, profile)
+	validated, err := validateAndPersistMutation(fs.Arg(0), next, profile, !*dryRun)
+	if err != nil {
+		return err
+	}
 	if !validated.OK() {
 		if err := writeFailure(stdout, *jsonOutput, profile, validated.Diagnostics); err != nil {
 			return err
 		}
 		return errValidationFailed
-	}
-	if !*dryRun {
-		if err := argfile.SaveAtomic(fs.Arg(0), next); err != nil {
-			return err
-		}
 	}
 	diagnostics = validated.Diagnostics
 	if diagnostics == nil {
@@ -240,11 +233,6 @@ func writeMutationFailure(w io.Writer, jsonOutput bool, profile validation.Profi
 		return err
 	}
 	return errValidationFailed
-}
-
-func copyJunctor(junctor argument.Junctor) argument.Junctor {
-	junctor.Sources = append([]string(nil), junctor.Sources...)
-	return junctor
 }
 
 func writeJunctorMutation(w io.Writer, jsonOutput bool, output junctorMutationOutput) error {

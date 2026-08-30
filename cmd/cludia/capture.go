@@ -8,7 +8,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/tunesmith/cludia/internal/argfile"
 	"github.com/tunesmith/cludia/internal/argument"
 	"github.com/tunesmith/cludia/internal/diagnostic"
 	"github.com/tunesmith/cludia/internal/validation"
@@ -77,7 +76,7 @@ func runInit(args []string, stdout, stderr io.Writer) error {
 	if err != nil {
 		return writeArgumentMutationFailure(stdout, *jsonOutput, validation.ProfileWorkspace, err)
 	}
-	validated := validation.Validate(doc, validation.ProfileWorkspace)
+	validated, createErr := validateAndCreateMutation(fs.Arg(0), doc, validation.ProfileWorkspace)
 	diagnostics = append(diagnostics, validated.Diagnostics...)
 	if diagnostic.HasErrors(diagnostics) {
 		if err := writeFailure(stdout, *jsonOutput, validation.ProfileWorkspace, diagnostics); err != nil {
@@ -85,11 +84,11 @@ func runInit(args []string, stdout, stderr io.Writer) error {
 		}
 		return errValidationFailed
 	}
-	if err := argfile.CreateAtomic(fs.Arg(0), doc); err != nil {
-		if errors.Is(err, os.ErrExist) {
+	if createErr != nil {
+		if errors.Is(createErr, os.ErrExist) {
 			return fmt.Errorf("refusing to overwrite existing workspace %s", fs.Arg(0))
 		}
-		return err
+		return createErr
 	}
 	output := mutationOutput{
 		SchemaVersion: outputSchemaVersion, Action: "init", DryRun: false,
@@ -146,16 +145,16 @@ func runAdd(args []string, stdout, stderr io.Writer) error {
 	if err != nil {
 		return writeArgumentMutationFailure(stdout, *jsonOutput, profile, err)
 	}
-	validated := validation.Validate(next, profile)
+	validated, err := validateAndPersistMutation(fs.Arg(0), next, profile, true)
+	if err != nil {
+		return err
+	}
 	diagnostics = append([]diagnostic.Diagnostic(nil), validated.Diagnostics...)
 	if diagnostic.HasErrors(diagnostics) {
 		if err := writeFailure(stdout, *jsonOutput, profile, diagnostics); err != nil {
 			return err
 		}
 		return errValidationFailed
-	}
-	if err := argfile.SaveAtomic(fs.Arg(0), next); err != nil {
-		return err
 	}
 	if diagnostics == nil {
 		diagnostics = []diagnostic.Diagnostic{}

@@ -13,7 +13,6 @@ import (
 	"github.com/tunesmith/cludia/internal/argfile"
 	"github.com/tunesmith/cludia/internal/argument"
 	"github.com/tunesmith/cludia/internal/query"
-	"github.com/tunesmith/cludia/internal/validation"
 )
 
 func TestMoveStatementJSONPersistsGeneralOrderWithoutChangingContent(t *testing.T) {
@@ -171,7 +170,7 @@ func TestMovedGeneralOrderFeedsQueriesExportAndRenumberPlan(t *testing.T) {
 	if got, want := moveStatementIDs(rooted), []string{"P2", "P1", "L1"}; !reflect.DeepEqual(got, want) {
 		t.Fatalf("rooted order = %v, want %v", got, want)
 	}
-	plan, _, err := planRenumber(moved, validation.ProfileWorkspace, true)
+	_, plan, err := argument.RenumberDocument(moved)
 	if err != nil {
 		t.Fatal(err)
 	}

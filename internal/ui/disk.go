@@ -9,11 +9,11 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/tunesmith/cludia/internal/argfile"
 	"github.com/tunesmith/cludia/internal/argument"
 	"github.com/tunesmith/cludia/internal/diagnostic"
 	"github.com/tunesmith/cludia/internal/query"
 	"github.com/tunesmith/cludia/internal/validation"
+	"github.com/tunesmith/cludia/internal/workspace"
 )
 
 const diskCheckInterval = 500 * time.Millisecond
@@ -58,11 +58,7 @@ func loadDocument(path string) (*argument.Document, diskVersion, error) {
 }
 
 func parseValidDocument(data []byte) (*argument.Document, error) {
-	parsed := argfile.Parse(string(data))
-	diagnostics := append([]diagnostic.Diagnostic(nil), parsed.Diagnostics...)
-	if !diagnostic.HasErrors(diagnostics) {
-		diagnostics = append(diagnostics, validation.Validate(parsed.Document, validation.ProfileWorkspace).Diagnostics...)
-	}
+	doc, diagnostics := workspace.ParseValidated(data, validation.ProfileWorkspace)
 	if diagnostic.HasErrors(diagnostics) {
 		messages := make([]string, 0)
 		for _, item := range diagnostics {
@@ -72,7 +68,7 @@ func parseValidDocument(data []byte) (*argument.Document, error) {
 		}
 		return nil, fmt.Errorf("invalid workspace: %s", strings.Join(messages, "; "))
 	}
-	return parsed.Document, nil
+	return doc, nil
 }
 
 func scheduleDiskCheck() tea.Cmd {

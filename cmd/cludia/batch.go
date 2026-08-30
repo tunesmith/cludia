@@ -9,7 +9,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/tunesmith/cludia/internal/argfile"
 	"github.com/tunesmith/cludia/internal/argument"
 	"github.com/tunesmith/cludia/internal/diagnostic"
 	"github.com/tunesmith/cludia/internal/validation"
@@ -158,17 +157,15 @@ func runAddBatch(args []string, stdout, stderr io.Writer) error {
 		changes = append(changes, changeOutput{Operation: "added", ElementType: "statement", ID: statement.ID})
 	}
 	changes = appendMetadataChange(changes, nextIDsMetadataChange(doc, next))
-	validated := validation.Validate(next, profile)
+	validated, err := validateAndPersistMutation(fs.Arg(0), next, profile, !*dryRun)
+	if err != nil {
+		return err
+	}
 	if !validated.OK() {
 		if err := writeFailure(stdout, *jsonOutput, profile, validated.Diagnostics); err != nil {
 			return err
 		}
 		return errValidationFailed
-	}
-	if !*dryRun {
-		if err := argfile.SaveAtomic(fs.Arg(0), next); err != nil {
-			return err
-		}
 	}
 	diagnostics = validated.Diagnostics
 	if diagnostics == nil {

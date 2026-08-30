@@ -14,6 +14,7 @@ import (
 	"github.com/tunesmith/cludia/internal/diagnostic"
 	"github.com/tunesmith/cludia/internal/ui"
 	"github.com/tunesmith/cludia/internal/validation"
+	"github.com/tunesmith/cludia/internal/workspace"
 )
 
 const outputSchemaVersion = 1
@@ -270,15 +271,7 @@ func runValidate(args []string, stdout, stderr io.Writer) error {
 }
 
 func selectedProfile(doc *argument.Document, override string) validation.Profile {
-	if override != "" {
-		return validation.Profile(strings.ToLower(override))
-	}
-	if doc != nil {
-		if profile, ok := doc.MetadataValue("profile"); ok && strings.EqualFold(profile, string(validation.ProfileWorkspace)) {
-			return validation.ProfileWorkspace
-		}
-	}
-	return validation.ProfileConcludia
+	return workspace.SelectedProfile(doc, override)
 }
 
 func makeValidateOutput(doc *argument.Document, profile validation.Profile, diagnostics []diagnostic.Diagnostic) validateOutput {

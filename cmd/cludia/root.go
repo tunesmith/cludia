@@ -8,7 +8,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/tunesmith/cludia/internal/argfile"
 	"github.com/tunesmith/cludia/internal/argument"
 	"github.com/tunesmith/cludia/internal/diagnostic"
 	"github.com/tunesmith/cludia/internal/query"
@@ -63,7 +62,10 @@ func runRoot(args []string, stdout, stderr io.Writer) error {
 	if err != nil {
 		return writeMutationFailure(stdout, *jsonOutput, profile, "root_invalid", err.Error(), fs.Arg(1))
 	}
-	validated := validation.Validate(rooted, validation.ProfileConcludia)
+	validated, err := validateAndPersistMutation("", rooted, validation.ProfileConcludia, false)
+	if err != nil {
+		return err
+	}
 	diagnostics = validated.Diagnostics
 	if diagnostics == nil {
 		diagnostics = []diagnostic.Diagnostic{}
@@ -115,18 +117,19 @@ func runExport(args []string, stdout, stderr io.Writer) error {
 	if err != nil {
 		return writeMutationFailure(stdout, *jsonOutput, profile, "root_invalid", err.Error(), *rootRef)
 	}
-	if value := strings.TrimSpace(*documentID); value != "" {
-		rooted.ID = value
-	}
-	if value := strings.TrimSpace(*title); value != "" {
-		rooted.Title = value
+	rooted, err = argument.WithDocumentIdentity(rooted, argument.DocumentIdentityOptions{ID: *documentID, Title: *title})
+	if err != nil {
+		return writeArgumentMutationFailure(stdout, *jsonOutput, profile, err)
 	}
 	root, _ := rooted.Statement(*rootRef)
 	rootID := *rootRef
 	if root != nil {
 		rootID = root.ID
 	}
-	validated := validation.Validate(rooted, validation.ProfileConcludia)
+	validated, err := validateAndPersistMutation("", rooted, validation.ProfileConcludia, false)
+	if err != nil {
+		return err
+	}
 	diagnostics = validated.Diagnostics
 	if diagnostics == nil {
 		diagnostics = []diagnostic.Diagnostic{}
@@ -146,8 +149,9 @@ func runExport(args []string, stdout, stderr io.Writer) error {
 		}
 		return errValidationFailed
 	}
-	if err := argfile.CreateAtomic(*outputPath, rooted); err != nil {
-		if errors.Is(err, os.ErrExist) {
+	_, createErr := validateAndCreateMutation(*outputPath, rooted, validation.ProfileConcludia)
+	if createErr != nil {
+		if errors.Is(createErr, os.ErrExist) {
 			output.Diagnostics = append(output.Diagnostics, diagnostic.Diagnostic{
 				Code: "output_exists", Message: fmt.Sprintf("refusing to overwrite existing output %s", *outputPath),
 				Severity: diagnostic.SeverityError, Element: *outputPath,
@@ -161,7 +165,7 @@ func runExport(args []string, stdout, stderr io.Writer) error {
 			}
 			return errValidationFailed
 		}
-		return err
+		return createErr
 	}
 	output.Written = true
 	if *jsonOutput {

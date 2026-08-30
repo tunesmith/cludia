@@ -7,7 +7,6 @@ import (
 	"io"
 	"strings"
 
-	"github.com/tunesmith/cludia/internal/argfile"
 	"github.com/tunesmith/cludia/internal/argument"
 	"github.com/tunesmith/cludia/internal/diagnostic"
 	"github.com/tunesmith/cludia/internal/validation"
@@ -163,15 +162,15 @@ func runDerive(args []string, stdout, stderr io.Writer) error {
 		}
 		changes = append(changes, changeOutput{Operation: operation, ElementType: "metadata", ID: argument.NextIDsMetadataKey})
 	}
-	validated := validation.Validate(next, profile)
+	validated, err := validateAndPersistMutation(fs.Arg(0), next, profile, true)
+	if err != nil {
+		return err
+	}
 	if !validated.OK() {
 		if err := writeFailure(stdout, *jsonOutput, profile, validated.Diagnostics); err != nil {
 			return err
 		}
 		return errValidationFailed
-	}
-	if err := argfile.SaveAtomic(fs.Arg(0), next); err != nil {
-		return err
 	}
 	diagnostics = validated.Diagnostics
 	if diagnostics == nil {

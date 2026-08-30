@@ -6,10 +6,10 @@ import (
 	"io"
 	"strings"
 
-	"github.com/tunesmith/cludia/internal/argfile"
 	"github.com/tunesmith/cludia/internal/argument"
 	"github.com/tunesmith/cludia/internal/diagnostic"
 	"github.com/tunesmith/cludia/internal/validation"
+	"github.com/tunesmith/cludia/internal/workspace"
 )
 
 type optionalStringFlag struct {
@@ -53,17 +53,7 @@ type failureOutput struct {
 }
 
 func loadValidated(path string) (*argument.Document, validation.Profile, []diagnostic.Diagnostic) {
-	parsed := argfile.Load(path)
-	profile := selectedProfile(parsed.Document, "")
-	diagnostics := append([]diagnostic.Diagnostic(nil), parsed.Diagnostics...)
-	if !diagnostic.HasErrors(diagnostics) {
-		validated := validation.Validate(parsed.Document, profile)
-		diagnostics = append(diagnostics, validated.Diagnostics...)
-	}
-	if diagnostics == nil {
-		diagnostics = []diagnostic.Diagnostic{}
-	}
-	return parsed.Document, profile, diagnostics
+	return workspace.LoadValidated(path, "")
 }
 
 func writeFailure(stdout io.Writer, jsonOutput bool, profile validation.Profile, diagnostics []diagnostic.Diagnostic) error {
@@ -173,4 +163,12 @@ func appendMetadataChange(changes []changeOutput, change *changeOutput) []change
 		return append(changes, *change)
 	}
 	return changes
+}
+
+func validateAndPersistMutation(path string, next *argument.Document, profile validation.Profile, persist bool) (validation.Result, error) {
+	return workspace.ValidateAndPersist(path, next, profile, persist)
+}
+
+func validateAndCreateMutation(path string, next *argument.Document, profile validation.Profile) (validation.Result, error) {
+	return workspace.ValidateAndCreate(path, next, profile)
 }

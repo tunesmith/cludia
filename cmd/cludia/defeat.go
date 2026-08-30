@@ -7,7 +7,6 @@ import (
 	"io"
 	"strings"
 
-	"github.com/tunesmith/cludia/internal/argfile"
 	"github.com/tunesmith/cludia/internal/argument"
 	"github.com/tunesmith/cludia/internal/diagnostic"
 	"github.com/tunesmith/cludia/internal/query"
@@ -264,16 +263,16 @@ func createDefeatWithDocument(path string, doc *argument.Document, profile valid
 		}
 		return err
 	}
-	validated := validation.Validate(next, profile)
+	validated, err := validateAndPersistMutation(path, next, profile, true)
+	if err != nil {
+		return err
+	}
 	diagnostics = validated.Diagnostics
 	if !validated.OK() {
 		if err := writeFailure(stdout, *flags.jsonOutput, profile, diagnostics); err != nil {
 			return err
 		}
 		return errValidationFailed
-	}
-	if err := argfile.SaveAtomic(path, next); err != nil {
-		return err
 	}
 	if diagnostics == nil {
 		diagnostics = []diagnostic.Diagnostic{}
@@ -338,7 +337,10 @@ func runRemoveCounterpoint(args []string, stdout, stderr io.Writer) error {
 	if err != nil {
 		return writeArgumentMutationFailure(stdout, *jsonOutput, profile, err)
 	}
-	validated := validation.Validate(next, profile)
+	validated, err := validateAndPersistMutation(fs.Arg(0), next, profile, !*dryRun)
+	if err != nil {
+		return err
+	}
 	if !validated.OK() {
 		if err := writeFailure(stdout, *jsonOutput, profile, validated.Diagnostics); err != nil {
 			return err
@@ -350,11 +352,6 @@ func runRemoveCounterpoint(args []string, stdout, stderr io.Writer) error {
 	for _, candidate := range next.Statements {
 		if afterIsolated[candidate.ID] && !beforeIsolated[candidate.ID] {
 			newlyIsolated = append(newlyIsolated, candidate.ID)
-		}
-	}
-	if !*dryRun {
-		if err := argfile.SaveAtomic(fs.Arg(0), next); err != nil {
-			return err
 		}
 	}
 	diagnostics = validated.Diagnostics
@@ -388,15 +385,6 @@ func runRemoveCounterpoint(args []string, stdout, stderr io.Writer) error {
 		fmt.Fprintln(stdout, "dry-run: no file changes written")
 	}
 	return nil
-}
-
-func containsString(values []string, target string) bool {
-	for _, value := range values {
-		if value == target {
-			return true
-		}
-	}
-	return false
 }
 
 func writeUndermineUsage(w io.Writer) {

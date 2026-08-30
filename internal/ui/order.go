@@ -4,10 +4,10 @@ import (
 	"fmt"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/tunesmith/cludia/internal/argfile"
 	"github.com/tunesmith/cludia/internal/argument"
 	"github.com/tunesmith/cludia/internal/query"
 	"github.com/tunesmith/cludia/internal/validation"
+	"github.com/tunesmith/cludia/internal/workspace"
 )
 
 type topMoveResultMsg struct {
@@ -60,14 +60,12 @@ func moveTopStatement(path, statementID, anchorID string, placement argument.Mov
 		if err != nil {
 			return topMoveResultMsg{doc: doc, version: check.version, err: err}
 		}
-		validated := validation.Validate(next, validation.ProfileWorkspace)
+		validated, err := workspace.ValidateAndPersist(path, next, validation.ProfileWorkspace, move.Changed)
+		if err != nil {
+			return topMoveResultMsg{doc: doc, version: check.version, err: err}
+		}
 		if !validated.OK() {
 			return topMoveResultMsg{doc: doc, version: check.version, err: fmt.Errorf("reordered workspace is invalid: %v", validated.Diagnostics)}
-		}
-		if move.Changed {
-			if err := argfile.SaveAtomic(path, next); err != nil {
-				return topMoveResultMsg{doc: doc, version: check.version, err: err}
-			}
 		}
 		saved := readDisk(path)
 		if saved.err != nil || !saved.version.exists {

@@ -7,10 +7,8 @@ import (
 	"io"
 	"strings"
 
-	"github.com/tunesmith/cludia/internal/argfile"
 	"github.com/tunesmith/cludia/internal/argument"
 	"github.com/tunesmith/cludia/internal/diagnostic"
-	"github.com/tunesmith/cludia/internal/validation"
 )
 
 func runEdit(args []string, stdout, stderr io.Writer) error {
@@ -73,17 +71,15 @@ func runEdit(args []string, stdout, stderr io.Writer) error {
 	if err != nil {
 		return writeArgumentMutationFailure(stdout, *jsonOutput, profile, err)
 	}
-	validated := validation.Validate(next, profile)
+	validated, err := validateAndPersistMutation(fs.Arg(0), next, profile, result.Changed)
+	if err != nil {
+		return err
+	}
 	if !validated.OK() {
 		if err := writeFailure(stdout, *jsonOutput, profile, validated.Diagnostics); err != nil {
 			return err
 		}
 		return errValidationFailed
-	}
-	if result.Changed {
-		if err := argfile.SaveAtomic(fs.Arg(0), next); err != nil {
-			return err
-		}
 	}
 	diagnostics = validated.Diagnostics
 	if diagnostics == nil {

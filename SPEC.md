@@ -484,6 +484,13 @@ The TUI and a future web UI MUST use the same domain operations as the CLI.
 They MUST NOT interpret or write the `.arg` file through independent
 implementations.
 
+Every durable mutation MUST be a clone-returning shared semantic operation with
+typed result facts and stable failures as specified by ADR 0013. CLI command
+files MUST NOT directly edit document fields or relation slices. Shared
+workspace orchestration MUST validate the complete proposed document before any
+atomic create or save. Dry-run and apply paths for a given operation MUST derive
+their effects from the same shared planner.
+
 Parity means:
 
 - every durable mutation exposed in the UI is available through the CLI;

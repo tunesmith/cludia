@@ -19,6 +19,11 @@ type InitializeOptions struct {
 	Statement  StatementInput
 }
 
+type DocumentIdentityOptions struct {
+	ID    string
+	Title string
+}
+
 type EditStatementOptions struct {
 	Reference string
 	Text      *string
@@ -80,6 +85,23 @@ func InitializeDocument(options InitializeOptions) (*Document, Statement, error)
 	}
 	next, statement, err := addStatement(doc, options.Statement)
 	return next, statement, err
+}
+
+func WithDocumentIdentity(doc *Document, options DocumentIdentityOptions) (*Document, error) {
+	if doc == nil {
+		return nil, mutationError("document_nil", "document is nil", "")
+	}
+	next := doc.Clone()
+	if id := strings.TrimSpace(options.ID); id != "" {
+		if !ValidID(id) {
+			return nil, mutationError("document_id_invalid", fmt.Sprintf("invalid document id %q", id), id)
+		}
+		next.ID = id
+	}
+	if title := strings.TrimSpace(options.Title); title != "" {
+		next.Title = title
+	}
+	return next, nil
 }
 
 func AddStatement(doc *Document, input StatementInput) (*Document, Statement, error) {

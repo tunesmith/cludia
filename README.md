@@ -43,6 +43,8 @@ and mutation-timing guarantees are documented in
 The principal decisions are:
 
 - CLI and data file before a visual interface.
+- Keep every durable mutation in clone-returning shared operations, with CLI
+  files limited to parsing, presentation, and persistence decisions.
 - Reuse Concludia's `.arg` syntax with a relaxed workspace validation profile.
 - Allow disconnected and isolated statements in a workspace.
 - Author only multi-premise `AND` inferences in the initial UX.

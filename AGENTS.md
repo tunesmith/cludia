@@ -94,3 +94,6 @@ Format changes must also run compatibility and round-trip fixtures for:
   LLM boundaries, or CLI/web parity.
 - Keep the domain core independent of CLI, MCP, and web presentation layers.
 - A visual UI must call the same durable operations as the CLI.
+- CLI, TUI, MCP, and web presentation layers must not edit document fields or
+  relation slices directly; durable semantics belong to shared clone-returning
+  operations and shared validate-before-persist orchestration.
