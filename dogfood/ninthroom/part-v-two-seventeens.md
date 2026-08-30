@@ -30,6 +30,14 @@ Every authorization bore Aldous's signature. Merritt placed transparent copies o
 
 Aldous's rubber signature stamp produced the same failure. It was stored in the Fallowmere estate office. The stamp register named Felix and Gideon as routine authorized users.
 
+Merritt opened the sealed envelope from Ruth's effects. It contained a letter dated October 14:
+
+> **Felix—The two hundred pounds is repaid. You must tell A.B. that you used his stamp. I will not begin our married life beneath a secret that can dismiss you from his service. Tell him before the quarterly books are opened. —Ruth**
+
+Felix admitted that he and Ruth had been secretly engaged. Without Aldous's permission, Felix had used the signature stamp to guarantee a loan for medical treatment required by Ruth's younger brother. A bank receipt enclosed with the letter showed that the loan had been repaid in full on October 14.
+
+Felix said he had hidden the engagement and the unauthorized guarantee because either could cost him his position. Aldous had intended to review the quarterly books on October 18.
+
 Felix's ordinary bookkeeping index contained this instruction in Aldous's hand:
 
 > **SPECIAL ESCROWS ARE EXCLUDED. MAINTAINED BY PRINCIPAL AND SOLICITOR.**
@@ -56,9 +64,7 @@ The strip and fragment were the same ruled paper. Their scorch pattern continued
 
 On the ledger's flyleaf, Aldous had written:
 
-> **Statement returned by G.R. already scorched, 17 October. Obtain bank duplicate.**
-
-Gideon said a candle had overturned at his chambers and that the damage was accidental.
+> **Statement arrived already scorched, 17 October. Obtain bank duplicate.**
 
 Felix recalled seeing Aldous detach the loose right-hand fragment before dinner and place it in his waistcoat pocket with his notes. The hearth had been cold all day.
 

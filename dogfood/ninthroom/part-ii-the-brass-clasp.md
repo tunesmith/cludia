@@ -20,7 +20,7 @@ Beatrice examined the book without touching its clasp. She explained that early 
 
 > “Aldous would inspect the paper, type, sewing, and binding before opening a single additional leaf,” she said.
 
-The first sixteen leaves formed two old octavo gatherings. Everything beyond their boundary belonged to a different block. The later paper looked newer, and the spine was unusually thick. Felix recalled that the parcel had surprised Aldous by its weight.
+The first sixteen leaves formed two old folded gatherings of eight leaves each. Everything beyond their boundary belonged to a different block. The later paper looked newer, and the spine was unusually thick. Felix recalled that the parcel had surprised Aldous by its weight.
 
 Cassian studied the clasp with a magnifying lens. On its inner face he found a narrow groove stained with the same blue-black substance present on Aldous's thumb. The groove was too precisely machined to be seventeenth-century work. Something slender had occupied it, but it was empty.
 
@@ -66,7 +66,8 @@ From the packing-material register:
 
 From an instruction memorandum in Aldous's hand:
 
-> **JUNE SECURITY REVIEW — G.R. TO ASSIST**  
+> **JUNE SECURITY REVIEW — OFFICE KEY HOLDERS 1 AND 2 TO ASSIST**
+>
 > Signature stamps; duplicate and spare keys; chemical stores; cabinet locks; alarm fittings; safe and strong-room miscellany.
 
 And from the chemical-stock index:

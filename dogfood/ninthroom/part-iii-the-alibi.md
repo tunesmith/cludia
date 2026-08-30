@@ -22,9 +22,9 @@ Miriam returned to her laboratory and opened the locked poison cabinet. One seal
 
 Her current key remained on her watch chain. The lock showed no damage.
 
-> “There was a duplicate,” Miriam said. “Uncle Aldous borrowed it in June when he and Mr. Rusk inventoried the hazardous materials. Later he told me he had lost it.”
+> “There was a duplicate,” Miriam said. “Uncle Aldous borrowed it during the June security review. Later he told me he had lost it.”
 
-Merritt recalled Aldous's broad June memorandum assigning Gideon to review spare keys, chemical stores, and other security miscellany. The memorandum did not record what happened to any particular key.
+Merritt recalled Aldous's broad June memorandum assigning the holders of estate-office keys 1 and 2 to review spare keys, chemical stores, and other security miscellany. The memorandum named neither holder and did not record what happened to any particular key.
 
 Merritt returned to Cassian's answer about the clasp.
 
@@ -50,3 +50,7 @@ Merritt asked why a stationmaster had retained a copy of a message addressed to 
 Gideon folded the telegram along its original crease.
 
 > “That,” he said, “you must ask the stationmaster.”
+
+Among Ruth's effects was a sealed envelope addressed to Felix in her hand. Felix asked Merritt not to open it before Ruth's family had been consulted.
+
+Merritt placed it with the other evidence.

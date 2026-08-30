@@ -8,30 +8,27 @@ Inside the book's hollow spine was a slender steel needle connected to the clasp
 
 The needle bore aconitine and the same blue-black marking dye found on Aldous's thumb and inside the groove. Chemical analysis found aconitine in Aldous's body.
 
-The page block after the two old octavo gatherings consisted of modern folded paper installed during a recent rebinding. The old opening leaves supplied a plausible title and imprint. The unopened modern block supplied thickness around the hollow spine.
+The page block after the two old folded gatherings consisted of modern paper installed during a recent rebinding. The old opening leaves supplied a plausible title and imprint. The unopened modern block supplied thickness around the hollow spine.
 
 Aldous's spectacles had remained folded. He had opened the wrapper and handled the clasp without beginning to read the book closely or open the later folds.
 
-A bookbinder examined the glue securing the mechanism. It contained fine red-chalk particles matching a fresh pot of animal glue numbered **6** in the estate-office workshop inventory. The pot had been sealed when delivered on October 17.
+A bookbinder determined that the glue securing the mechanism had cured for at least twenty-four hours before the parcel was collected on October 18. The device had therefore been assembled no later than October 17, after Aldous's warning about Escrow 17 but before the dinner announcement.
 
-The workshop issue sheet read:
-
-> **17 OCTOBER, 10:05 — G.R. — POT 6; SMALL BINDING PRESS; BRASS AWL**  
-> **Returned: 1:42 — press and awl only**
-
-The binder determined that the glue in the book had cured for at least twenty-four hours before the parcel was collected on October 18. Pot 6 had not been opened before Gideon signed for it.
+The Bell estate workshop held ordinary binding presses, awls, springs, and animal glue. Felix, Gideon, and Beatrice had all used it during the preceding year. Nothing in the glue or tool marks identified the maker.
 
 The mechanism followed the court-exhibit version of Cassian's Self-Concealing Thorn plans. Cassian's originals, Aldous's reference copy, and Gideon's working copy all contained the necessary dimensions. Anyone possessing one of those copies and ordinary workshop skill could have built it. No unique tool mark identified the maker.
 
-The June security review had produced a working schedule in Gideon's hand. One entry read:
+The master key register had been kept with records at Gideon's chambers and became available after the causeway reopened. It identified the two numbered estate-office keys:
 
-> **Laboratory poison cabinet — principal key retained by M.B. Duplicate tested by G.R.; sticking lock sound. Duplicate retained with security miscellany pending decision on replacement.**
+> **KEY 1 — F.H.**
+>
+> **KEY 2 — G.R.**
 
-No replacement was ordered. The estate-office security box was later returned without the duplicate, and no subsequent schedule recorded its return to Miriam or Aldous.
+An annex from the June security review recorded that the duplicate poison-cabinet key had been placed with security miscellany assigned to the holder of office key 2, pending a decision on replacing the sticking cabinet lock. No later entry recorded its return to Miriam or Aldous.
 
 Miriam's September 30 inventory established that the aconitine ampoule was still present after the June review. Her current key never left her watch chain on October 18. The cabinet lock showed no damage.
 
-Gideon now admitted speaking with Ruth at her desk on October 15.
+Under further questioning, Gideon admitted that Ruth's notebook had been open when he spoke with her at the desk on October 15.
 
 > “I saw the heading `ROW 17`,” he said. “Nothing beneath it. I had no reason to care about a catalogue location.”
 
@@ -39,8 +36,10 @@ He did not dispute the times in Felix's October 15 diary, the estate-office dayb
 
 For October 18, the estate-office daybook and carrier's collection book read:
 
-> **2:45 — G.R. entered; private office use.**  
-> **3:30 — G.R. returned office key.**  
+> **2:45 — OFFICE KEY 2; private office use.**
+>
+> **3:30 — OFFICE KEY 2 returned.**
+>
 > **3:35 — parcel collected for A. Bell, Vesper House.**
 
 Felix's diary and Mrs. Wren's accounts placed Felix at Vesper House throughout that interval. The parcel arrived unopened at 4:00.
@@ -55,8 +54,19 @@ Mrs. Wren's earlier comparison placed the clock twelve minutes slow if it had co
 
 Merritt's uninterrupted view established that Gideon and Cassian remained in the billiard room from 9:25 until 9:50.
 
-On the billiard table, Merritt arranged Gideon's security schedule, the Thorn plans, the two office daybooks, the carrier's collection entry, the `A.B.` telegram, Aldous's demand, the scorched ledger pieces, and Ruth's notebook.
+On the billiard table, Merritt arranged the master key register, the Thorn plans, the two office daybooks, the carrier's collection entry, the `A.B.` telegram, Aldous's demand, the scorched ledger pieces, Ruth's notebook, and her letter to Felix.
 
 No single document contained an accusation.
 
 The evidence was complete.
+
+---
+
+## Solver prompt
+
+Give a final accusation and reconstruction. Identify the false object, the false
+account, Ruth's killer and the reason for the row/account misunderstanding,
+Aldous's killer and method, the real time represented by the stopped clock, and
+why the billiards alibi does not establish innocence. Explain why the strongest
+alternative theory fails, and distinguish firm conclusions from details that
+remain the best explanation rather than strict proof.

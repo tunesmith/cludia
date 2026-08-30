@@ -1,0 +1,669 @@
+argument ninth-room "The Ninth Room"
+meta profile="workspace", version="0.1.0", cludia-next-ids="v1;P=215;L=75;C=1;CP=9;J=76"
+
+premise[fact] P1:neutral-narration-observable-conditions-this-mystery-reliable ::T "Neutral narration of observable conditions in this mystery is reliable."
+
+premise[fact] P2:statements-attributed-character-are-testimony-unless-independently ::T "Statements attributed to a character are testimony unless independently corroborated."
+
+premise[fact] P3:documents-reliably-contain-words-described-but-their-authors ::T "Documents reliably contain the words described, but their authors and contents may be deceptive."
+
+premise[fact] P4:there-no-secret-passage-mystery ::T "There is no secret passage in the mystery."
+
+premise[fact] P5:there-no-disguised-body-mystery ::T "There is no disguised body in the mystery."
+
+premise[fact] P6:there-no-supernatural-event-mystery ::T "There is no supernatural event in the mystery."
+
+premise[fact] P7:there-no-unintroduced-culprit-mystery ::T "There is no unintroduced culprit in the mystery."
+
+premise[fact] P8:vesper-house-stands-tidal-island-connected-fallowmere-stone ::T "Vesper House stands on a tidal island connected to Fallowmere by a stone causeway only while the tide permits."
+
+premise[fact] P9:fallowmere-station-has-passenger-platforms-parcels-office-telegraph ::T "Fallowmere Station has passenger platforms, a parcels office, a telegraph counter, and a freight yard."
+
+premise[fact] P10:greyhaven-nearest-town-one-railway-stop-inland-fallowmere ::T "Greyhaven is the nearest town and is one railway stop inland from Fallowmere."
+
+premise[fact] P11:miriam-bell-aldous-bell-niece-pharmaceutical-chemist ::T "Miriam Bell is Aldous Bell's niece and a pharmaceutical chemist."
+
+premise[fact] P12:felix-harrow-aldous-bell-private-secretary ::T "Felix Harrow is Aldous Bell's private secretary."
+
+premise[fact] P13:dr-lenora-pike-aldous-bell-physician-oldest-friend ::T "Dr. Lenora Pike is Aldous Bell's physician and oldest friend."
+
+premise[fact] P14:gideon-rusk-solicitor-bell-estate ::T "Gideon Rusk is solicitor to the Bell estate."
+
+premise[fact] P15:cassian-vale-illusionist-whose-apparatus-aldous-collected ::T "Cassian Vale is an illusionist whose apparatus Aldous collected."
+
+premise[fact] P16:beatrice-orr-curator-vesper-collection ::T "Beatrice Orr is curator of the Vesper collection."
+
+premise[fact] P17:constable-merritt-was-vesper-house-before-dinner-return ::T "Constable Merritt was at Vesper House before dinner to return Ruth Dallow's effects and ask Aldous final questions about her death; he was not one of the six guests and the tide prevented him from leaving."
+
+premise[fact] P18:ruth-dallow-was-beatrice-orr-assistant-cataloguer ::T "Ruth Dallow was Beatrice Orr's assistant cataloguer."
+
+premise[fact] P19:ruth-dallow-died-three-nights-earlier-beneath-freight ::T "Ruth Dallow died three nights earlier beneath a freight wagon at Fallowmere Station."
+
+premise[fact] P20:preliminary-finding-concerning-ruth-dallow-death-was-accidental ::T "The preliminary finding concerning Ruth Dallow's death was accidental death."
+
+premise[fact] P21:dinner-aldous-placed-unopened-parcel-beside-his-chair ::T "At dinner, Aldous placed an unopened parcel beside his chair."
+
+premise[fact] P22:aldous-claimed-dinner-that-one-object-his-collection ::T "Aldous claimed at dinner that one object in his collection and one account in his ledger were false, and that someone at the table had killed Ruth Dallow."
+
+premise[fact] P23:aldous-said-that-10-30-he-would-name ::T "Aldous said that at 10:30 he would name the false object, false account, and Ruth Dallow's killer."
+
+premise[fact] P24:statement-9-05-aldous-carried-parcel-upstairs-his ::T "At 9:05, Aldous carried the parcel upstairs to his study, the Ninth Room, whose door bore a brass numeral IX."
+
+premise[fact] P25:statement-9-05-aldous-told-mrs-wren-that ::T "At 9:05, Aldous told Mrs. Wren that no one was to enter until he rang twice."
+
+premise[fact] P26:mrs-wren-watched-aldous-lock-study-door-inside ::T "Mrs. Wren watched Aldous lock the study door from the inside at 9:05."
+
+premise[fact] P27:statement-9-18-study-handbell-rang-once ::T "At 9:18, the study handbell rang once."
+
+premise[fact] P28:mrs-wren-carried-up-hot-water-aldous-normally ::T "Mrs. Wren carried up the hot water Aldous normally requested in the evening."
+
+premise[fact] P29:before-mrs-wren-knocked-9-18-she-heard ::T "Before Mrs. Wren knocked at 9:18, she heard a voice through the study door that she identified as Aldous's; it told her to leave the water and said it would ring twice when ready."
+
+premise[fact] P30:mrs-wren-left-hot-water-tray-corridor-table ::T "Mrs. Wren left the hot-water tray on a corridor table, where it remained untouched."
+
+premise[fact] P31:statement-10-30-aldous-had-not-appeared ::T "At 10:30, Aldous had not appeared."
+
+premise[fact] P32:statement-10-30-study-door-was-still-locked ::T "At 10:30, the study door was still locked and its only key was visible on the inside of the keyhole."
+
+premise[fact] P33:statement-10-30-study-windows-were-latched ::T "At 10:30, the study windows were latched."
+
+premise[fact] P34:statement-10-30-iron-bars-crossed-study-chimney ::T "At 10:30, iron bars crossed the study chimney."
+
+premise[fact] P35:felix-harrow-cassian-vale-broke-down-study-door ::T "Felix Harrow and Cassian Vale broke down the study door."
+
+premise[fact] P36:aldous-was-found-dead-his-desk-his-right ::T "Aldous was found dead at his desk with his right hand pressed against his chest."
+
+premise[fact] P37:there-was-no-obvious-weapon-study ::T "There was no obvious weapon in the study."
+
+premise[fact] P38:tiny-puncture-surrounded-faint-blue-black-stain-was ::T "A tiny puncture surrounded by a faint blue-black stain was present at the fleshy base of Aldous's left thumb."
+
+premise[fact] P39:parcel-was-open-when-aldous-was-found-had ::T "The parcel was open when Aldous was found and had contained a gray vellum book entitled 'A Dissertation Concerning the Tides,' supposedly printed in 1681."
+
+premise[fact] P40:book-brass-clasp-stood-open ::T "The book's brass clasp stood open."
+
+premise[fact] P41:only-book-first-sixteen-leaves-had-been-separated ::T "Only the book's first sixteen leaves had been separated along their folded edges; its remaining leaves were still uncut."
+
+premise[fact] P42:aldous-spectacles-were-folded-inside-their-case ::T "Aldous's spectacles were folded inside their case."
+
+premise[fact] P43:aldous-ivory-paper-knife-remained-sheathed-opposite-side ::T "Aldous's ivory paper knife remained sheathed on the opposite side of the room."
+
+premise[fact] P44:aldous-desk-clock-had-stopped-9-27-its ::T "Aldous's desk clock had stopped at 9:27 and its glass was intact."
+
+premise[fact] P45:desk-clock-winding-key-would-not-turn ::T "The desk clock's winding key would not turn."
+
+premise[fact] P46:fresh-scrape-ran-chair-ordinary-position-toward-desk ::T "A fresh scrape ran from the chair's ordinary position toward the desk."
+
+premise[fact] P47:chair-back-rail-rested-against-desk-directly-beneath ::T "The chair's back rail rested against the desk directly beneath the clock."
+
+premise[fact] P48:burned-paper-fragment-cold-hearth-bore-surviving-text ::T "A burned paper fragment on the cold hearth bore the surviving text 'ROW—17'."
+
+premise[fact] P49:beneath-aldous-right-hand-was-unfinished-sentence-reading ::T "Beneath Aldous's right hand was an unfinished sentence reading, 'The mistake was assuming that Ruth had discovered—'."
+
+premise[fact] P50:no-one-admitted-sending-parcel ::T "No one admitted sending the parcel."
+
+lemma[fact] L1:discovery-every-described-conventional-entry-route-into-study "At discovery, every described conventional entry route into the study was secured, and the mystery rules out a secret passage."
+  <- AND#J1(P4, P32, P33, P34)
+
+lemma[fact] L2:aldous-died-after-entering-study-9-05-before "Aldous died after entering the study at 9:05 and before or by the forced entry following 10:30."
+  <- AND#J2(P5, P24, P35, P36)
+
+lemma[fact] L3:mrs-wren-9-18-voice-identification-evidence-that "Mrs. Wren's 9:18 voice identification is evidence that Aldous spoke then, but without independent corroboration it is not conclusive proof that he was alive at 9:18."
+  <- AND#J3(P2, P29)
+
+lemma[fact] L4:clock-9-27-display-not-yet-reliable-death "The clock's 9:27 display is not yet a reliable death time because the unturnable winding key and freshly repositioned chair beneath the clock create an unexplained mechanical and physical context."
+  <- AND#J4(P44, P45, P46, P47)
+
+lemma[fact] L5:parcel-book-clasp-were-opened-sometime-between-parcel "The parcel and the book's clasp were opened sometime between the parcel's appearance unopened at dinner and discovery of the body."
+  <- AND#J5(P21, P39, P40)
+
+lemma[fact] L6:parcel-remains-unverified-delivery-its-sender-unresolved-book "The parcel remains an unverified delivery: its sender is unresolved and the book's purported 1681 identity is not established by its described label."
+  <- AND#J6(P3, P39, P50)
+
+lemma[fact] L7:if-aldous-dinner-claims-were-substantially-true-preventing "If Aldous's dinner claims were substantially true, preventing his promised 10:30 disclosure is a plausible motive for killing him; the premise remains testimonial."
+  <- AND#J7(P2, P22, P23, P36)
+
+premise[fact] P51:dr-pike-examined-aldous-while-other-people-remained ::T "Dr. Pike examined Aldous while the other people remained downstairs."
+
+premise[fact] P52:dr-pike-reported-that-puncture-aldous-thumb-was ::T "Dr. Pike reported that the puncture on Aldous's thumb was recent."
+
+premise[fact] P53:dr-pike-reported-that-blue-black-color-around ::T "Dr. Pike reported that the blue-black color around the puncture was a foreign dye rather than bruising."
+
+premise[fact] P54:dr-pike-reported-that-aldous-posture-pupils-were ::T "Dr. Pike reported that Aldous's posture and pupils were consistent with aconitine poisoning, but that chemical analysis would be required to prove the diagnosis."
+
+premise[fact] P55:aconitine-introduced-through-puncture-might-leave-victim-capable ::T "Aconitine introduced through a puncture might leave a victim capable of speaking for several minutes, with death following ten to thirty minutes later through disruption of the heart."
+
+premise[fact] P56:dr-pike-disclosed-that-aldous-had-long-suffered ::T "Dr. Pike disclosed that Aldous had long suffered from an irregular heartbeat."
+
+premise[fact] P57:dr-pike-stated-that-severe-attack-aldous-irregular ::T "Dr. Pike stated that a severe attack of Aldous's irregular heartbeat could imitate some signs of poisoning but would not explain the puncture or dye."
+
+premise[fact] P58:mrs-wren-reported-that-approximately-6-12-that ::T "Mrs. Wren reported that at approximately 6:12 that evening the study clock showed exactly 6:00."
+
+premise[fact] P59:mrs-wren-reported-that-aldous-told-her-not ::T "Mrs. Wren reported that Aldous told her not to correct the study clock."
+
+premise[fact] P60:if-study-clock-remained-twelve-minutes-slow-its ::T "If the study clock remained twelve minutes slow, its displayed time of 9:27 represented 9:39."
+
+premise[fact] P61:beatrice-explained-that-printed-sheets-were-traditionally-folded ::T "Beatrice explained that printed sheets were traditionally folded into gatherings whose outer folds could remain joined until opened with a paper knife."
+
+premise[fact] P62:beatrice-stated-that-genuinely-uncut-seventeenth-century-copy ::T "Beatrice stated that a genuinely uncut seventeenth-century copy would be valuable because no owner had opened it."
+
+premise[fact] P63:beatrice-stated-that-aldous-ordinarily-inspected-such-book ::T "Beatrice stated that Aldous ordinarily inspected such a book carefully before cutting any additional leaf."
+
+premise[fact] P64:book-first-sixteen-leaves-looked-older-than-block ::T "The book's first sixteen leaves looked older than the block behind them."
+
+premise[fact] P65:book-spine-was-unusually-thick ::T "The book's spine was unusually thick."
+
+premise[fact] P66:parcel-had-surprised-aldous-its-weight ::T "The parcel had surprised Aldous by its weight."
+
+premise[fact] P67:cassian-found-narrow-groove-inside-brass-clasp-stained ::T "Cassian found a narrow groove inside the brass clasp stained with the same blue-black substance found on Aldous's thumb."
+
+premise[fact] P68:groove-inside-clasp-was-too-precisely-machined-be ::T "The groove inside the clasp was too precisely machined to be seventeenth-century work."
+
+premise[fact] P69:something-slender-had-occupied-clasp-groove-but-groove ::T "Something slender had occupied the clasp's groove, but the groove was empty when examined."
+
+premise[fact] P70:when-pressed-shut-book-clasp-resisted-briefly-then ::T "When pressed shut, the book's clasp resisted briefly and then snapped closed with disproportionate force."
+
+premise[fact] P71:cassian-stated-that-clasp-contained-return-spring-that ::T "Cassian stated that the clasp contained a return spring and that something was intended to emerge and then hide itself again."
+
+premise[fact] P72:fallowmere-carrier-delivered-parcel-4-00 ::T "A Fallowmere carrier delivered the parcel at 4:00."
+
+premise[fact] P73:parcel-wrapper-bore-printed-label-march-rowe-antiquarian ::T "The parcel wrapper bore the printed label of March & Rowe, Antiquarian Booksellers."
+
+premise[fact] P74:gideon-stated-that-march-rowe-had-ceased-trading ::T "Gideon stated that March & Rowe had ceased trading five years earlier."
+
+premise[fact] P75:beatrice-stated-that-aldous-had-bought-bundle-march ::T "Beatrice stated that Aldous had bought a bundle of March & Rowe's old labels when its premises were cleared."
+
+premise[fact] P76:beatrice-stated-that-old-march-rowe-labels-were ::T "Beatrice stated that the old March & Rowe labels were stored with packing materials in the Bell estate office at Fallowmere."
+
+premise[fact] P77:beatrice-stated-that-felix-gideon-both-used-bell ::T "Beatrice stated that Felix and Gideon both used the Bell estate office and that she sometimes collected labels there for museum shipments."
+
+premise[fact] P78:felix-had-accepted-parcel-vesper-house ::T "Felix had accepted the parcel at Vesper House."
+
+premise[fact] P79:parcel-contained-no-invoice-sender-address-covering-letter ::T "The parcel contained no invoice, sender's address, or covering letter."
+
+premise[fact] P80:felix-reported-that-while-parcel-was-still-unopened ::T "Felix reported that, while the parcel was still unopened, Aldous weighed it in his hands and said, 'There is something inside this book which the sender does not expect me to read.'"
+
+premise[fact] P81:parcel-was-still-unopened-when-aldous-made-statement ::T "The parcel was still unopened when Aldous made the statement reported by Felix."
+
+lemma[fact] L8:even-if-study-clock-ran-consistently-after-6 "Even if the study clock ran consistently after 6:12, its 9:27 display would correspond to 9:39 rather than 9:27; its abnormal mechanism and nearby chair still prevent treating either time as an established death time."
+  <- AND#J8(P44, P45, P58, P60, L4)
+
+lemma[fact] L9:clasp-modern-concealed-mechanism-that-had-held-slender "The clasp is a modern concealed mechanism that had held a slender element and closes with unusual force; Cassian's return-spring explanation fits the observations but remains testimony."
+  <- AND#J9(P67, P68, P69, P70, P71)
+
+lemma[fact] L10:matching-blue-black-substance-recent-thumb-puncture-concealed "The matching blue-black substance, recent thumb puncture, and concealed clasp mechanism strongly support, but do not yet prove, that the clasp inflicted Aldous's puncture."
+  <- AND#J10(P38, P52, P53, P67, L9)
+
+lemma[fact] L11:aconitine-delivered-through-clasp-puncture-coherent-but-chemically "Aconitine delivered through the clasp puncture is a coherent but chemically unconfirmed explanation of Aldous's death; the diagnosis currently depends in part on Dr. Pike's testimony."
+  <- AND#J11(P54, P55, P57, L10)
+
+lemma[fact] L12:book-was-materially-constructed-altered-modern-times-inconsistent "The book was materially constructed or altered in modern times and is inconsistent with an untouched seventeenth-century copy."
+  <- AND#J12(P41, P64, P65, P68, L9)
+
+lemma[fact] L13:if-gideon-beatrice-accounts-are-accurate-obsolete-march "If Gideon's and Beatrice's accounts are accurate, the obsolete March & Rowe label could have come from retained stock and does not authenticate the parcel's sender."
+  <- AND#J13(P3, P73, P74, P75, P79)
+
+lemma[fact] L14:if-beatrice-office-access-account-accurate-felix-gideon "If Beatrice's office-access account is accurate, Felix, Gideon, and Beatrice each had access to old March & Rowe labels; that shared, non-exclusive access does not establish that any of them sent the parcel."
+  <- AND#J14(P2, P75, P76, P77)
+
+lemma[fact] L15:felix-account-partly-corroborated-parcel-unusual-weight-indicates "Felix's account, partly corroborated by the parcel's unusual weight, indicates that Aldous suspected concealed contents before opening it, but the exact statement remains testimony."
+  <- AND#J15(P2, P66, P80, P81)
+
+lemma[fact] L16:statement-4-00-carrier-delivery-establishes-when-how "The 4:00 carrier delivery establishes when and how the parcel reached Vesper House but does not identify who prepared or consigned it."
+  <- AND#J16(P50, P72, P79)
+
+premise[fact] P82:merritt-reported-that-gideon-cassian-began-playing-billiards ::T "Merritt reported that Gideon and Cassian began playing billiards at approximately 9:10."
+
+premise[fact] P83:felix-entered-billiard-room-9-25-deliver-gideon ::T "Felix entered the billiard room at 9:25 to deliver Gideon a telegram and saw both Gideon and Cassian there."
+
+premise[fact] P84:merritt-sat-hall-opposite-billiard-room-9-25 ::T "Merritt sat in the hall opposite the billiard room from 9:25 until 9:50 while reviewing Ruth's effects."
+
+premise[fact] P85:billiard-room-had-one-door-which-remained-open ::T "The billiard room had one door, which remained open, and Merritt had an uninterrupted view of it from 9:25 until 9:50."
+
+premise[fact] P86:neither-gideon-nor-cassian-left-billiard-room-between ::T "Neither Gideon nor Cassian left the billiard room between 9:25 and 9:50."
+
+premise[fact] P87:mrs-wren-saw-gideon-cassian-inside-billiard-room ::T "Mrs. Wren saw Gideon and Cassian inside the billiard room shortly before 10:00."
+
+premise[fact] P88:gideon-cassian-presence-billiard-room-9-25-through ::T "Gideon's and Cassian's presence in the billiard room from 9:25 through 9:50 is established rather than merely mutually asserted."
+
+premise[fact] P89:miriam-stated-that-she-worked-alone-her-laboratory ::T "Miriam stated that she worked alone in her laboratory from shortly after 9:00 until Dr. Pike joined her at approximately 9:40."
+
+premise[fact] P90:dr-pike-confirmed-that-she-remained-miriam-approximately ::T "Dr. Pike confirmed that she remained with Miriam from approximately 9:40 until shortly after 10:00."
+
+premise[fact] P91:felix-stated-that-apart-delivering-telegram-9-25 ::T "Felix stated that, apart from delivering the telegram at 9:25, he had been typing in the library."
+
+premise[fact] P92:beatrice-stated-that-she-had-been-checking-shelf ::T "Beatrice stated that she had been checking shelf records in the catalogue room."
+
+premise[fact] P93:neither-felix-nor-beatrice-had-continuous-witness-claimed ::T "Neither Felix nor Beatrice had a continuous witness for the claimed activity."
+
+premise[fact] P94:mrs-wren-reported-that-approximately-9-40-while ::T "Mrs. Wren reported that at approximately 9:40, while passing beneath the Ninth Room, she heard a short scraping sound overhead like a chair driven abruptly across the floor."
+
+premise[fact] P95:mrs-wren-reported-hearing-no-cry-approximately-9 ::T "Mrs. Wren reported hearing no cry with the approximately 9:40 scraping sound."
+
+premise[fact] P96:after-inspecting-her-locked-poison-cabinet-miriam-reported ::T "After inspecting her locked poison cabinet, Miriam reported that one sealed ampoule of aconitine was missing."
+
+premise[fact] P97:miriam-inventory-document-recorded-missing-aconitine-ampoule-present ::T "Miriam's inventory document recorded the missing aconitine ampoule as present on September 30."
+
+premise[fact] P98:miriam-current-poison-cabinet-key-remained-her-watch ::T "Miriam's current poison-cabinet key remained on her watch chain."
+
+premise[fact] P99:duplicate-key-miriam-poison-cabinet-had-existed ::T "A duplicate key to Miriam's poison cabinet had existed."
+
+premise[fact] P100:aldous-borrowed-duplicate-poison-cabinet-key-june-inventory ::T "Aldous borrowed the duplicate poison-cabinet key in June for an inventory of hazardous materials."
+
+premise[fact] P101:miriam-reported-that-aldous-later-told-her-duplicate ::T "Miriam reported that Aldous later told her the duplicate poison-cabinet key had been lost."
+
+premise[fact] P102:poison-cabinet-lock-showed-no-damage ::T "The poison-cabinet lock showed no damage."
+
+premise[fact] P103:cassian-described-design-called-self-concealing-thorn-which ::T "Cassian described a design called the Self-Concealing Thorn in which a spring projected a fine needle and immediately withdrew it into an apparently solid fitting."
+
+premise[fact] P104:cassian-stated-that-only-self-concealing-thorn-mechanism ::T "Cassian stated that the only Self-Concealing Thorn mechanism he personally built was dismantled after injuring a stagehand."
+
+premise[fact] P105:plans-self-concealing-thorn-survived-because-they-had ::T "Plans for the Self-Concealing Thorn survived because they had been exhibits in a 1918 patent dispute."
+
+premise[fact] P106:cassian-retained-his-original-self-concealing-thorn-plans ::T "Cassian retained his original Self-Concealing Thorn plans."
+
+premise[fact] P107:aldous-received-reference-copy-self-concealing-thorn-plans ::T "Aldous received a reference copy of the Self-Concealing Thorn plans because he financed the patent case."
+
+premise[fact] P108:gideon-kept-working-copy-self-concealing-thorn-plans ::T "Gideon kept a working copy of the Self-Concealing Thorn plans as solicitor."
+
+premise[fact] P109:felix-catalogued-aldous-litigation-papers-during-previous-winter ::T "Felix catalogued Aldous's litigation papers during the previous winter and handled Aldous's copy of the Self-Concealing Thorn plans."
+
+premise[fact] P110:cassian-aldous-gideon-felix-had-each-possessed-self ::T "Cassian, Aldous, Gideon, and Felix had each possessed the Self-Concealing Thorn plans or had direct access to them."
+
+premise[fact] P111:telegram-felix-delivered-gideon-9-25-contained-words ::T "The telegram Felix delivered to Gideon at 9:25 contained the words, 'RETAINED COPY OF DALLOW MESSAGE LOCATED. SIGNATURE TYPED. WILL BRING AFTER TIDE. —FALLOWMERE STATIONMASTER'."
+
+premise[fact] P112:gideon-stated-that-stationmaster-contacted-him-because-he ::T "Gideon stated that the stationmaster contacted him because he represented the Bell estate."
+
+lemma[fact] L17:if-mrs-wren-9-40-report-accurate-overhead "If Mrs. Wren's 9:40 report is accurate, the overhead scrape probably corresponds to the fresh displacement that left Aldous's chair against the desk."
+  <- AND#J17(P46, P47, P94)
+
+lemma[fact] L18:if-mrs-wren-clock-sound-recollections-are-accurate "If Mrs. Wren's clock and sound recollections are accurate and the clock remained twelve minutes slow, the corrected clock stop near 9:39 and the chair scrape near 9:40 probably reflect the same disturbance; this timing remains conditional."
+  <- AND#J18(P58, P60, P94, L8, L17)
+
+lemma[fact] L19:if-aconitine-caused-death-approximately-9-40-chair "If aconitine caused the death and the approximately 9:40 chair displacement marked Aldous's fatal collapse, the puncture was probably inflicted between approximately 9:10 and 9:30."
+  <- AND#J19(P55, L11, L17)
+
+lemma[fact] L20:if-chair-moved-approximately-9-40-gideon-cassian "If the chair moved at approximately 9:40, Gideon and Cassian could not personally have caused that movement because their billiard-room presence from 9:25 through 9:50 is established."
+  <- AND#J20(P88, L17)
+
+lemma[fact] L21:because-unopened-parcel-was-delivered-4-00-aldous "Because the unopened parcel was delivered at 4:00 and Aldous carried it into the locked study himself, its concealed mechanism could have been prepared without the preparer entering the study during the 9:05–10:30 interval."
+  <- AND#J21(P21, P24, P72, L9)
+
+lemma[fact] L22:miriam-location-before-approximately-9-40-rests-her "Miriam's location before approximately 9:40 rests on her own account, while Pike's corroboration begins only around 9:40; neither woman's whereabouts before then is independently established by these statements."
+  <- AND#J22(P2, P89, P90)
+
+lemma[fact] L23:felix-beatrice-claimed-activities-do-not-provide-either "Felix's and Beatrice's claimed activities do not provide either of them with a continuous corroborated alibi."
+  <- AND#J23(P2, P91, P92, P93)
+
+lemma[fact] L24:cabinet-evidence-establishes-only-reported-current-absence-documented "The cabinet evidence establishes only a reported current absence and a documented presence on September 30; it does not establish when the aconitine ampoule disappeared or who removed it."
+  <- AND#J24(P3, P96, P97)
+
+lemma[fact] L25:undamaged-cabinet-history-missing-duplicate-key-are-consistent "The undamaged cabinet and history of a missing duplicate key are consistent with removal by key, but do not identify the user; the claim that the duplicate was lost ultimately depends on Miriam's report of Aldous's statement."
+  <- AND#J25(P98, P99, P100, P101, P102)
+
+lemma[fact] L26:observed-clasp-mechanism-closely-matches-cassian-described-self "The observed clasp mechanism closely matches Cassian's described Self-Concealing Thorn design, although the design identification remains partly testimonial."
+  <- AND#J26(P2, P70, P103, L9)
+
+lemma[fact] L27:knowledge-access-self-concealing-thorn-plans-was-shared "Knowledge of or access to the Self-Concealing Thorn plans was shared by Cassian, Gideon, Felix, and Aldous, so the mechanism does not uniquely implicate Cassian."
+  <- AND#J27(P105, P106, P107, P108, P109, P110)
+
+lemma[fact] L28:telegram-reliably-records-claim-that-retained-dallow-message "The telegram reliably records a claim that a retained Dallow message with a typed signature was found, but it does not by itself authenticate that Dallow message or the telegram's purported stationmaster origin."
+  <- AND#J28(P3, P111)
+
+premise[fact] P113:ruth-lodged-greyhaven-normally-travelled-one-railway-stop ::T "Ruth lodged in Greyhaven and normally travelled one railway stop to Fallowmere before crossing the causeway to work at Vesper House."
+
+premise[fact] P114:october-15-ruth-left-greyhaven-carrying-return-railway ::T "On October 15, Ruth left Greyhaven carrying a return railway ticket."
+
+premise[fact] P115:ruth-outward-ticket-portion-had-been-used-while ::T "Ruth's outward ticket portion had been used, while the portion for travelling home remained in her handbag after her death."
+
+premise[fact] P116:fallowmere-station-porter-recalled-ruth-entering-parcels-office ::T "A Fallowmere Station porter recalled Ruth entering the parcels office at approximately 8:20."
+
+premise[fact] P117:typed-message-ruth-showed-porter-read-miss-dallow ::T "The typed message Ruth showed the porter read, 'MISS DALLOW—COME TO THE PARCELS OFFICE AT 8:20. BRING YOUR CATALOGUE NOTES. —A.B.'"
+
+premise[fact] P118:aldous-denied-sending-ruth-typed-summons-when-merritt ::T "Aldous denied sending Ruth's typed summons when Merritt questioned him the following day."
+
+premise[fact] P119:stationmaster-retained-copy-ruth-summons-matched-porter-recollection ::T "The stationmaster's retained copy of Ruth's summons matched the porter's recollection."
+
+premise[fact] P120:ruth-typed-summons-capital-m-sat-slightly-above ::T "On Ruth's typed summons, the capital M sat slightly above the surrounding letters."
+
+premise[fact] P121:bell-estate-office-typewriter-fallowmere-produced-same-raised ::T "The Bell estate office typewriter at Fallowmere produced the same raised capital-M defect."
+
+premise[fact] P122:felix-used-bell-estate-office-typewriter-routine-estate ::T "Felix used the Bell estate office typewriter for routine estate correspondence."
+
+premise[fact] P123:gideon-used-bell-estate-office-typewriter-legal-financial ::T "Gideon used the Bell estate office typewriter for legal and financial business."
+
+premise[fact] P124:porter-reported-hearing-ruth-arguing-man-foggy-freight ::T "The porter reported hearing Ruth arguing with a man in the foggy freight yard shortly before her death."
+
+premise[fact] P125:porter-could-not-identify-voice-man-arguing-ruth ::T "The porter could not identify the voice of the man arguing with Ruth."
+
+premise[fact] P126:porter-distinctly-recalled-ruth-saying-you-have-mistaken ::T "The porter distinctly recalled Ruth saying, 'You have mistaken the number. I was examining the row, not the account.'"
+
+premise[fact] P127:ruth-body-was-found-beside-freight-siding-behind ::T "Ruth's body was found beside a freight siding behind the parcels office, not beside a passenger platform."
+
+premise[fact] P128:freight-wagons-were-being-moved-slowly-back-forth ::T "Freight wagons were being moved slowly back and forth beside that siding to assemble a train."
+
+premise[fact] P129:ruth-was-severely-short-sighted ::T "Ruth was severely short-sighted."
+
+premise[fact] P130:ruth-spectacles-were-folded-her-handbag-when-her ::T "Ruth's spectacles were folded in her handbag when her body was found."
+
+premise[fact] P131:catalogue-notebook-was-among-ruth-effects ::T "A catalogue notebook was among Ruth's effects."
+
+premise[fact] P132:last-page-ruth-catalogue-notebook-had-been-torn ::T "The last page of Ruth's catalogue notebook had been torn out."
+
+premise[fact] P133:impressions-remaining-page-beneath-torn-page-read-row ::T "Impressions on the remaining page beneath the torn page read, 'ROW 17 / BLUE FIBRES IN PAPER / NOT CONTEMPORARY / ASK B.O. BEFORE TELLING A.B.'"
+
+premise[fact] P134:row-17-vesper-collection-contained-vesper-psalter-supposedly ::T "Row 17 of the Vesper collection contained the Vesper Psalter, supposedly produced in the fifteenth century."
+
+premise[fact] P135:miriam-examined-exposed-paper-edge-vesper-psalter-laboratory ::T "Miriam examined an exposed paper edge of the Vesper Psalter with a laboratory lens."
+
+premise[fact] P136:miriam-reported-that-exposed-psalter-paper-contained-blue ::T "Miriam reported that the exposed Psalter paper contained blue fibers of a kind ordinarily associated with modern machine-made paper."
+
+premise[fact] P137:beatrice-objected-opening-vesper-psalter ::T "Beatrice objected to opening the Vesper Psalter."
+
+premise[fact] P138:beatrice-claimed-that-modern-repair-paper-had-been ::T "Beatrice claimed that modern repair paper had been introduced during an earlier restoration and that Ruth knew this."
+
+premise[fact] P139:beatrice-had-apparent-motive-silence-ruth ::T "Beatrice had an apparent motive to silence Ruth."
+
+premise[fact] P140:miriam-controlled-poison ::T "Miriam controlled the poison."
+
+premise[fact] P141:cassian-had-designed-mechanism ::T "Cassian had designed the mechanism."
+
+premise[fact] P142:felix-had-handled-parcel-commonly-used-relevant-typewriter ::T "Felix had handled the parcel and commonly used the relevant typewriter."
+
+premise[fact] P143:dr-pike-knew-both-aldous-heart-condition-how ::T "Dr. Pike knew both Aldous's heart condition and how aconitine might imitate it."
+
+premise[fact] P144:gideon-controlled-estate-legal-records ::T "Gideon controlled the estate's legal records."
+
+premise[fact] P145:nothing-yet-placed-any-one-person-center-all ::T "Nothing yet placed any one person at the center of all three mysteries."
+
+lemma[fact] L29:matching-raised-capital-m-defect-strongly-suggests-but "The matching raised-capital-M defect strongly suggests, but does not conclusively prove, that Ruth's typed summons was produced on the Bell estate office typewriter."
+  <- AND#J29(P3, P117, P119, P120, P121)
+
+lemma[fact] L30:felix-gideon-were-known-users-typewriter-probably-used "Felix and Gideon were known users of the typewriter probably used for Ruth's summons, but the evidence neither establishes exclusive access nor identifies which person typed it."
+  <- AND#J30(P122, P123, L29)
+
+lemma[fact] L31:ruth-was-apparently-summoned-parcels-office-message-presenting "Ruth was apparently summoned to the parcels office by a message presenting itself as authorized by A.B.; if Aldous's denial was truthful, the summons was falsely attributed to him."
+  <- AND#J31(P2, P116, P117, P118)
+
+lemma[fact] L32:argument-unidentified-man-hazardous-freight-siding-location-moving "The argument with an unidentified man, hazardous freight-siding location, moving wagons, severe short-sightedness, and stored spectacles collectively make deliberate luring or endangerment substantially more plausible than the preliminary accidental-death finding, without establishing the precise killing act."
+  <- AND#J32(P20, P124, P125, P127, P128, P129, P130)
+
+lemma[fact] L33:burned-row-17-fragment-ruth-spoken-distinction-between "The burned 'ROW—17' fragment, Ruth's spoken distinction between a row and an account, and her notebook entry strongly identify collection Row 17—and therefore the Vesper Psalter—as the referent of 'ROW 17'."
+  <- AND#J33(P48, P126, P133, P134)
+
+lemma[fact] L34:ruth-notebook-impressions-miriam-later-examination-independently-point "Ruth's notebook impressions and Miriam's later examination independently point toward modern blue paper fibers in the Vesper Psalter, though the notebook's intended meaning and Miriam's analysis still require appropriate evidentiary caution."
+  <- AND#J34(P3, P133, P134, P136)
+
+lemma[fact] L35:vesper-psalter-now-leading-candidate-aldous-alleged-false "The Vesper Psalter is now the leading candidate for Aldous's alleged false collection object, but Beatrice's restoration explanation remains an unverified alternative to wholesale forgery."
+  <- AND#J35(P22, L33, L34, P138)
+
+lemma[fact] L36:aldous-unfinished-sentence-consistent-someone-having-mistaken-ruth "Aldous's unfinished sentence is consistent with someone having mistaken Ruth's reference to collection Row 17 for a numbered account, but the missing completion prevents treating that reconstruction as certain."
+  <- AND#J36(P49, P126, P133, L33)
+  <- AND#J42(P126, P133, P155, P166)
+
+lemma[fact] L37:page-containing-ruth-final-catalogue-entry-was-removed "A page containing Ruth's final catalogue entry was removed from her notebook, while impressions preserved its wording; the evidence does not establish when, why, or by whom the page was torn out."
+  <- AND#J37(P132, P133)
+
+lemma[fact] L38:natural-reading-initials-ruth-notebook-she-intended-ask "On the natural reading of the initials in Ruth's notebook, she intended to ask Beatrice Orr about the fibers before telling Aldous Bell, but the note alone does not establish what either person already knew."
+  <- AND#J38(P3, P16, P49, P133)
+
+lemma[fact] L39:beatrice-earlier-restoration-explanation-could-account-modern-fibers "Beatrice's earlier-restoration explanation could account for modern fibers without forgery, but it is currently testimony rather than independent proof and does not negate the need to examine the Psalter."
+  <- AND#J39(P2, P136, P137, P138, L34)
+
+lemma[fact] L40:both-victims-were-found-their-spectacles-folded-away "Both victims were found with their spectacles folded away; for severely short-sighted Ruth this would have impaired safe movement in the foggy freight yard, while the significance of the parallel remains unresolved."
+  <- AND#J40(P42, P129, P130)
+
+lemma[fact] L41:ruth-summons-specifically-demanded-her-catalogue-notes-page "Ruth's summons specifically demanded her catalogue notes, and a page bearing her final entry was later missing; this is consistent with someone seeking and removing that entry, but does not establish who removed it or when."
+  <- AND#J41(P117, P131, P132, P133)
+
+premise[fact] P146:confronted-ruth-notebook-beatrice-withdrew-her-earlier-restoration ::T "Confronted with Ruth's notebook, Beatrice withdrew her earlier restoration story."
+
+premise[fact] P147:beatrice-admitted-that-three-years-earlier-she-badly ::T "Beatrice admitted that three years earlier she badly damaged the original Vesper Psalter during an unauthorized chemical treatment."
+
+premise[fact] P148:beatrice-admitted-constructing-facsimile-substituting-it-original-vesper ::T "Beatrice admitted constructing a facsimile and substituting it for the original Vesper Psalter in Row 17 because she feared professional disgrace."
+
+premise[fact] P149:beatrice-stated-that-ruth-discovered-modern-fibers-october ::T "Beatrice stated that Ruth discovered the modern fibers on October 15 and confronted her."
+
+premise[fact] P150:beatrice-stated-that-she-begged-ruth-one-night ::T "Beatrice stated that she begged Ruth for one night in which to confess to Aldous herself."
+
+premise[fact] P151:statement-7-45-until-after-9-00-evening ::T "From 7:45 until after 9:00 on the evening Ruth died, Beatrice dined at Vesper House with Aldous and Dr. Pike."
+
+premise[fact] P152:mrs-wren-repeatedly-served-beatrice-aldous-dr-pike ::T "Mrs. Wren repeatedly served Beatrice, Aldous, and Dr. Pike during their October 15 dinner."
+
+premise[fact] P153:causeway-train-timetable-made-it-impossible-beatrice-travel ::T "The causeway and train timetable made it impossible for Beatrice to travel from Vesper House to Ruth's 8:20 meeting at Fallowmere."
+
+premise[fact] P154:false-collection-object-was-identified-substituted-vesper-psalter ::T "The false collection object was identified as the substituted Vesper Psalter facsimile."
+
+premise[fact] P155:aldous-private-ledger-contained-account-headed-escrow-17 ::T "Aldous's private ledger contained an account headed 'ESCROW—17: SPECIAL ACQUISITIONS'."
+
+premise[fact] P156:substantial-sums-entered-escrow-17-then-left-through ::T "Substantial sums entered Escrow 17 and then left through supposed payments to March & Rowe."
+
+premise[fact] P157:two-escrow-17-payments-march-rowe-were-dated ::T "Two Escrow 17 payments to March & Rowe were dated after that firm had ceased trading."
+
+premise[fact] P158:no-books-manuscripts-corresponding-escrow-17-payments-appeared ::T "No books or manuscripts corresponding to the Escrow 17 payments appeared in Beatrice's catalogues."
+
+premise[fact] P159:every-escrow-17-payment-authorization-bore-perfectly-identical ::T "Every Escrow 17 payment authorization bore a perfectly identical version of Aldous's signature, including a small failure of ink in the same place."
+
+premise[fact] P160:identical-authorizing-signatures-escrow-17-payments-had-been ::T "The identical authorizing signatures on Escrow 17 payments had been made using Aldous's rubber signature stamp."
+
+premise[fact] P161:aldous-rubber-signature-stamp-was-stored-fallowmere-estate ::T "Aldous's rubber signature stamp was stored in the Fallowmere estate office."
+
+premise[fact] P162:felix-gideon-both-used-aldous-rubber-signature-stamp ::T "Felix and Gideon both used Aldous's rubber signature stamp legitimately."
+
+premise[fact] P163:escrow-17-was-not-part-ordinary-bookkeeping-felix ::T "Escrow 17 was not part of the ordinary bookkeeping Felix maintained."
+
+premise[fact] P164:escrow-17-account-agreement-named-only-aldous-gideon ::T "The Escrow 17 account agreement named only Aldous and Gideon."
+
+premise[fact] P165:escrow-17-bank-statements-were-sent-under-seal ::T "Escrow 17 bank statements were sent under seal to Gideon's chambers and then forwarded to Aldous for his private ledger."
+
+premise[fact] P166:before-ruth-death-no-guest-other-than-gideon ::T "Before Ruth's death, no guest other than Gideon was shown to have known that the escrow account was numbered seventeen; Aldous also knew."
+
+premise[fact] P167:gideon-acknowledged-administering-escrow-17 ::T "Gideon acknowledged administering Escrow 17."
+
+premise[fact] P168:gideon-claimed-that-aldous-ordered-him-conceal-purchases ::T "Gideon claimed that Aldous ordered him to conceal purchases from rival collectors by using March & Rowe's old name."
+
+premise[fact] P169:escrow-17-money-was-withdrawn-through-bearer-drafts ::T "Escrow 17 money was withdrawn through bearer drafts, so the bank could not identify its ultimate recipient."
+
+premise[fact] P170:most-recent-escrow-17-bank-statement-was-missing ::T "The most recent Escrow 17 bank statement was missing from Aldous's ledger."
+
+premise[fact] P171:narrow-scorched-strip-remained-where-missing-escrow-17 ::T "A narrow scorched strip remained where the missing Escrow 17 statement had been torn from the ledger binding."
+
+premise[fact] P172:merritt-found-that-scorched-ledger-strip-burned-ninth ::T "Merritt found that the scorched ledger strip and the burned Ninth Room fragment matched exactly in paper, ruling, and torn edge."
+
+premise[fact] P173:complete-heading-burned-fragment-had-once-read-escrow ::T "The complete heading of the burned fragment had once read 'ESCROW—17'."
+
+premise[fact] P174:burned-fragment-ninth-room-preserved-only-final-portion ::T "The burned fragment in the Ninth Room preserved only the final portion 'ROW—17' of the heading 'ESCROW—17'."
+
+premise[fact] P175:ledger-flyleaf-aldous-had-written-his-own-hand ::T "On the ledger flyleaf, Aldous had written in his own hand, 'Statement returned by G.R. already scorched, 17 October. Obtain bank duplicate.'"
+
+premise[fact] P176:gideon-stated-that-candle-had-accidentally-overturned-his ::T "Gideon stated that a candle had accidentally overturned at his chambers and scorched the Escrow 17 statement."
+
+premise[fact] P177:felix-recalled-seeing-aldous-detach-loose-burned-fragment ::T "Felix recalled seeing Aldous detach the loose burned fragment from the Escrow 17 statement before dinner and place it in his waistcoat pocket with his notes."
+
+premise[fact] P178:october-16-day-after-ruth-died-aldous-sent ::T "On October 16, the day after Ruth died, Aldous sent Gideon a written demand to bring every Escrow 17 voucher to Vesper House on October 18."
+
+premise[fact] P179:aldous-october-16-demand-gideon-stated-discrepancies-will ::T "Aldous's October 16 demand to Gideon stated, 'The discrepancies will be explained before the evening is finished.'"
+
+premise[fact] P180:gideon-knew-before-october-18-dinner-that-escrow ::T "Gideon knew before the October 18 dinner that Escrow 17 was about to be exposed."
+
+undercut[fact] CP1:exact-edge-match-establishes-that-burned-row-17 ::T "The exact edge match establishes that the burned 'ROW—17' fragment came from an 'ESCROW—17' ledger heading, so using that fragment to identify collection Row 17 conflates two distinct seventeens." -> inference J33:target L33
+
+undercut[fact] CP2:beatrice-withdrew-restoration-account-admitted-substituting-facsimile ::T "Beatrice withdrew the restoration account and admitted substituting a facsimile; the Psalter is no longer merely a leading candidate with restoration as a live alternative." -> inference J35:target L35
+
+undercut[fact] CP3:beatrice-withdrew-restoration-explanation-admitted-fabricating ::T "Beatrice withdrew the restoration explanation and admitted fabricating and substituting the Psalter, so that explanation no longer functions as a live innocent account of the modern fibers." -> inference J39:target L39
+
+lemma[fact] L42:mystery-contains-two-distinct-seventeens-ruth-row-17 "The mystery contains two distinct seventeens: Ruth's 'ROW 17' denotes the Vesper Psalter's collection location, while the burned 'ROW—17' fragment is the surviving end of the separate ledger heading 'ESCROW—17'."
+  <- AND#J43(P133, P134, P155, P173, P174)
+
+lemma[fact] L43:vesper-psalter-facsimile-established-false-collection-object-beatrice "The Vesper Psalter facsimile is established as the false collection object; Beatrice's confession is corroborated by the observed modern-paper evidence."
+  <- AND#J44(P136, P146, P147, P148, P154)
+
+lemma[fact] L44:beatrice-aldous-dr-pike-were-together-vesper-house "Beatrice, Aldous, and Dr. Pike were together at Vesper House during Ruth's 8:20 meeting, making Beatrice unable to be the person who directly met Ruth at Fallowmere that evening."
+  <- AND#J45(P151, P152, P153)
+
+lemma[fact] L45:payments-defunct-firm-without-corresponding-acquisitions-authorized "Payments to a defunct firm without corresponding acquisitions, authorized by repeated stamp impressions and withdrawn through bearer drafts, strongly support Escrow 17 being a vehicle for concealed or sham transactions, although the ultimate recipient is not yet identified."
+  <- AND#J46(P156, P157, P158, P159, P160, P169)
+
+lemma[fact] L46:gideon-now-leading-identified-suspect-ruth-death-because "Gideon is now the leading identified suspect in Ruth's death because he was a male known to use the likely summons typewriter and the only non-victim then shown to know the account number Ruth's opponent apparently referenced; this is strong circumstantial evidence, not a voice identification or proof of exclusive knowledge."
+  <- AND#J47(P7, P124, P125, P126, P166, L29, L30, L44)
+
+lemma[fact] L47:gideon-administered-suspicious-escrow-17-account-knew-aldous "Gideon administered the suspicious Escrow 17 account and knew Aldous had demanded its vouchers and intended to expose discrepancies, giving Gideon a strong apparent motive to silence Aldous; Gideon's explanation and the bearer drafts leave the ultimate fraud beneficiary formally unresolved."
+  <- AND#J48(P167, P168, P170, P175, P178, P179, P180, L45)
+
+lemma[fact] L48:gideon-established-billiard-room-alibi-prevents-his-personal "Gideon's established billiard-room alibi prevents his personal presence at the probable 9:40 collapse but does not exclude him from preparing and sending the earlier-delivered mechanical parcel."
+  <- AND#J49(P88, L20, L21)
+
+lemma[fact] L49:missing-statement-matching-burned-fragment-aldous-note-that "The missing statement, matching burned fragment, and Aldous's note that it arrived already scorched support attempted destruction of Escrow 17 evidence before dinner; Gideon's overturned-candle explanation remains possible only as uncorroborated testimony."
+  <- AND#J50(P170, P171, P172, P175, P176, P177)
+
+lemma[fact] L50:murder-parcel-escrow-17-both-use-obsolete-march "The murder parcel and Escrow 17 both use the obsolete March & Rowe identity, linking the parcel's disguise to the account Gideon administered without by itself proving who sent the parcel."
+  <- AND#J51(P73, P74, P75, P156, P157, P167)
+
+lemma[fact] L51:felix-access-office-stamp-typewriter-does-not-establish "Felix's access to the office stamp and typewriter does not establish knowledge of Escrow 17: it lay outside his ordinary bookkeeping, named only Aldous and Gideon, and its statements travelled sealed through Gideon."
+  <- AND#J52(P162, P163, P164, P165, P166)
+
+lemma[fact] L52:before-dinner-aldous-had-already-focused-his-escrow "Before the dinner, Aldous had already focused his Escrow 17 inquiry on Gideon, sought a duplicate of the scorched statement, demanded all vouchers, and announced that the discrepancies would be explained that evening."
+  <- AND#J53(P175, P178, P179, P180)
+
+premise[fact] P181:after-causeway-reopened-vellum-book-ruth-clothing-were ::T "After the causeway reopened, the vellum book and Ruth's clothing were examined professionally."
+
+premise[fact] P182:inside-vellum-book-hollow-spine-was-slender-steel ::T "Inside the vellum book's hollow spine was a slender steel needle connected to the clasp's return spring."
+
+premise[fact] P183:pressing-book-clasp-projected-needle-through-groove-releasing ::T "Pressing the book's clasp projected the needle through the groove, and releasing the clasp withdrew the needle completely into the hollow spine."
+
+premise[fact] P184:concealed-needle-bore-aconitine-same-blue-black-marking ::T "The concealed needle bore aconitine and the same blue-black marking dye found on Aldous's thumb and inside the clasp."
+
+premise[fact] P185:chemical-examination-found-aconitine-aldous-body ::T "Chemical examination found aconitine in Aldous's body."
+
+premise[fact] P186:book-page-block-after-sixteenth-leaf-was-modern ::T "The book's page block after the sixteenth leaf was modern folded paper installed during a recent rebinding."
+
+premise[fact] P187:book-old-opening-leaves-supplied-apparently-plausible-title ::T "The book's old opening leaves supplied an apparently plausible title and imprint."
+
+premise[fact] P188:book-unread-modern-block-supplied-thickness-around-hollow ::T "The book's unread modern block supplied thickness around the hollow spine."
+
+premise[fact] P189:aldous-folded-spectacles-sheathed-paper-knife-showed-that ::T "Aldous's folded spectacles and sheathed paper knife showed that he handled the object without beginning to read it or cut its leaves."
+
+premise[fact] P190:bookbinder-determined-that-animal-glue-securing-mechanism-had ::T "A bookbinder determined that the animal glue securing the mechanism had cured for at least twenty-four hours before the parcel was delivered."
+
+premise[fact] P191:device-was-assembled-no-later-than-october-17 ::T "The device was assembled no later than October 17, after Gideon received Aldous's warning about Escrow 17 but before the October 18 dinner announcement."
+
+premise[fact] P192:mechanism-followed-cassian-published-court-plans-closely-enough ::T "The mechanism followed Cassian's published court plans closely enough that anyone possessing a copy and ordinary workshop skill could have constructed it."
+
+premise[fact] P193:no-unique-tool-mark-identified-mechanism-maker ::T "No unique tool mark identified the mechanism's maker."
+
+premise[fact] P194:estate-office-key-register-recorded-that-aldous-handed ::T "The estate-office key register recorded that Aldous handed the duplicate poison-cabinet key to Gideon in June for the hazardous-material inventory."
+
+premise[fact] P195:gideon-initialed-estate-office-key-register-entry-acknowledging ::T "Gideon initialed the estate-office key register entry acknowledging receipt of the duplicate poison-cabinet key."
+
+premise[fact] P196:key-register-return-column-duplicate-poison-cabinet-key ::T "The key register's return column for the duplicate poison-cabinet key was blank."
+
+premise[fact] P197:felix-dated-work-diary-contained-october-15-entry ::T "Felix's dated work diary contained the October 15 entry, '5:35—R.D. comparing Row 17 restoration papers. 5:45—G.R. at her desk; asks what she has found. Notebook open.'"
+
+premise[fact] P198:gideon-admitted-speaking-ruth-her-desk-october-15 ::T "Gideon admitted speaking with Ruth at her desk on October 15 but denied reading more than the heading 'ROW 17'."
+
+premise[fact] P199:october-15-gideon-used-fallowmere-estate-office-alone ::T "On October 15, Gideon used the Fallowmere estate office alone shortly before Ruth's telegram was filed, while Felix was documented at Vesper House."
+
+premise[fact] P200:october-18-gideon-used-fallowmere-estate-office-alone ::T "On October 18, Gideon used the Fallowmere estate office alone from 2:45 until 3:30."
+
+premise[fact] P201:statement-3-35-october-18-carrier-collected-parcel ::T "At 3:35 on October 18, a carrier collected the parcel addressed to Aldous."
+
+premise[fact] P202:felix-was-documented-vesper-house-during-gideon-october ::T "Felix was documented at Vesper House during Gideon's October 18 estate-office visit and the parcel-preparation window."
+
+premise[fact] P203:estate-office-diary-carrier-book-establish-gideon-opportunity ::T "The estate-office diary and carrier's book establish Gideon's opportunity to type Ruth's summons and prepare Aldous's parcel, but do not establish authorship by themselves."
+
+premise[fact] P204:ruth-injuries-included-bruising-inflicted-before-freight-wagon ::T "Ruth's injuries included bruising inflicted before the freight wagon struck her, consistent with a struggle and a forceful push."
+
+premise[fact] P205:ruth-death-was-not-ordinary-accident ::T "Ruth's death was not an ordinary accident."
+
+premise[fact] P206:watchmaker-found-that-aldous-desk-clock-balance-staff ::T "A watchmaker found that Aldous's desk clock balance staff had been bent by a fresh sideways shock."
+
+premise[fact] P207:sideways-jolt-desk-could-stop-clock-without-breaking ::T "A sideways jolt to the desk could stop the clock without breaking its glass."
+
+premise[fact] P208:chair-scrape-ended-against-desk-immediately-beneath-clock ::T "The chair's scrape ended against the desk immediately beneath the clock."
+
+premise[fact] P209:if-mrs-wren-twelve-minute-comparison-was-accurate ::T "If Mrs. Wren's twelve-minute comparison was accurate, the clock stopped at approximately 9:39, the same time she heard the chair scrape."
+
+premise[fact] P210:merritt-continuous-observation-establishes-that-gideon-cassian-were ::T "Merritt's continuous observation establishes that Gideon and Cassian were in the billiard room at approximately 9:39."
+
+premise[fact] P211:murderer-did-not-need-enter-leave-locked-study ::T "The murderer did not need to enter or leave the locked study at the time of Aldous's death."
+
+premise[fact] P212:relevant-opportunities-aldous-murder-occurred-when-poison-disappeared ::T "The relevant opportunities for Aldous's murder occurred when the poison disappeared, when the mechanism was built, and when the parcel was prepared."
+
+premise[fact] P213:complete-evidence-identifies-solution-through-intersection-knowledge ::T "The complete evidence identifies the solution through the intersection of knowledge of Ruth's supposed discovery, motive concerning Escrow 17, access to aconitine, access to the Thorn plans, opportunity to prepare the typed summons and parcel, and an alibi covering the mechanism's delayed effect rather than its construction."
+
+premise[fact] P214:evidence-set-mystery-complete ::T "The evidence set for the mystery is complete."
+
+undercut[fact] CP4:professional-examination-directly-demonstrated-that-pressing-clasp ::T "Professional examination directly demonstrated that pressing the clasp projected the dye-marked needle through its groove, so the clasp-to-puncture mechanism is no longer merely probable." -> inference J10:target L10
+
+undercut[fact] CP5:chemical-examination-found-aconitine-both-concealed-needle-aldous ::T "Chemical examination found aconitine both on the concealed needle and in Aldous's body, superseding the earlier chemically unconfirmed diagnosis." -> inference J11:target L11
+
+undercut[fact] CP6:watchmaker-identified-freshly-bent-balance-staff-showed-that ::T "The watchmaker identified a freshly bent balance staff and showed that a sideways desk jolt could stop the intact clock, resolving the previously unexplained mechanical context." -> inference J4:target L4
+
+undercut[fact] CP7:estate-office-key-register-establishes-that-gideon-received ::T "The estate-office key register establishes that Gideon received the duplicate poison-cabinet key and that no return was recorded, superseding reliance on the earlier report that it was simply lost." -> inference J25:target L25
+
+undercut[fact] CP8:professional-examination-independently-confirmed-retracting-needle ::T "Professional examination independently confirmed the retracting-needle mechanism, so identification of the design no longer depends materially on Cassian's testimony." -> inference J26:target L26
+
+lemma[fact] L53:book-clasp-was-demonstrated-puncture-mechanism-pressing-it "The book clasp was the demonstrated puncture mechanism: pressing it projected an aconitine-bearing, dye-marked needle and releasing it concealed the needle inside the hollow spine."
+  <- AND#J54(P182, P183, P184)
+
+lemma[fact] L54:aldous-was-poisoned-aconitine-delivered-book-concealed-needle "Aldous was poisoned with aconitine delivered by the book's concealed needle; the matching dye explains the marked thumb puncture."
+  <- AND#J55(P38, P184, P185)
+
+lemma[fact] L55:vellum-book-was-recently-constructed-disguise-hollow-spine "The vellum book was a recently constructed disguise for the hollow-spine weapon: old opening leaves supplied plausibility, while the unread modern block supplied concealing thickness."
+  <- AND#J56(P186, P187, P188, P189)
+
+lemma[fact] L56:weapon-was-assembled-october-17-after-gideon-learned "The weapon was assembled by October 17, after Gideon learned that Aldous intended to expose Escrow 17 and before the October 18 dinner announcement."
+  <- AND#J57(P178, P180, P190, P191)
+
+lemma[fact] L57:gideon-had-documented-unreturned-custody-duplicate-poison-cabinet "Gideon had documented, unreturned custody of the duplicate poison-cabinet key, giving him a non-forced means of obtaining the missing aconitine; the register proves access rather than the act of removal by itself."
+  <- AND#J58(P96, P102, P194, P195, P196)
+
+lemma[fact] L58:gideon-encountered-ruth-her-open-notebook-while-she "Gideon encountered Ruth at her open notebook while she was investigating Row 17 and admits seeing at least that heading; he also uniquely among the other guests was shown to know of Escrow 17 before her death."
+  <- AND#J59(P166, P197, P198)
+
+lemma[fact] L59:gideon-had-documented-opportunity-type-ruth-likely-estate "Gideon had a documented opportunity to type Ruth's likely estate-office summons shortly before it was filed, while Felix was at Vesper House; opportunity and machine access do not alone prove authorship."
+  <- AND#J60(P123, P199, P203, L29)
+
+lemma[fact] L60:gideon-had-access-old-march-rowe-labels-thorn "Gideon had access to old March & Rowe labels and the Thorn plans and was alone in the estate office immediately before the carrier collected Aldous's parcel, while Felix was documented elsewhere; these facts establish a strong preparation opportunity but are not a direct eyewitness account."
+  <- AND#J61(P72, P77, P108, P192, P200, P201, P202, P203)
+
+lemma[fact] L61:ruth-was-deliberately-lured-under-aldous-initials-killed "Ruth was deliberately lured under Aldous's initials and killed after a struggle by being forcefully put into the path of a freight wagon; the evidence does not establish every movement in the struggle."
+  <- AND#J62(P117, P124, P127, P128, P204, P205, L31)
+
+lemma[fact] L62:aldous-collapse-probably-drove-chair-into-desk-whose "Aldous's collapse probably drove the chair into the desk, whose sideways jolt bent the clock's balance staff and stopped it; if Wren's twelve-minute comparison was accurate, this occurred at approximately 9:39."
+  <- AND#J63(P44, P94, P206, P207, P208, P209)
+
+lemma[fact] L63:confirmed-aconitine-poisoning-compatible-aldous-speaking-9-18 "Confirmed aconitine poisoning is compatible with Aldous speaking at 9:18 because puncture-delivered aconitine can leave a victim able to speak for several minutes; this does not independently authenticate the voice or fix the puncture time."
+  <- AND#J64(P29, P55, P185)
+
+lemma[fact] L64:gideon-billiards-alibi-covers-probable-delayed-fatal-collapse "Gideon's billiards alibi covers the probable delayed fatal collapse, not the earlier acquisition of poison, construction of the mechanism, or preparation of the parcel, so it does not establish innocence."
+  <- AND#J65(P210, P211, P212, L21)
+
+lemma[fact] L65:row-not-account-ruth-meant-that-her-notebook "By 'the row, not the account,' Ruth meant that her notebook's number 17 referred to collection Row 17 and the false Vesper Psalter, whereas her opponent had mistaken it for the secret Escrow 17 account."
+  <- AND#J66(P126, P133, L42, L58)
+
+lemma[fact] L66:aldous-connected-ruth-row-17-investigation-escrow-17 "Aldous connected Ruth's Row 17 investigation to Escrow 17 by recognizing the two-number confusion: Ruth's note and spoken correction concerned the collection row, while the fragment he carried came from the account statement; his unfinished sentence records that inference without preserving its final words."
+  <- AND#J67(P49, P126, P133, P155, P173, P177, L36, L42)
+
+lemma[fact] L67:complete-circumstantial-intersection-identifies-gideon-ruth-killer-he "The complete circumstantial intersection identifies Gideon as Ruth's killer: he had the concealed-account motive and unique shown knowledge, encountered her open Row 17 notebook, had the opportunity to type the false summons, and the later injuries establish a deliberate freight-yard killing."
+  <- AND#J68(L45, L46, L58, L59, L61)
+
+lemma[fact] L68:gideon-lured-ruth-parcels-office-under-aldous-initials "Gideon lured Ruth to the parcels office under Aldous's initials because he mistook her Row 17 investigation for discovery of Escrow 17; after she corrected him during their confrontation, a struggle ended with Gideon forcefully putting her into the moving wagon's path, most likely to silence her and conceal his own conduct."
+  <- AND#J69(P117, P124, P126, P204, L58, L61, L67)
+
+lemma[fact] L69:escrow-17-was-false-account-it-disguised-unsupported "Escrow 17 was the false account: it disguised unsupported payments through a defunct bookseller and bearer drafts; Gideon administered it, although the bank records do not independently trace the ultimate recipient."
+  <- AND#J70(P155, P167, P169, L45, L47)
+
+lemma[fact] L70:full-intersection-identifies-gideon-aldous-killer-exposure-escrow "The full intersection identifies Gideon as Aldous's killer: exposure of Escrow 17 supplied motive, March & Rowe and the office supplied the parcel disguise and preparation opportunity, the unreturned key supplied poison access, the Thorn plans supplied the mechanism, and the delayed collapse made his billiards alibi compatible with guilt."
+  <- AND#J71(L47, L50, L56, L57, L60, L64, P213)
+
+lemma[fact] L71:best-supported-reconstruction-that-gideon-built-hollow-spine "The best-supported reconstruction is that Gideon built the hollow-spine Thorn mechanism, coated its retracting needle with aconitine and marking dye, packed it under an obsolete March & Rowe label, and sent it to Aldous; Aldous activated it himself by pressing the clasp inside the already locked study."
+  <- AND#J72(L53, L54, L55, L56, L60, L70)
+
+lemma[fact] L72:vesper-psalter-facsimile-was-aldous-false-collection-object "The Vesper Psalter facsimile was Aldous's false collection object, while 'A Dissertation Concerning the Tides' was a newly constructed murder-device disguise rather than the false object he had promised to expose."
+  <- AND#J73(P154, L43, L55)
+
+lemma[fact] L73:no-voice-imitation-supernatural-event-live-illusion-needed "No voice imitation, supernatural event, or live illusion is needed for the locked room: the clasp delivered a delayed poison and retracted its needle, allowing Aldous to speak before later dying alone."
+  <- AND#J74(P55, P183, L54, L63)
+
+lemma[fact] L74:completed-solution-that-beatrice-created-false-vesper-psalter "The completed solution is that Beatrice created the false Vesper Psalter, Escrow 17 was the false account, and Gideon killed both Ruth and Aldous to protect the concealed-account scheme and prevent its exposure."
+  <- AND#J75(L43, L69, L67, L68, L70)
