@@ -5,6 +5,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/tunesmith/cludia/internal/argument"
+	"github.com/tunesmith/cludia/internal/evaluation"
 	"github.com/tunesmith/cludia/internal/query"
 	"github.com/tunesmith/cludia/internal/validation"
 	"github.com/tunesmith/cludia/internal/workspace"
@@ -112,6 +113,7 @@ func (m Model) applyTopMoveResult(result topMoveResultMsg) Model {
 	}
 	if result.doc != nil {
 		m.doc = result.doc
+		m.evaluation, _ = evaluation.Evaluate(result.doc)
 		m.diskVersion, m.seenDiskVersion, m.diskVersionKnown = result.version, result.version, true
 		m.refreshQueries(preferredTop)
 		m = m.refreshOpenViewAfterMove()
@@ -132,7 +134,7 @@ func (m Model) refreshOpenViewAfterMove() Model {
 		}
 	}
 	if m.mode == modeLedger {
-		root, rows, err := query.Ledger(m.doc, m.ledgerRoot)
+		root, rows, err := query.LedgerEvaluated(m.doc, m.ledgerRoot, m.evaluation)
 		if err != nil {
 			m.mode, m.current, m.history = modeTop, "", nil
 			return m

@@ -5,6 +5,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/tunesmith/cludia/internal/argument"
+	"github.com/tunesmith/cludia/internal/evaluation"
 	"github.com/tunesmith/cludia/internal/query"
 )
 
@@ -38,8 +39,9 @@ type screenState struct {
 
 // Model is the Bubble Tea navigator with focused durable Top reordering.
 type Model struct {
-	path string
-	doc  *argument.Document
+	path       string
+	doc        *argument.Document
+	evaluation evaluation.Result
 
 	mode         mode
 	current      string
@@ -76,8 +78,9 @@ func Run(path string) error {
 }
 
 func newModel(path string, doc *argument.Document, version diskVersion) Model {
+	evaluated, _ := evaluation.Evaluate(doc)
 	m := Model{
-		path: path, doc: doc, mode: modeTop, width: 100, height: 30,
+		path: path, doc: doc, evaluation: evaluated, mode: modeTop, width: 100, height: 30,
 		diskVersion: version, seenDiskVersion: version, diskVersionKnown: true,
 	}
 	m.refreshQueries("")
@@ -228,7 +231,7 @@ func (m Model) openDetail(id string) Model {
 }
 
 func (m Model) openLedger(id string) Model {
-	root, rows, err := query.Ledger(m.doc, id)
+	root, rows, err := query.LedgerEvaluated(m.doc, id, m.evaluation)
 	if err != nil {
 		m.setMessage(err.Error(), messageError)
 		return m
@@ -251,7 +254,7 @@ func (m Model) back() Model {
 	m.ledgerRoot = state.ledgerRoot
 	m.topScroll, m.detailScroll, m.ledgerScroll = state.topScroll, state.detailScroll, state.ledgerScroll
 	if m.mode == modeLedger {
-		root, rows, err := query.Ledger(m.doc, m.ledgerRoot)
+		root, rows, err := query.LedgerEvaluated(m.doc, m.ledgerRoot, m.evaluation)
 		if err != nil {
 			m.mode, m.current, m.history = modeTop, "", nil
 			m.setMessage("prior ledger root was removed; returned to Top", messageError)
@@ -281,7 +284,7 @@ func (m Model) snapshot() screenState {
 }
 
 func (m *Model) refreshQueries(preferredTopID string) {
-	m.topItems = query.Top(m.doc)
+	m.topItems = query.TopEvaluated(m.doc, m.evaluation)
 	if preferredTopID != "" {
 		for i, item := range m.topItems {
 			if item.Statement.ID == preferredTopID {

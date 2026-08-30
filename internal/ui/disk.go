@@ -11,6 +11,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/tunesmith/cludia/internal/argument"
 	"github.com/tunesmith/cludia/internal/diagnostic"
+	"github.com/tunesmith/cludia/internal/evaluation"
 	"github.com/tunesmith/cludia/internal/query"
 	"github.com/tunesmith/cludia/internal/validation"
 	"github.com/tunesmith/cludia/internal/workspace"
@@ -68,6 +69,9 @@ func parseValidDocument(data []byte) (*argument.Document, error) {
 		}
 		return nil, fmt.Errorf("invalid workspace: %s", strings.Join(messages, "; "))
 	}
+	if _, err := evaluation.Evaluate(doc); err != nil {
+		return nil, fmt.Errorf("invalid workspace evaluation: %w", err)
+	}
 	return doc, nil
 }
 
@@ -101,6 +105,7 @@ func (m Model) refreshFromDisk(check diskContents) Model {
 	current := m.current
 	ledgerRoot := m.ledgerRoot
 	m.doc = doc
+	m.evaluation, _ = evaluation.Evaluate(doc)
 	m.diskVersion, m.seenDiskVersion, m.diskVersionKnown = check.version, check.version, true
 	m.refreshQueries(preferredTop)
 	if m.mode == modeDetail {
@@ -113,7 +118,7 @@ func (m Model) refreshFromDisk(check diskContents) Model {
 		}
 	}
 	if m.mode == modeLedger {
-		root, rows, ledgerErr := queryLedger(m.doc, ledgerRoot)
+		root, rows, ledgerErr := queryLedger(m.doc, ledgerRoot, m.evaluation)
 		if ledgerErr != nil {
 			m.mode, m.history = modeTop, nil
 			m.setMessage("ledger root changed; returned to Top", messageError)
@@ -126,6 +131,6 @@ func (m Model) refreshFromDisk(check diskContents) Model {
 	return m.ensureSelectionVisible()
 }
 
-func queryLedger(doc *argument.Document, root string) (string, []query.LedgerRow, error) {
-	return query.Ledger(doc, root)
+func queryLedger(doc *argument.Document, root string, evaluated evaluation.Result) (string, []query.LedgerRow, error) {
+	return query.LedgerEvaluated(doc, root, evaluated)
 }

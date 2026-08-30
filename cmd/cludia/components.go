@@ -25,6 +25,7 @@ type componentSummaryOutput struct {
 type componentsOutput struct {
 	SchemaVersion int                      `json:"schema_version"`
 	Profile       validation.Profile       `json:"profile"`
+	Evaluation    evaluationMetadata       `json:"evaluation"`
 	Components    []componentSummaryOutput `json:"components"`
 	Diagnostics   []diagnostic.Diagnostic  `json:"diagnostics"`
 }
@@ -32,10 +33,11 @@ type componentsOutput struct {
 type componentOutput struct {
 	SchemaVersion  int                      `json:"schema_version"`
 	Profile        validation.Profile       `json:"profile"`
+	Evaluation     evaluationMetadata       `json:"evaluation"`
 	Anchor         string                   `json:"anchor"`
 	Isolated       bool                     `json:"isolated"`
-	Statements     []argument.Statement     `json:"statements"`
-	Junctors       []argument.Junctor       `json:"junctors"`
+	Statements     []evaluatedStatement     `json:"statements"`
+	Junctors       []evaluatedJunctor       `json:"junctors"`
 	DirectSupports []argument.DirectSupport `json:"direct_supports"`
 	Defeats        []argument.Defeat        `json:"defeats"`
 	Diagnostics    []diagnostic.Diagnostic  `json:"diagnostics"`
@@ -63,8 +65,15 @@ func runComponents(args []string, stdout, stderr io.Writer) error {
 		}
 		return errValidationFailed
 	}
+	evaluated, evaluationDiagnostics := evaluateDocument(doc)
+	if diagnostic.HasErrors(evaluationDiagnostics) {
+		if err := writeFailure(stdout, *jsonOutput, profile, evaluationDiagnostics); err != nil {
+			return err
+		}
+		return errValidationFailed
+	}
 	output := componentsOutput{
-		SchemaVersion: outputSchemaVersion, Profile: profile,
+		SchemaVersion: outputSchemaVersion, Profile: profile, Evaluation: evaluationMeta(evaluated),
 		Components: []componentSummaryOutput{}, Diagnostics: diagnostics,
 	}
 	for _, component := range query.Components(doc) {
@@ -117,6 +126,13 @@ func runComponent(args []string, stdout, stderr io.Writer) error {
 		}
 		return errValidationFailed
 	}
+	evaluated, evaluationDiagnostics := evaluateDocument(doc)
+	if diagnostic.HasErrors(evaluationDiagnostics) {
+		if err := writeFailure(stdout, *jsonOutput, profile, evaluationDiagnostics); err != nil {
+			return err
+		}
+		return errValidationFailed
+	}
 	component, ok := query.ComponentContaining(doc, fs.Arg(1))
 	if !ok {
 		diagnostics := diagnosticError("element_not_found", fmt.Sprintf("statement or junctor %q not found", fs.Arg(1)), fs.Arg(1))
@@ -126,11 +142,17 @@ func runComponent(args []string, stdout, stderr io.Writer) error {
 		return errValidationFailed
 	}
 	output := componentOutput{
-		SchemaVersion: outputSchemaVersion, Profile: profile,
+		SchemaVersion: outputSchemaVersion, Profile: profile, Evaluation: evaluationMeta(evaluated),
 		Anchor: component.Anchor, Isolated: component.Isolated,
-		Statements: component.Statements, Junctors: component.Junctors,
+		Statements: []evaluatedStatement{}, Junctors: []evaluatedJunctor{},
 		DirectSupports: component.DirectSupports, Defeats: component.Defeats,
 		Diagnostics: diagnostics,
+	}
+	for _, statement := range component.Statements {
+		output.Statements = append(output.Statements, evaluatedStatementFor(statement, evaluated))
+	}
+	for _, junctor := range component.Junctors {
+		output.Junctors = append(output.Junctors, evaluatedJunctorFor(junctor, evaluated))
 	}
 	if *jsonOutput {
 		return writeIndentedJSON(stdout, output)
@@ -150,10 +172,10 @@ func writeHumanComponent(w io.Writer, output componentOutput) {
 		if statement.Slug != "" {
 			fmt.Fprintf(w, ":%s", statement.Slug)
 		}
-		fmt.Fprintf(w, "\t%s\n", statement.Text)
+		fmt.Fprintf(w, "\t%s\t%s\n", formatTruthStatus(statement), statement.Text)
 	}
 	for _, junctor := range output.Junctors {
-		fmt.Fprintf(w, "junctor %s#%s(%s) -> %s\n", junctor.Connector, junctor.ID, strings.Join(junctor.Sources, ", "), junctor.Target)
+		fmt.Fprintf(w, "junctor %s#%s(%s) -> %s\t%s\n", junctor.Connector, junctor.ID, strings.Join(junctor.Sources, ", "), junctor.Target, junctor.EffectiveTruth)
 	}
 	for _, support := range output.DirectSupports {
 		fmt.Fprintf(w, "direct %s(%s) -> %s\n", support.Connector, support.Source, support.Target)

@@ -17,7 +17,7 @@ import (
 	"github.com/tunesmith/cludia/internal/workspace"
 )
 
-const outputSchemaVersion = 1
+const outputSchemaVersion = 2
 
 var (
 	version             = "dev"
@@ -125,6 +125,8 @@ func run(args []string, stdout, stderr io.Writer) error {
 		return runRenameSlug(args[1:], stdout, stderr)
 	case "guidance":
 		return runGuidance(args[1:], stdout, stderr)
+	case "evaluate":
+		return runEvaluate(args[1:], stdout, stderr)
 	case "validate", "check":
 		return runValidate(args[1:], stdout, stderr)
 	case "help":
@@ -218,6 +220,8 @@ func writeCommandUsage(w io.Writer, command string) bool {
 		writeRenameSlugUsage(w)
 	case "guidance":
 		writeGuidanceUsage(w)
+	case "evaluate":
+		writeEvaluateUsage(w)
 	case "validate":
 		writeValidateUsage(w)
 	case "check":
@@ -357,6 +361,7 @@ func writeTopLevelUsage(w io.Writer) {
 	fmt.Fprintln(w, "  cludia export [--json] FILE --root STATEMENT --output FILE")
 	fmt.Fprintln(w, "  cludia rename-slug [--json] FILE STATEMENT (--slug SLUG | --from-text | --clear)")
 	fmt.Fprintln(w, "  cludia guidance [--json]")
+	fmt.Fprintln(w, "  cludia evaluate [--json] FILE")
 	fmt.Fprintln(w, "  cludia validate [--profile PROFILE] [--json] FILE")
 	fmt.Fprintln(w, "  cludia check [--profile PROFILE] [--json] FILE")
 	fmt.Fprintln(w, "  cludia version")

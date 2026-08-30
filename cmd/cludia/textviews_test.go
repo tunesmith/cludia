@@ -23,7 +23,7 @@ func TestTopJSONAndHumanContract(t *testing.T) {
 	if err := json.Unmarshal(stdout.Bytes(), &raw); err != nil {
 		t.Fatal(err)
 	}
-	assertExactKeys(t, raw, "schema_version", "profile", "document", "statements", "diagnostics")
+	assertExactKeys(t, raw, "schema_version", "profile", "evaluation", "document", "statements", "diagnostics")
 	var output topOutput
 	if err := json.Unmarshal(stdout.Bytes(), &output); err != nil {
 		t.Fatal(err)
@@ -69,7 +69,7 @@ func TestTopFiltersAndPaginatesMatchingStatements(t *testing.T) {
 	if err := json.Unmarshal(stdout.Bytes(), &raw); err != nil {
 		t.Fatal(err)
 	}
-	assertExactKeys(t, raw, "schema_version", "profile", "document", "statements", "diagnostics")
+	assertExactKeys(t, raw, "schema_version", "profile", "evaluation", "document", "statements", "diagnostics")
 	var output topOutput
 	if err := json.Unmarshal(stdout.Bytes(), &output); err != nil {
 		t.Fatal(err)
@@ -111,7 +111,7 @@ func TestLedgerJSONAndHumanContract(t *testing.T) {
 	if err := json.Unmarshal(stdout.Bytes(), &raw); err != nil {
 		t.Fatal(err)
 	}
-	assertExactKeys(t, raw, "schema_version", "profile", "document", "root", "rows", "diagnostics")
+	assertExactKeys(t, raw, "schema_version", "profile", "evaluation", "document", "root", "rows", "diagnostics")
 	var output ledgerOutput
 	if err := json.Unmarshal(stdout.Bytes(), &output); err != nil {
 		t.Fatal(err)
@@ -128,7 +128,7 @@ func TestLedgerJSONAndHumanContract(t *testing.T) {
 	}
 	human := stdout.String()
 	flat := strings.Join(strings.Fields(human), " ")
-	for _, want := range []string{"LABEL", "STATEMENT", "DERIVATION", "AND(P1, P2)", "OR(P3, P4)", "AND(P2) [direct]", "A deliberately long final statement whose complete text must wrap", "without being summarized or omitted"} {
+	for _, want := range []string{"LABEL", "STATEMENT", "DERIVATION", "AND(P1, P2)", "OR(P3, P4)", "AND(P2) [direct]", "A deliberately long final statement whose complete text", "must wrap without being summarized or omitted"} {
 		if !strings.Contains(flat, want) && !strings.Contains(human, want) {
 			t.Fatalf("ledger human missing %q:\n%s", want, human)
 		}

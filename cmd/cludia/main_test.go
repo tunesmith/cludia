@@ -23,7 +23,7 @@ func TestValidateJSONContractAndProfileDetection(t *testing.T) {
 	}
 	assertExactKeys(t, output, "schema_version", "ok", "profile", "document", "stats", "diagnostics")
 	var schemaVersion int
-	if err := json.Unmarshal(output["schema_version"], &schemaVersion); err != nil || schemaVersion != 1 {
+	if err := json.Unmarshal(output["schema_version"], &schemaVersion); err != nil || schemaVersion != 2 {
 		t.Fatalf("schema_version = %d, err %v", schemaVersion, err)
 	}
 	var profile string

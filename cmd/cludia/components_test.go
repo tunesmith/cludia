@@ -16,7 +16,7 @@ func TestComponentsListsDeterministicSummaries(t *testing.T) {
 	if err := json.Unmarshal(stdout.Bytes(), &raw); err != nil {
 		t.Fatalf("decode components JSON: %v", err)
 	}
-	assertExactKeys(t, raw, "schema_version", "profile", "components", "diagnostics")
+	assertExactKeys(t, raw, "schema_version", "profile", "evaluation", "components", "diagnostics")
 	var output componentsOutput
 	if err := json.Unmarshal(stdout.Bytes(), &output); err != nil {
 		t.Fatalf("decode typed components JSON: %v", err)
@@ -42,7 +42,7 @@ func TestComponentShowsCompleteIslandByJunctor(t *testing.T) {
 	if err := json.Unmarshal(stdout.Bytes(), &raw); err != nil {
 		t.Fatalf("decode component JSON: %v", err)
 	}
-	assertExactKeys(t, raw, "schema_version", "profile", "anchor", "isolated", "statements", "junctors", "direct_supports", "defeats", "diagnostics")
+	assertExactKeys(t, raw, "schema_version", "profile", "evaluation", "anchor", "isolated", "statements", "junctors", "direct_supports", "defeats", "diagnostics")
 	var output componentOutput
 	if err := json.Unmarshal(stdout.Bytes(), &output); err != nil {
 		t.Fatalf("decode typed component JSON: %v", err)

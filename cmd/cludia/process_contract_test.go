@@ -34,7 +34,7 @@ func TestCLIProcessContract(t *testing.T) {
 			t.Fatal(err)
 		}
 		var schemaVersion int
-		if err := json.Unmarshal(output["schema_version"], &schemaVersion); err != nil || schemaVersion != 1 {
+		if err := json.Unmarshal(output["schema_version"], &schemaVersion); err != nil || schemaVersion != 2 {
 			t.Fatalf("schema version=%d, err=%v", schemaVersion, err)
 		}
 		if got := strings.TrimSpace(string(output["diagnostics"])); got != "[]" {

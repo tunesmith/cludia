@@ -5,21 +5,28 @@ import (
 	"sort"
 
 	"github.com/tunesmith/cludia/internal/argument"
+	"github.com/tunesmith/cludia/internal/evaluation"
 )
 
 // TopItem is one non-counterpoint statement with no outgoing support.
 type TopItem struct {
-	Statement  argument.Statement `json:"statement"`
-	Depth      int                `json:"depth"`
-	Challenged bool               `json:"challenged"`
+	Statement      argument.Statement     `json:"statement"`
+	Depth          int                    `json:"depth"`
+	Challenged     bool                   `json:"challenged"`
+	EffectiveTruth argument.Truth         `json:"effective_truth"`
+	TruthSource    evaluation.TruthSource `json:"truth_source"`
+	Acceptance     evaluation.Acceptance  `json:"acceptance,omitempty"`
 }
 
 // LedgerRow is one statement in a stable topological support derivation.
 type LedgerRow struct {
-	Statement   argument.Statement `json:"statement"`
-	Depth       int                `json:"depth"`
-	Challenged  bool               `json:"challenged"`
-	Derivations []Support          `json:"derivations"`
+	Statement      argument.Statement     `json:"statement"`
+	Depth          int                    `json:"depth"`
+	Challenged     bool                   `json:"challenged"`
+	Derivations    []Support              `json:"derivations"`
+	EffectiveTruth argument.Truth         `json:"effective_truth"`
+	TruthSource    evaluation.TruthSource `json:"truth_source"`
+	Acceptance     evaluation.Acceptance  `json:"acceptance,omitempty"`
 }
 
 // Top returns non-counterpoint support sinks in document order.
@@ -46,6 +53,17 @@ func Top(doc *argument.Document) []TopItem {
 			Statement: statement, Depth: depths[statement.ID],
 			Challenged: StatementChallenged(doc, statement.ID),
 		})
+	}
+	return items
+}
+
+func TopEvaluated(doc *argument.Document, evaluated evaluation.Result) []TopItem {
+	items := Top(doc)
+	for index := range items {
+		value, _ := evaluated.Statement(items[index].Statement.ID)
+		items[index].EffectiveTruth = value.EffectiveTruth
+		items[index].TruthSource = value.TruthSource
+		items[index].Acceptance = value.Acceptance
 	}
 	return items
 }
@@ -159,6 +177,20 @@ func Ledger(doc *argument.Document, reference string) (string, []LedgerRow, erro
 		})
 	}
 	return root.ID, rows, nil
+}
+
+func LedgerEvaluated(doc *argument.Document, reference string, evaluated evaluation.Result) (string, []LedgerRow, error) {
+	root, rows, err := Ledger(doc, reference)
+	if err != nil {
+		return "", nil, err
+	}
+	for index := range rows {
+		value, _ := evaluated.Statement(rows[index].Statement.ID)
+		rows[index].EffectiveTruth = value.EffectiveTruth
+		rows[index].TruthSource = value.TruthSource
+		rows[index].Acceptance = value.Acceptance
+	}
+	return root, rows, nil
 }
 
 // StatementChallenged reports direct statement defeat or an undercut against

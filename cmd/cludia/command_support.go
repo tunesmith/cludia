@@ -8,6 +8,7 @@ import (
 
 	"github.com/tunesmith/cludia/internal/argument"
 	"github.com/tunesmith/cludia/internal/diagnostic"
+	"github.com/tunesmith/cludia/internal/evaluation"
 	"github.com/tunesmith/cludia/internal/validation"
 	"github.com/tunesmith/cludia/internal/workspace"
 )
@@ -30,6 +31,66 @@ type changeOutput struct {
 	Operation   string `json:"operation"`
 	ElementType string `json:"element_type"`
 	ID          string `json:"id"`
+}
+
+type evaluationMetadata struct {
+	SchemaVersion int             `json:"schema_version"`
+	Mode          evaluation.Mode `json:"mode"`
+}
+
+type evaluatedStatement struct {
+	argument.Statement
+	EffectiveTruth argument.Truth         `json:"effective_truth"`
+	TruthSource    evaluation.TruthSource `json:"truth_source"`
+	Acceptance     evaluation.Acceptance  `json:"acceptance,omitempty"`
+}
+
+type evaluatedJunctor struct {
+	argument.Junctor
+	EffectiveTruth argument.Truth `json:"effective_truth"`
+}
+
+func evaluationMeta(result evaluation.Result) evaluationMetadata {
+	return evaluationMetadata{SchemaVersion: result.SchemaVersion, Mode: result.Mode}
+}
+
+func evaluatedStatementFor(statement argument.Statement, result evaluation.Result) evaluatedStatement {
+	value, _ := result.Statement(statement.ID)
+	return evaluatedStatement{
+		Statement: statement, EffectiveTruth: value.EffectiveTruth,
+		TruthSource: value.TruthSource, Acceptance: value.Acceptance,
+	}
+}
+
+func evaluatedJunctorFor(junctor argument.Junctor, result evaluation.Result) evaluatedJunctor {
+	value, _ := result.Junctor(junctor.ID)
+	copy := junctor
+	copy.Sources = append([]string(nil), junctor.Sources...)
+	return evaluatedJunctor{Junctor: copy, EffectiveTruth: value.EffectiveTruth}
+}
+
+func formatTruthStatus(statement evaluatedStatement) string {
+	if statement.TruthSource == evaluation.TruthDerived {
+		return fmt.Sprintf("%s · derived", statement.EffectiveTruth)
+	}
+	if statement.TruthSource == evaluation.TruthUnassigned {
+		return fmt.Sprintf("%s · unassigned", statement.EffectiveTruth)
+	}
+	if statement.Truth != statement.EffectiveTruth {
+		return fmt.Sprintf("%s → %s", statement.Truth, statement.EffectiveTruth)
+	}
+	return string(statement.EffectiveTruth)
+}
+
+func evaluateDocument(doc *argument.Document) (evaluation.Result, []diagnostic.Diagnostic) {
+	result, err := evaluation.Evaluate(doc)
+	if err == nil {
+		return result, []diagnostic.Diagnostic{}
+	}
+	if evaluationErr, ok := err.(*evaluation.Error); ok {
+		return evaluation.Result{}, diagnosticError(evaluationErr.Code, evaluationErr.Message, evaluationErr.Element)
+	}
+	return evaluation.Result{}, diagnosticError("evaluation_failed", err.Error(), doc.ID)
 }
 
 type mutationOutput struct {

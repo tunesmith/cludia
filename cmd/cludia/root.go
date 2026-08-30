@@ -10,6 +10,7 @@ import (
 
 	"github.com/tunesmith/cludia/internal/argument"
 	"github.com/tunesmith/cludia/internal/diagnostic"
+	"github.com/tunesmith/cludia/internal/evaluation"
 	"github.com/tunesmith/cludia/internal/query"
 	"github.com/tunesmith/cludia/internal/validation"
 )
@@ -21,6 +22,7 @@ type rootedOutput struct {
 	Exportable    bool                    `json:"exportable"`
 	Document      *argument.Document      `json:"document"`
 	Stats         statsOutput             `json:"stats"`
+	Evaluation    evaluation.Result       `json:"evaluation"`
 	Diagnostics   []diagnostic.Diagnostic `json:"diagnostics"`
 }
 
@@ -70,6 +72,13 @@ func runRoot(args []string, stdout, stderr io.Writer) error {
 	if diagnostics == nil {
 		diagnostics = []diagnostic.Diagnostic{}
 	}
+	evaluated, evaluationDiagnostics := evaluateDocument(rooted)
+	if diagnostic.HasErrors(evaluationDiagnostics) {
+		if err := writeFailure(stdout, *jsonOutput, validation.ProfileConcludia, evaluationDiagnostics); err != nil {
+			return err
+		}
+		return errValidationFailed
+	}
 	root, _ := rooted.Statement(fs.Arg(1))
 	rootID := fs.Arg(1)
 	if root != nil {
@@ -78,7 +87,7 @@ func runRoot(args []string, stdout, stderr io.Writer) error {
 	output := rootedOutput{
 		SchemaVersion: outputSchemaVersion, Profile: validation.ProfileConcludia,
 		Root: rootID, Exportable: validated.OK(), Document: rooted,
-		Stats: documentStats(rooted), Diagnostics: diagnostics,
+		Stats: documentStats(rooted), Evaluation: evaluated, Diagnostics: diagnostics,
 	}
 	if *jsonOutput {
 		return writeIndentedJSON(stdout, output)
@@ -188,7 +197,9 @@ func writeHumanRooted(w io.Writer, output rootedOutput) {
 	fmt.Fprintf(w, "statements: %d\njunctors: %d\ndirect_supports: %d\ndefeats: %d\n",
 		output.Stats.Statements, output.Stats.Junctors, output.Stats.DirectSupports, output.Stats.Defeats)
 	for _, statement := range output.Document.Statements {
-		fmt.Fprintf(w, "%s[%s] %s\t%s\n", statement.Role, statement.Kind, statement.ID, statement.Text)
+		value, _ := output.Evaluation.Statement(statement.ID)
+		formatted := formatTruthStatus(evaluatedStatement{Statement: statement, EffectiveTruth: value.EffectiveTruth, TruthSource: value.TruthSource, Acceptance: value.Acceptance})
+		fmt.Fprintf(w, "%s[%s] %s\t%s\t%s\n", statement.Role, statement.Kind, statement.ID, formatted, statement.Text)
 	}
 	for _, junctor := range output.Document.Junctors {
 		fmt.Fprintf(w, "%s#%s(%s) -> %s\n", junctor.Connector, junctor.ID, strings.Join(junctor.Sources, ", "), junctor.Target)

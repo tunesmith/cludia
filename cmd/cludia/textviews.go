@@ -18,6 +18,7 @@ import (
 type topOutput struct {
 	SchemaVersion int                     `json:"schema_version"`
 	Profile       validation.Profile      `json:"profile"`
+	Evaluation    evaluationMetadata      `json:"evaluation"`
 	Document      documentOutput          `json:"document"`
 	Statements    []query.TopItem         `json:"statements"`
 	Diagnostics   []diagnostic.Diagnostic `json:"diagnostics"`
@@ -26,6 +27,7 @@ type topOutput struct {
 type ledgerOutput struct {
 	SchemaVersion int                     `json:"schema_version"`
 	Profile       validation.Profile      `json:"profile"`
+	Evaluation    evaluationMetadata      `json:"evaluation"`
 	Document      documentOutput          `json:"document"`
 	Root          string                  `json:"root"`
 	Rows          []query.LedgerRow       `json:"rows"`
@@ -63,7 +65,14 @@ func runTop(args []string, stdout, stderr io.Writer) error {
 		}
 		return errValidationFailed
 	}
-	items := query.Top(doc)
+	evaluated, evaluationDiagnostics := evaluateDocument(doc)
+	if diagnostic.HasErrors(evaluationDiagnostics) {
+		if err := writeFailure(stdout, *jsonOutput, profile, evaluationDiagnostics); err != nil {
+			return err
+		}
+		return errValidationFailed
+	}
+	items := query.TopEvaluated(doc, evaluated)
 	if *challengedOnly {
 		filtered := make([]query.TopItem, 0, len(items))
 		for _, item := range items {
@@ -80,7 +89,7 @@ func runTop(args []string, stdout, stderr io.Writer) error {
 	}
 	items = items[start:end]
 	output := topOutput{
-		SchemaVersion: outputSchemaVersion, Profile: profile, Document: documentSummary(doc),
+		SchemaVersion: outputSchemaVersion, Profile: profile, Evaluation: evaluationMeta(evaluated), Document: documentSummary(doc),
 		Statements: items, Diagnostics: nonNilDiagnostics(diagnostics),
 	}
 	if *jsonOutput {
@@ -112,12 +121,19 @@ func runLedger(args []string, stdout, stderr io.Writer) error {
 		}
 		return errValidationFailed
 	}
-	root, rows, err := query.Ledger(doc, fs.Arg(1))
+	evaluated, evaluationDiagnostics := evaluateDocument(doc)
+	if diagnostic.HasErrors(evaluationDiagnostics) {
+		if err := writeFailure(stdout, *jsonOutput, profile, evaluationDiagnostics); err != nil {
+			return err
+		}
+		return errValidationFailed
+	}
+	root, rows, err := query.LedgerEvaluated(doc, fs.Arg(1), evaluated)
 	if err != nil {
 		return writeMutationFailure(stdout, *jsonOutput, profile, "ledger_root_invalid", err.Error(), fs.Arg(1))
 	}
 	output := ledgerOutput{
-		SchemaVersion: outputSchemaVersion, Profile: profile, Document: documentSummary(doc),
+		SchemaVersion: outputSchemaVersion, Profile: profile, Evaluation: evaluationMeta(evaluated), Document: documentSummary(doc),
 		Root: root, Rows: rows, Diagnostics: nonNilDiagnostics(diagnostics),
 	}
 	if *jsonOutput {
@@ -137,7 +153,7 @@ func nonNilDiagnostics(items []diagnostic.Diagnostic) []diagnostic.Diagnostic {
 func writeHumanTop(w io.Writer, output topOutput, width int) {
 	if width < 80 {
 		for _, item := range output.Statements {
-			label := displayLabel(item.Statement.ID, item.Challenged)
+			label := topDisplayLabel(item)
 			depth := ""
 			if item.Depth > 0 {
 				depth = fmt.Sprintf("  depth %d", item.Depth)
@@ -159,7 +175,7 @@ func writeHumanTop(w io.Writer, output topOutput, width int) {
 		for i, line := range lines {
 			labelCell, depthCell := "", ""
 			if i == 0 {
-				labelCell = displayLabel(item.Statement.ID, item.Challenged)
+				labelCell = topDisplayLabel(item)
 				depthCell = depth
 			}
 			fmt.Fprintf(w, "%s  %s  %s\n", padText(labelCell, labelWidth), padText(depthCell, depthWidth), line)
@@ -170,7 +186,7 @@ func writeHumanTop(w io.Writer, output topOutput, width int) {
 func writeHumanLedger(w io.Writer, output ledgerOutput, width int) {
 	if width < 80 {
 		for _, row := range output.Rows {
-			fmt.Fprintln(w, displayLabel(row.Statement.ID, row.Challenged))
+			fmt.Fprintln(w, ledgerDisplayLabel(row))
 			fmt.Fprintln(w, row.Statement.Text)
 			for _, derivation := range ledgerDerivations(row) {
 				fmt.Fprintln(w, derivation)
@@ -196,7 +212,7 @@ func writeHumanLedger(w io.Writer, output ledgerOutput, width int) {
 		for i := 0; i < lineCount; i++ {
 			labelCell := ""
 			if i == 0 {
-				labelCell = displayLabel(row.Statement.ID, row.Challenged)
+				labelCell = ledgerDisplayLabel(row)
 			}
 			statementCell, derivationCell := "", ""
 			if i < len(statementLines) {
@@ -227,6 +243,16 @@ func displayLabel(id string, challenged bool) string {
 		return id + "!"
 	}
 	return id
+}
+
+func topDisplayLabel(item query.TopItem) string {
+	truth := formatTruthStatus(evaluatedStatement{Statement: item.Statement, EffectiveTruth: item.EffectiveTruth, TruthSource: item.TruthSource, Acceptance: item.Acceptance})
+	return displayLabel(item.Statement.ID, item.Challenged) + " " + truth
+}
+
+func ledgerDisplayLabel(row query.LedgerRow) string {
+	truth := formatTruthStatus(evaluatedStatement{Statement: row.Statement, EffectiveTruth: row.EffectiveTruth, TruthSource: row.TruthSource, Acceptance: row.Acceptance})
+	return displayLabel(row.Statement.ID, row.Challenged) + " " + truth
 }
 
 func textViewWidth() int {
@@ -298,7 +324,7 @@ func padText(value string, width int) string {
 func maxDisplayLabelWidthTop(items []query.TopItem, minimum int) int {
 	result := minimum
 	for _, item := range items {
-		result = maxInt(result, runeCount(displayLabel(item.Statement.ID, item.Challenged)))
+		result = maxInt(result, runeCount(topDisplayLabel(item)))
 	}
 	return result
 }
@@ -306,7 +332,7 @@ func maxDisplayLabelWidthTop(items []query.TopItem, minimum int) int {
 func maxDisplayLabelWidthLedger(items []query.LedgerRow, minimum int) int {
 	result := minimum
 	for _, item := range items {
-		result = maxInt(result, runeCount(displayLabel(item.Statement.ID, item.Challenged)))
+		result = maxInt(result, runeCount(ledgerDisplayLabel(item)))
 	}
 	return result
 }

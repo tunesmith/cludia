@@ -23,7 +23,7 @@ func TestTopViewWrapsFullTextMarksChallengesAndNavigates(t *testing.T) {
 	m.width, m.height = 90, 24
 	view := m.View()
 	flat := strings.Join(strings.Fields(view), " ")
-	for _, want := range []string{"TOP · 1 of 2", "LABEL", "DEPTH", "STATEMENT", "L2!", "A deliberately long final statement whose complete text must wrap without being summarized or omitted", "P5!"} {
+	for _, want := range []string{"TOP · 1 of 2", "LABEL", "DEPTH", "STATEMENT", "L2! T · derived", "A deliberately long final statement whose complete text must wrap without being summarized or omitted", "P5! T"} {
 		if !strings.Contains(flat, want) {
 			t.Fatalf("top view missing %q:\n%s", want, view)
 		}
@@ -174,7 +174,7 @@ func TestDetailScopesChallengesAndSupportsNavigationStack(t *testing.T) {
 	m.width, m.height = 100, 32
 	m = m.openDetail("L2")
 	view := m.View()
-	for _, want := range []string{"STATEMENT DETAIL", "L2!", "lemma[fact]", "JUSTIFICATIONS", "1 — AND", "UNDERCUTS", "CP3", "P2"} {
+	for _, want := range []string{"STATEMENT DETAIL", "L2!", "lemma[fact]  T · derived", "JUSTIFICATIONS", "1 — AND", "UNDERCUTS", "CP3", "P2"} {
 		if !strings.Contains(view, want) {
 			t.Fatalf("detail view missing %q:\n%s", want, view)
 		}
@@ -200,6 +200,13 @@ func TestDetailScopesChallengesAndSupportsNavigationStack(t *testing.T) {
 		if !strings.Contains(view, want) {
 			t.Fatalf("counterpoint tree missing %q:\n%s", want, view)
 		}
+	}
+}
+
+func TestCounterpointDetailShowsGroundedAcceptance(t *testing.T) {
+	m := newModel("", testUIDocument(), diskVersion{}).openDetail("CP1")
+	if view := m.View(); !strings.Contains(view, "counterpoint[fact]  T  OUT") {
+		t.Fatalf("counterpoint acceptance missing:\n%s", view)
 	}
 }
 

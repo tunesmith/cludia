@@ -25,7 +25,7 @@ func TestRootJSONReturnsCompleteExportableClosure(t *testing.T) {
 	if err := json.Unmarshal(stdout.Bytes(), &raw); err != nil {
 		t.Fatalf("decode root JSON: %v", err)
 	}
-	assertExactKeys(t, raw, "schema_version", "profile", "root", "exportable", "document", "stats", "diagnostics")
+	assertExactKeys(t, raw, "schema_version", "profile", "root", "exportable", "document", "stats", "evaluation", "diagnostics")
 	var output rootedOutput
 	if err := json.Unmarshal(stdout.Bytes(), &output); err != nil {
 		t.Fatalf("decode typed root JSON: %v", err)
