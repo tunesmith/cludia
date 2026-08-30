@@ -36,6 +36,10 @@ conversational dogfooding. Its
 `.arg` syntax and versioned JSON output remain compatibility-sensitive
 interfaces even before the first public release.
 
+The executable's exit-status, stdout/stderr, structured-failure, collection,
+and mutation-timing guarantees are documented in
+[docs/cli-json.md](docs/cli-json.md).
+
 The principal decisions are:
 
 - CLI and data file before a visual interface.

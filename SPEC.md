@@ -296,6 +296,10 @@ capabilities.
 
 ## 7. CLI and JSON contract
 
+The process-level exit-status, stream, failure, collection, and mutation-timing
+contract is specified in [docs/cli-json.md](docs/cli-json.md) and MUST be tested
+against the compiled `main` entrypoint.
+
 Human-readable output MUST be the default. Every scriptable read and mutation
 MUST support `--json`.
 
