@@ -99,25 +99,9 @@ func runAddBatch(args []string, stdout, stderr io.Writer) error {
 		return writeMutationFailure(stdout, *jsonOutput, profile, "batch_statements_required", "batch input must contain at least one statement", strings.TrimSpace(*inputPath))
 	}
 
-	next := doc.Clone()
-	allocator, err := argument.NewIDAllocator(next)
-	if err != nil {
-		return err
-	}
-	outputs := make([]batchAddStatementOutput, 0, len(input.Statements))
-	changes := make([]changeOutput, 0, len(input.Statements))
+	domainInputs := make([]argument.StatementInput, 0, len(input.Statements))
+	orderedKeys := make([]string, 0, len(input.Statements))
 	keys := make(map[string]bool, len(input.Statements))
-	usedIDs := make(map[string]string, len(next.Statements)+len(next.Junctors)+len(input.Statements))
-	usedSlugs := make(map[string]string, len(next.Statements)+len(input.Statements))
-	for _, statement := range next.Statements {
-		usedIDs[statement.ID] = statement.ID
-		if statement.Slug != "" {
-			usedSlugs[statement.Slug] = statement.ID
-		}
-	}
-	for _, junctor := range next.Junctors {
-		usedIDs[junctor.ID] = junctor.ID
-	}
 	for index, item := range input.Statements {
 		key := strings.TrimSpace(item.Key)
 		if key == "" {
@@ -131,30 +115,9 @@ func runAddBatch(args []string, stdout, stderr io.Writer) error {
 		if text == "" {
 			return writeMutationFailure(stdout, *jsonOutput, profile, "batch_text_required", fmt.Sprintf("batch statement %q requires non-empty text", key), key)
 		}
-		id, allocationErr := allocator.Statement(argument.RolePremise, strings.TrimSpace(item.ID))
-		if allocationErr != nil {
-			return writeIDAllocationFailure(stdout, *jsonOutput, profile, allocationErr)
-		}
-		if !argument.ValidID(id) {
-			return writeMutationFailure(stdout, *jsonOutput, profile, "statement_id_invalid", fmt.Sprintf("batch statement %q has invalid statement id %q", key, id), key)
-		}
-		if owner, exists := usedIDs[id]; exists {
-			return writeMutationFailure(stdout, *jsonOutput, profile, "id_duplicate", fmt.Sprintf("batch statement %q uses id %q already owned by %s", key, id, owner), key)
-		}
 		slug := strings.TrimSpace(item.Slug)
-		if slug == "" {
-			slug = argument.UniqueSlug(next, text)
-		} else if collision := slugIDCollisionDiagnostic(next, slug, id); collision != nil {
-			if err := writeFailure(stdout, *jsonOutput, profile, collision); err != nil {
-				return err
-			}
-			return errValidationFailed
-		}
-		if !argument.ValidSlug(slug) {
+		if slug != "" && !argument.ValidSlug(slug) {
 			return writeMutationFailure(stdout, *jsonOutput, profile, "statement_slug_invalid", fmt.Sprintf("batch statement %q has invalid slug %q", key, slug), key)
-		}
-		if owner, exists := usedSlugs[slug]; exists {
-			return writeMutationFailure(stdout, *jsonOutput, profile, "statement_slug_duplicate", fmt.Sprintf("batch statement %q uses slug %q already owned by %s", key, slug, owner), key)
 		}
 		truthName := strings.TrimSpace(item.Truth)
 		if truthName == "" {
@@ -167,19 +130,34 @@ func runAddBatch(args []string, stdout, stderr io.Writer) error {
 		truth, truthOK := parseTruth(truthName)
 		kind, kindOK := parseKind(kindName)
 		if !truthOK {
-			return writeMutationFailure(stdout, *jsonOutput, profile, "truth_invalid", fmt.Sprintf("invalid truth %q for batch statement %q; expected T, F, or U", item.Truth, key), id)
+			return writeMutationFailure(stdout, *jsonOutput, profile, "truth_invalid", fmt.Sprintf("invalid truth %q for batch statement %q; expected T, F, or U", item.Truth, key), key)
 		}
 		if !kindOK {
-			return writeMutationFailure(stdout, *jsonOutput, profile, "kind_invalid", fmt.Sprintf("invalid kind %q for batch statement %q; expected fact or value", item.Kind, key), id)
+			return writeMutationFailure(stdout, *jsonOutput, profile, "kind_invalid", fmt.Sprintf("invalid kind %q for batch statement %q; expected fact or value", item.Kind, key), key)
 		}
-		statement := argument.Statement{ID: id, Slug: slug, Role: argument.RolePremise, Kind: kind, Truth: truth, Text: text}
-		next.Statements = append(next.Statements, statement)
-		usedIDs[id] = key
-		usedSlugs[slug] = key
-		outputs = append(outputs, batchAddStatementOutput{Key: key, Statement: statement})
-		changes = append(changes, changeOutput{Operation: "added", ElementType: "statement", ID: id})
+		orderedKeys = append(orderedKeys, key)
+		domainInputs = append(domainInputs, argument.StatementInput{
+			Text: text, RequestedID: strings.TrimSpace(item.ID), Slug: slug, Truth: truth, Kind: kind,
+		})
 	}
-	changes = appendMetadataChange(changes, persistIDAllocator(next, allocator))
+	next, statements, err := argument.AddStatements(doc, domainInputs)
+	if err != nil {
+		if batchErr, ok := err.(*argument.BatchStatementError); ok {
+			key := orderedKeys[batchErr.Index]
+			if mutationErr, ok := batchErr.Err.(*argument.MutationError); ok {
+				return writeMutationFailure(stdout, *jsonOutput, profile, mutationErr.Code, mutationErr.Message, key)
+			}
+			return writeArgumentMutationFailure(stdout, *jsonOutput, profile, batchErr.Err)
+		}
+		return writeArgumentMutationFailure(stdout, *jsonOutput, profile, err)
+	}
+	outputs := make([]batchAddStatementOutput, 0, len(statements))
+	changes := make([]changeOutput, 0, len(statements)+1)
+	for index, statement := range statements {
+		outputs = append(outputs, batchAddStatementOutput{Key: orderedKeys[index], Statement: statement})
+		changes = append(changes, changeOutput{Operation: "added", ElementType: "statement", ID: statement.ID})
+	}
+	changes = appendMetadataChange(changes, nextIDsMetadataChange(doc, next))
 	validated := validation.Validate(next, profile)
 	if !validated.OK() {
 		if err := writeFailure(stdout, *jsonOutput, profile, validated.Diagnostics); err != nil {

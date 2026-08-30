@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/tunesmith/cludia/internal/argfile"
+	"github.com/tunesmith/cludia/internal/argument"
 	"github.com/tunesmith/cludia/internal/diagnostic"
 	"github.com/tunesmith/cludia/internal/validation"
 )
@@ -49,42 +50,28 @@ func runEdit(args []string, stdout, stderr io.Writer) error {
 		}
 		return errValidationFailed
 	}
-	statement, ok := doc.Statement(fs.Arg(1))
-	if !ok {
-		diagnostics := diagnosticError("statement_not_found", fmt.Sprintf("statement %q not found", fs.Arg(1)), fs.Arg(1))
-		if err := writeFailure(stdout, *jsonOutput, profile, diagnostics); err != nil {
-			return err
-		}
-		return errValidationFailed
-	}
-
-	next := doc.Clone()
-	edited, _ := next.Statement(statement.ID)
-	previous := *edited
+	options := argument.EditStatementOptions{Reference: fs.Arg(1)}
 	if text.set {
-		edited.Text = strings.TrimSpace(text.value)
+		value := strings.TrimSpace(text.value)
+		options.Text = &value
 	}
 	if truthName.set {
 		truth, ok := parseTruth(truthName.value)
 		if !ok {
-			diagnostics := diagnosticError("truth_invalid", fmt.Sprintf("invalid truth %q; expected T, F, or U", truthName.value), edited.ID)
-			if err := writeFailure(stdout, *jsonOutput, profile, diagnostics); err != nil {
-				return err
-			}
-			return errValidationFailed
+			return writeMutationFailure(stdout, *jsonOutput, profile, "truth_invalid", fmt.Sprintf("invalid truth %q; expected T, F, or U", truthName.value), fs.Arg(1))
 		}
-		edited.Truth = truth
+		options.Truth = &truth
 	}
 	if kindName.set {
 		kind, ok := parseKind(kindName.value)
 		if !ok {
-			diagnostics := diagnosticError("kind_invalid", fmt.Sprintf("invalid kind %q; expected fact or value", kindName.value), edited.ID)
-			if err := writeFailure(stdout, *jsonOutput, profile, diagnostics); err != nil {
-				return err
-			}
-			return errValidationFailed
+			return writeMutationFailure(stdout, *jsonOutput, profile, "kind_invalid", fmt.Sprintf("invalid kind %q; expected fact or value", kindName.value), fs.Arg(1))
 		}
-		edited.Kind = kind
+		options.Kind = &kind
+	}
+	next, result, err := argument.EditStatement(doc, options)
+	if err != nil {
+		return writeArgumentMutationFailure(stdout, *jsonOutput, profile, err)
 	}
 	validated := validation.Validate(next, profile)
 	if !validated.OK() {
@@ -93,8 +80,7 @@ func runEdit(args []string, stdout, stderr io.Writer) error {
 		}
 		return errValidationFailed
 	}
-	changed := *edited != previous
-	if changed {
+	if result.Changed {
 		if err := argfile.SaveAtomic(fs.Arg(0), next); err != nil {
 			return err
 		}
@@ -104,13 +90,13 @@ func runEdit(args []string, stdout, stderr io.Writer) error {
 		diagnostics = []diagnostic.Diagnostic{}
 	}
 	changes := []changeOutput{}
-	if changed {
-		changes = append(changes, changeOutput{Operation: "updated", ElementType: "statement", ID: edited.ID})
+	if result.Changed {
+		changes = append(changes, changeOutput{Operation: "updated", ElementType: "statement", ID: result.Current.ID})
 	}
 	output := mutationOutput{
 		SchemaVersion: outputSchemaVersion, Action: "edit", DryRun: false,
-		Profile: profile, Document: documentSummary(next), Statement: *edited,
-		PreviousStatement: &previous, Changes: changes, Diagnostics: diagnostics,
+		Profile: profile, Document: documentSummary(next), Statement: result.Current,
+		PreviousStatement: &result.Previous, Changes: changes, Diagnostics: diagnostics,
 	}
 	if text.set {
 		asserted := true

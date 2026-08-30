@@ -123,6 +123,29 @@ func writeIDAllocationFailure(stdout io.Writer, jsonOutput bool, profile validat
 	return err
 }
 
+func writeArgumentMutationFailure(stdout io.Writer, jsonOutput bool, profile validation.Profile, err error) error {
+	if _, ok := err.(*argument.IDAllocationError); ok {
+		return writeIDAllocationFailure(stdout, jsonOutput, profile, err)
+	}
+	if mutationErr, ok := err.(*argument.MutationError); ok {
+		return writeMutationFailure(stdout, jsonOutput, profile, mutationErr.Code, mutationErr.Message, mutationErr.Element)
+	}
+	return err
+}
+
+func nextIDsMetadataChange(before, after *argument.Document) *changeOutput {
+	previous, existed := before.MetadataValue(argument.NextIDsMetadataKey)
+	current, _ := after.MetadataValue(argument.NextIDsMetadataKey)
+	if existed && previous == current {
+		return nil
+	}
+	operation := "added"
+	if existed {
+		operation = "updated"
+	}
+	return &changeOutput{Operation: operation, ElementType: "metadata", ID: argument.NextIDsMetadataKey}
+}
+
 func persistIDAllocator(doc *argument.Document, allocator *argument.IDAllocator) *changeOutput {
 	previous, existed := doc.MetadataValue(argument.NextIDsMetadataKey)
 	allocator.Persist(doc)

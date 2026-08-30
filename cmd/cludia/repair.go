@@ -95,35 +95,17 @@ func mutateJunctorSource(path, junctorID, sourceRef string, add, dryRun, jsonOut
 		}
 		return errValidationFailed
 	}
-	next := doc.Clone()
-	junctor, ok := next.Junctor(junctorID)
-	if !ok {
-		return writeMutationFailure(stdout, jsonOutput, profile, "junctor_not_found", fmt.Sprintf("junctor %q not found", junctorID), junctorID)
-	}
-	if junctor.Connector != argument.ConnectorAND {
-		return writeMutationFailure(stdout, jsonOutput, profile, "junctor_not_editable", fmt.Sprintf("focused repair edits only AND junctors; %s uses %s", junctor.ID, junctor.Connector), junctor.ID)
-	}
-	source, ok := next.Statement(strings.TrimSpace(sourceRef))
-	if !ok {
-		return writeMutationFailure(stdout, jsonOutput, profile, "source_not_found", fmt.Sprintf("source statement %q not found", sourceRef), sourceRef)
-	}
-	previous := copyJunctor(*junctor)
 	action := "remove-source"
+	mode := argument.SourceRemove
 	if add {
 		action = "add-source"
-		junctor.Sources = append(junctor.Sources, source.ID)
-	} else {
-		index := -1
-		for i, id := range junctor.Sources {
-			if id == source.ID {
-				index = i
-				break
-			}
-		}
-		if index < 0 {
-			return writeMutationFailure(stdout, jsonOutput, profile, "junctor_source_not_found", fmt.Sprintf("statement %s is not a source of junctor %s", source.ID, junctor.ID), source.ID)
-		}
-		junctor.Sources = append(junctor.Sources[:index], junctor.Sources[index+1:]...)
+		mode = argument.SourceAdd
+	}
+	next, result, err := argument.RepairJunctor(doc, argument.RepairJunctorOptions{
+		JunctorID: junctorID, Mode: mode, SourceRef: sourceRef,
+	})
+	if err != nil {
+		return writeArgumentMutationFailure(stdout, jsonOutput, profile, err)
 	}
 	validated := validation.Validate(next, profile)
 	if !validated.OK() {
@@ -141,17 +123,17 @@ func mutateJunctorSource(path, junctorID, sourceRef string, add, dryRun, jsonOut
 	if diagnostics == nil {
 		diagnostics = []diagnostic.Diagnostic{}
 	}
-	current := copyJunctor(*junctor)
+	current := result.Current
 	output := junctorMutationOutput{
 		SchemaVersion: outputSchemaVersion, Action: action, DryRun: dryRun,
 		Profile: profile, Document: documentSummary(next), Junctor: &current,
-		PreviousJunctor: previous, Changes: []changeOutput{{Operation: "updated", ElementType: "junctor", ID: junctor.ID}},
+		PreviousJunctor: result.Previous, Changes: []changeOutput{{Operation: "updated", ElementType: "junctor", ID: result.Current.ID}},
 		Diagnostics: diagnostics,
 	}
 	if add {
-		output.SourceAdded = source.ID
+		output.SourceAdded = result.SourceAdded
 	} else {
-		output.SourceRemoved = source.ID
+		output.SourceRemoved = result.SourceRemoved
 	}
 	return writeJunctorMutation(stdout, jsonOutput, output)
 }
@@ -164,42 +146,12 @@ func replaceJunctorSource(path, junctorID, fromRef, toRef string, dryRun, jsonOu
 		}
 		return errValidationFailed
 	}
-	next := doc.Clone()
-	junctor, ok := next.Junctor(junctorID)
-	if !ok {
-		return writeMutationFailure(stdout, jsonOutput, profile, "junctor_not_found", fmt.Sprintf("junctor %q not found", junctorID), junctorID)
+	next, result, err := argument.RepairJunctor(doc, argument.RepairJunctorOptions{
+		JunctorID: junctorID, Mode: argument.SourceReplace, FromRef: fromRef, ToRef: toRef,
+	})
+	if err != nil {
+		return writeArgumentMutationFailure(stdout, jsonOutput, profile, err)
 	}
-	if junctor.Connector != argument.ConnectorAND {
-		return writeMutationFailure(stdout, jsonOutput, profile, "junctor_not_editable", fmt.Sprintf("focused repair edits only AND junctors; %s uses %s", junctor.ID, junctor.Connector), junctor.ID)
-	}
-	from, ok := next.Statement(strings.TrimSpace(fromRef))
-	if !ok {
-		return writeMutationFailure(stdout, jsonOutput, profile, "source_not_found", fmt.Sprintf("source statement %q not found", fromRef), fromRef)
-	}
-	to, ok := next.Statement(strings.TrimSpace(toRef))
-	if !ok {
-		return writeMutationFailure(stdout, jsonOutput, profile, "source_not_found", fmt.Sprintf("source statement %q not found", toRef), toRef)
-	}
-	index := -1
-	for i, id := range junctor.Sources {
-		if id == from.ID {
-			index = i
-			break
-		}
-	}
-	if index < 0 {
-		return writeMutationFailure(stdout, jsonOutput, profile, "junctor_source_not_found", fmt.Sprintf("statement %s is not a source of junctor %s", from.ID, junctor.ID), from.ID)
-	}
-	if from.ID == to.ID {
-		return writeMutationFailure(stdout, jsonOutput, profile, "source_replacement_same_statement", fmt.Sprintf("replacement source for junctor %s must differ from %s", junctor.ID, from.ID), from.ID)
-	}
-	for _, id := range junctor.Sources {
-		if id == to.ID {
-			return writeMutationFailure(stdout, jsonOutput, profile, "junctor_source_duplicate", fmt.Sprintf("statement %s is already a source of junctor %s", to.ID, junctor.ID), to.ID)
-		}
-	}
-	previous := copyJunctor(*junctor)
-	junctor.Sources[index] = to.ID
 	validated := validation.Validate(next, profile)
 	if !validated.OK() {
 		if err := writeFailure(stdout, jsonOutput, profile, validated.Diagnostics); err != nil {
@@ -216,12 +168,12 @@ func replaceJunctorSource(path, junctorID, fromRef, toRef string, dryRun, jsonOu
 	if diagnostics == nil {
 		diagnostics = []diagnostic.Diagnostic{}
 	}
-	current := copyJunctor(*junctor)
+	current := result.Current
 	output := junctorMutationOutput{
 		SchemaVersion: outputSchemaVersion, Action: "replace-source", DryRun: dryRun,
 		Profile: profile, Document: documentSummary(next), Junctor: &current,
-		PreviousJunctor: previous, SourceAdded: to.ID, SourceRemoved: from.ID,
-		Changes:     []changeOutput{{Operation: "updated", ElementType: "junctor", ID: junctor.ID}},
+		PreviousJunctor: result.Previous, SourceAdded: result.SourceAdded, SourceRemoved: result.SourceRemoved,
+		Changes:     []changeOutput{{Operation: "updated", ElementType: "junctor", ID: result.Current.ID}},
 		Diagnostics: diagnostics,
 	}
 	return writeJunctorMutation(stdout, jsonOutput, output)
@@ -250,26 +202,9 @@ func runRemoveJunctor(args []string, stdout, stderr io.Writer) error {
 		}
 		return errValidationFailed
 	}
-	next := doc.Clone()
-	metadataChange, err := ensureNextIDs(next)
+	next, result, err := argument.RemoveJunctor(doc, fs.Arg(1))
 	if err != nil {
-		return err
-	}
-	junctor, ok := next.Junctor(fs.Arg(1))
-	if !ok {
-		return writeMutationFailure(stdout, *jsonOutput, profile, "junctor_not_found", fmt.Sprintf("junctor %q not found", fs.Arg(1)), fs.Arg(1))
-	}
-	for _, defeat := range next.Defeats {
-		if defeat.Scope == argument.DefeatInference && defeat.JunctorID == junctor.ID {
-			return writeMutationFailure(stdout, *jsonOutput, profile, "junctor_has_undercuts", fmt.Sprintf("junctor %s is targeted by undercut %s; remove the counterpoint first", junctor.ID, defeat.From), junctor.ID)
-		}
-	}
-	previous := copyJunctor(*junctor)
-	for i := range next.Junctors {
-		if next.Junctors[i].ID == junctor.ID {
-			next.Junctors = append(next.Junctors[:i], next.Junctors[i+1:]...)
-			break
-		}
+		return writeArgumentMutationFailure(stdout, *jsonOutput, profile, err)
 	}
 	validated := validation.Validate(next, profile)
 	if !validated.OK() {
@@ -289,10 +224,10 @@ func runRemoveJunctor(args []string, stdout, stderr io.Writer) error {
 	}
 	output := junctorMutationOutput{
 		SchemaVersion: outputSchemaVersion, Action: "remove-junctor", DryRun: *dryRun,
-		Profile: profile, Document: documentSummary(next), PreviousJunctor: previous,
+		Profile: profile, Document: documentSummary(next), PreviousJunctor: result.Previous,
 		Changes: appendMetadataChange(
-			[]changeOutput{{Operation: "removed", ElementType: "junctor", ID: previous.ID}},
-			metadataChange,
+			[]changeOutput{{Operation: "removed", ElementType: "junctor", ID: result.Previous.ID}},
+			nextIDsMetadataChange(doc, next),
 		),
 		Diagnostics: diagnostics,
 	}

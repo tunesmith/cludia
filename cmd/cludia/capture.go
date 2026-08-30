@@ -53,37 +53,32 @@ func runInit(args []string, stdout, stderr io.Writer) error {
 			id = "workspace"
 		}
 	}
-	doc := &argument.Document{
-		ID: id, Title: cleanTitle,
-		Metadata: []argument.Metadata{{Key: "profile", Value: "workspace"}, {Key: "version", Value: "0.1.0"}},
-	}
-	allocator, err := argument.NewIDAllocator(doc)
-	if err != nil {
-		return err
-	}
-	firstID, err := allocator.Statement(argument.RolePremise, strings.TrimSpace(*statementID))
-	if err != nil {
-		return writeIDAllocationFailure(stdout, *jsonOutput, validation.ProfileWorkspace, err)
-	}
 	truth, truthOK := parseTruth(*truthName)
 	kind, kindOK := parseKind(*kindName)
-	firstSlug := strings.TrimSpace(*slug)
-	if firstSlug == "" {
-		firstSlug = argument.UniqueSlug(&argument.Document{}, cleanText)
-	}
-	doc.Statements = []argument.Statement{{ID: firstID, Slug: firstSlug, Role: argument.RolePremise, Kind: kind, Truth: truth, Text: cleanText}}
-	metadataChange := persistIDAllocator(doc, allocator)
 	var diagnostics []diagnostic.Diagnostic
 	if !truthOK {
-		diagnostics = append(diagnostics, diagnostic.Diagnostic{Code: "truth_invalid", Message: fmt.Sprintf("invalid truth %q; expected T, F, or U", *truthName), Severity: diagnostic.SeverityError, Element: firstID})
+		diagnostics = append(diagnostics, diagnostic.Diagnostic{Code: "truth_invalid", Message: fmt.Sprintf("invalid truth %q; expected T, F, or U", *truthName), Severity: diagnostic.SeverityError, Element: strings.TrimSpace(*statementID)})
 	}
 	if !kindOK {
-		diagnostics = append(diagnostics, diagnostic.Diagnostic{Code: "kind_invalid", Message: fmt.Sprintf("invalid kind %q; expected fact or value", *kindName), Severity: diagnostic.SeverityError, Element: firstID})
+		diagnostics = append(diagnostics, diagnostic.Diagnostic{Code: "kind_invalid", Message: fmt.Sprintf("invalid kind %q; expected fact or value", *kindName), Severity: diagnostic.SeverityError, Element: strings.TrimSpace(*statementID)})
 	}
-	if !diagnostic.HasErrors(diagnostics) {
-		validated := validation.Validate(doc, validation.ProfileWorkspace)
-		diagnostics = append(diagnostics, validated.Diagnostics...)
+	if diagnostic.HasErrors(diagnostics) {
+		if err := writeFailure(stdout, *jsonOutput, validation.ProfileWorkspace, diagnostics); err != nil {
+			return err
+		}
+		return errValidationFailed
 	}
+	doc, first, err := argument.InitializeDocument(argument.InitializeOptions{
+		DocumentID: id, Title: cleanTitle,
+		Statement: argument.StatementInput{
+			Text: cleanText, RequestedID: strings.TrimSpace(*statementID), Slug: strings.TrimSpace(*slug), Truth: truth, Kind: kind,
+		},
+	})
+	if err != nil {
+		return writeArgumentMutationFailure(stdout, *jsonOutput, validation.ProfileWorkspace, err)
+	}
+	validated := validation.Validate(doc, validation.ProfileWorkspace)
+	diagnostics = append(diagnostics, validated.Diagnostics...)
 	if diagnostic.HasErrors(diagnostics) {
 		if err := writeFailure(stdout, *jsonOutput, validation.ProfileWorkspace, diagnostics); err != nil {
 			return err
@@ -98,11 +93,11 @@ func runInit(args []string, stdout, stderr io.Writer) error {
 	}
 	output := mutationOutput{
 		SchemaVersion: outputSchemaVersion, Action: "init", DryRun: false,
-		Profile: validation.ProfileWorkspace, Document: documentSummary(doc), Statement: doc.Statements[0],
+		Profile: validation.ProfileWorkspace, Document: documentSummary(doc), Statement: first,
 		Changes: appendMetadataChange([]changeOutput{
 			{Operation: "created", ElementType: "document", ID: doc.ID},
-			{Operation: "added", ElementType: "statement", ID: firstID},
-		}, metadataChange),
+			{Operation: "added", ElementType: "statement", ID: first.ID},
+		}, nextIDsMetadataChange(&argument.Document{}, doc)),
 		Diagnostics: []diagnostic.Diagnostic{},
 	}
 	return writeMutation(stdout, *jsonOutput, output)
@@ -137,39 +132,22 @@ func runAdd(args []string, stdout, stderr io.Writer) error {
 		return errValidationFailed
 	}
 
-	next := doc.Clone()
-	allocator, err := argument.NewIDAllocator(next)
-	if err != nil {
-		return err
-	}
-	id, err := allocator.Statement(argument.RolePremise, strings.TrimSpace(*idName))
-	if err != nil {
-		return writeIDAllocationFailure(stdout, *jsonOutput, profile, err)
-	}
-	slug := strings.TrimSpace(*slugName)
-	if slug == "" {
-		slug = argument.UniqueSlug(next, *text)
-	} else if collision := slugIDCollisionDiagnostic(next, slug, id); collision != nil {
-		if err := writeFailure(stdout, *jsonOutput, profile, collision); err != nil {
-			return err
-		}
-		return errValidationFailed
-	}
 	truth, truthOK := parseTruth(*truthName)
 	kind, kindOK := parseKind(*kindName)
-	statement := argument.Statement{ID: id, Slug: slug, Role: argument.RolePremise, Kind: kind, Truth: truth, Text: strings.TrimSpace(*text)}
-	next.Statements = append(next.Statements, statement)
-	metadataChange := persistIDAllocator(next, allocator)
 	if !truthOK {
-		diagnostics = append(diagnostics, diagnostic.Diagnostic{Code: "truth_invalid", Message: fmt.Sprintf("invalid truth %q; expected T, F, or U", *truthName), Severity: diagnostic.SeverityError, Element: id})
+		return writeMutationFailure(stdout, *jsonOutput, profile, "truth_invalid", fmt.Sprintf("invalid truth %q; expected T, F, or U", *truthName), strings.TrimSpace(*idName))
 	}
 	if !kindOK {
-		diagnostics = append(diagnostics, diagnostic.Diagnostic{Code: "kind_invalid", Message: fmt.Sprintf("invalid kind %q; expected fact or value", *kindName), Severity: diagnostic.SeverityError, Element: id})
+		return writeMutationFailure(stdout, *jsonOutput, profile, "kind_invalid", fmt.Sprintf("invalid kind %q; expected fact or value", *kindName), strings.TrimSpace(*idName))
 	}
-	if !diagnostic.HasErrors(diagnostics) {
-		validated := validation.Validate(next, profile)
-		diagnostics = append([]diagnostic.Diagnostic(nil), validated.Diagnostics...)
+	next, statement, err := argument.AddStatement(doc, argument.StatementInput{
+		Text: *text, RequestedID: strings.TrimSpace(*idName), Slug: strings.TrimSpace(*slugName), Truth: truth, Kind: kind,
+	})
+	if err != nil {
+		return writeArgumentMutationFailure(stdout, *jsonOutput, profile, err)
 	}
+	validated := validation.Validate(next, profile)
+	diagnostics = append([]diagnostic.Diagnostic(nil), validated.Diagnostics...)
 	if diagnostic.HasErrors(diagnostics) {
 		if err := writeFailure(stdout, *jsonOutput, profile, diagnostics); err != nil {
 			return err
@@ -185,7 +163,7 @@ func runAdd(args []string, stdout, stderr io.Writer) error {
 	output := mutationOutput{
 		SchemaVersion: outputSchemaVersion, Action: "add", DryRun: false,
 		Profile: profile, Document: documentSummary(next), Statement: statement,
-		Changes: appendMetadataChange([]changeOutput{{Operation: "added", ElementType: "statement", ID: id}}, metadataChange), Diagnostics: diagnostics,
+		Changes: appendMetadataChange([]changeOutput{{Operation: "added", ElementType: "statement", ID: statement.ID}}, nextIDsMetadataChange(doc, next)), Diagnostics: diagnostics,
 	}
 	return writeMutation(stdout, *jsonOutput, output)
 }

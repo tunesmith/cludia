@@ -332,53 +332,12 @@ func runRemoveCounterpoint(args []string, stdout, stderr io.Writer) error {
 		}
 		return errValidationFailed
 	}
-	next := doc.Clone()
-	metadataChange, err := ensureNextIDs(next)
+	beforeComponents := len(query.Components(doc))
+	beforeIsolated := query.IsolatedStatementIDs(doc)
+	next, result, err := argument.RemoveCounterpoint(doc, fs.Arg(1))
 	if err != nil {
-		return err
+		return writeArgumentMutationFailure(stdout, *jsonOutput, profile, err)
 	}
-	statement, ok := next.Statement(fs.Arg(1))
-	if !ok {
-		return writeMutationFailure(stdout, *jsonOutput, profile, "counterpoint_not_found", fmt.Sprintf("counterpoint %q not found", fs.Arg(1)), fs.Arg(1))
-	}
-	if statement.Role != argument.RoleCounterpoint {
-		return writeMutationFailure(stdout, *jsonOutput, profile, "counterpoint_role_required", fmt.Sprintf("statement %s has role %s, expected counterpoint", statement.ID, statement.Role), statement.ID)
-	}
-	for _, defeat := range next.Defeats {
-		if defeat.Scope == argument.DefeatCounterpoint && defeat.To == statement.ID {
-			return writeMutationFailure(stdout, *jsonOutput, profile, "counterpoint_has_dependents", fmt.Sprintf("counterpoint %s is targeted by %s; remove dependent counterpoints first", statement.ID, defeat.From), statement.ID)
-		}
-	}
-	for _, junctor := range next.Junctors {
-		if junctor.Target == statement.ID || containsString(junctor.Sources, statement.ID) {
-			return writeMutationFailure(stdout, *jsonOutput, profile, "counterpoint_has_support", fmt.Sprintf("counterpoint %s participates in junctor %s; remove its support relation first", statement.ID, junctor.ID), statement.ID)
-		}
-	}
-	for _, support := range next.DirectSupports {
-		if support.Source == statement.ID || support.Target == statement.ID {
-			return writeMutationFailure(stdout, *jsonOutput, profile, "counterpoint_has_support", fmt.Sprintf("counterpoint %s participates in direct support", statement.ID), statement.ID)
-		}
-	}
-	beforeComponents := len(query.Components(next))
-	beforeIsolated := query.IsolatedStatementIDs(next)
-	removed := *statement
-	removedDefeats := []argument.Defeat{}
-	statements := make([]argument.Statement, 0, len(next.Statements)-1)
-	for _, candidate := range next.Statements {
-		if candidate.ID != statement.ID {
-			statements = append(statements, candidate)
-		}
-	}
-	next.Statements = statements
-	defeats := make([]argument.Defeat, 0, len(next.Defeats))
-	for _, defeat := range next.Defeats {
-		if defeat.From == statement.ID {
-			removedDefeats = append(removedDefeats, defeat)
-		} else {
-			defeats = append(defeats, defeat)
-		}
-	}
-	next.Defeats = defeats
 	validated := validation.Validate(next, profile)
 	if !validated.OK() {
 		if err := writeFailure(stdout, *jsonOutput, profile, validated.Diagnostics); err != nil {
@@ -402,23 +361,23 @@ func runRemoveCounterpoint(args []string, stdout, stderr io.Writer) error {
 	if diagnostics == nil {
 		diagnostics = []diagnostic.Diagnostic{}
 	}
-	changes := []changeOutput{{Operation: "removed", ElementType: "statement", ID: removed.ID}}
-	for range removedDefeats {
-		changes = append(changes, changeOutput{Operation: "removed", ElementType: "defeat", ID: removed.ID})
+	changes := []changeOutput{{Operation: "removed", ElementType: "statement", ID: result.Counterpoint.ID}}
+	for range result.DefeatsRemoved {
+		changes = append(changes, changeOutput{Operation: "removed", ElementType: "defeat", ID: result.Counterpoint.ID})
 	}
-	changes = appendMetadataChange(changes, metadataChange)
+	changes = appendMetadataChange(changes, nextIDsMetadataChange(doc, next))
 	output := counterpointRemovalOutput{
 		SchemaVersion: outputSchemaVersion, Action: "remove-counterpoint", DryRun: *dryRun,
-		Profile: profile, Document: documentSummary(next), Counterpoint: removed,
-		DefeatsRemoved: removedDefeats, ComponentsBefore: beforeComponents,
+		Profile: profile, Document: documentSummary(next), Counterpoint: result.Counterpoint,
+		DefeatsRemoved: result.DefeatsRemoved, ComponentsBefore: beforeComponents,
 		ComponentsAfter: len(query.Components(next)), NewlyIsolated: newlyIsolated,
 		Changes: changes, Diagnostics: diagnostics,
 	}
 	if *jsonOutput {
 		return writeIndentedJSON(stdout, output)
 	}
-	fmt.Fprintf(stdout, "Removed counterpoint %s:%s\n", removed.ID, removed.Slug)
-	for _, defeat := range removedDefeats {
+	fmt.Fprintf(stdout, "Removed counterpoint %s:%s\n", result.Counterpoint.ID, result.Counterpoint.Slug)
+	for _, defeat := range result.DefeatsRemoved {
 		fmt.Fprintf(stdout, "Removed defeat %s\n", formatDefeat(defeat))
 	}
 	fmt.Fprintf(stdout, "components: %d -> %d\n", output.ComponentsBefore, output.ComponentsAfter)
