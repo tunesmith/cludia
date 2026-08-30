@@ -149,6 +149,25 @@ func diagnosticError(code, message, element string) []diagnostic.Diagnostic {
 	return []diagnostic.Diagnostic{{Code: code, Message: message, Severity: diagnostic.SeverityError, Element: element}}
 }
 
+const preferredJunctorSourceLimit = 3
+
+func appendJunctorSizeAdvisory(diagnostics []diagnostic.Diagnostic, junctor argument.Junctor) []diagnostic.Diagnostic {
+	if len(junctor.Sources) <= preferredJunctorSourceLimit {
+		return diagnostics
+	}
+	for _, item := range diagnostics {
+		if item.Code == "concludia_junctor_sources_many" && item.Element == junctor.ID {
+			return diagnostics
+		}
+	}
+	return append(diagnostics, diagnostic.Diagnostic{
+		Code:     "concludia_junctor_sources_many",
+		Message:  fmt.Sprintf("junctor has %d sources; prefer at most 3 and introduce lemmas for clarity", len(junctor.Sources)),
+		Severity: diagnostic.SeverityWarning,
+		Element:  junctor.ID,
+	})
+}
+
 func slugIDCollisionDiagnostic(doc *argument.Document, slug, ownerID string) []diagnostic.Diagnostic {
 	elementType, id, collides := argument.SlugIDCollision(doc, slug, ownerID)
 	if !collides {

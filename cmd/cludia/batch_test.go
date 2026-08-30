@@ -325,6 +325,37 @@ func TestAddBatchV2ReportsExistingPremisePromotion(t *testing.T) {
 	}
 }
 
+func TestAddBatchWarnsForOversizedDerivation(t *testing.T) {
+	path := twoPremiseWorkspace(t)
+	inputPath := writeBatchInput(t, `{
+  "schema_version": 2,
+  "statements": [
+    {"key": "third", "text": "Third source."},
+    {"key": "fourth", "text": "Fourth source."},
+    {"key": "target", "text": "Four sources establish the target."}
+  ],
+  "derivations": [
+    {
+      "key": "wide",
+      "sources": [{"id": "P1"}, {"id": "P2"}, {"key": "third"}, {"key": "fourth"}],
+      "target": {"key": "target"}
+    }
+  ],
+  "defeats": []
+}`)
+	var stdout, stderr bytes.Buffer
+	if err := run([]string{"add-batch", path, "--input", inputPath, "--json"}, &stdout, &stderr); err != nil {
+		t.Fatalf("batch: %v\nstderr: %s", err, stderr.String())
+	}
+	var output batchAuthorOutput
+	if err := json.Unmarshal(stdout.Bytes(), &output); err != nil || len(output.Diagnostics) != 1 || output.Diagnostics[0].Code != "concludia_junctor_sources_many" || output.Diagnostics[0].Element != "J1" {
+		t.Fatalf("batch diagnostics = %#v, err %v", output.Diagnostics, err)
+	}
+	if len(output.Derivations) != 1 || len(output.Derivations[0].Junctor.Sources) != 4 {
+		t.Fatalf("warning blocked batch derivation: %#v", output.Derivations)
+	}
+}
+
 func TestAddBatchV2RejectsAmbiguousAndSlugLikeReferences(t *testing.T) {
 	tests := []struct {
 		name  string

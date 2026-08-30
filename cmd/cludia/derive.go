@@ -194,6 +194,7 @@ func runDerive(args []string, stdout, stderr io.Writer) error {
 	if diagnostics == nil {
 		diagnostics = []diagnostic.Diagnostic{}
 	}
+	diagnostics = appendJunctorSizeAdvisory(diagnostics, result.Junctor)
 	for _, change := range result.RoleChanges {
 		diagnostics = append(diagnostics, diagnostic.Diagnostic{
 			Code:     "external_id_references_unchecked",

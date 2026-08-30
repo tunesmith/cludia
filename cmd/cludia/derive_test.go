@@ -52,6 +52,43 @@ func TestDeriveCreatesLemmaAndANDJunctor(t *testing.T) {
 	}
 }
 
+func TestDeriveWarnsWhenNewJunctorExceedsPreferredSourceCount(t *testing.T) {
+	path := twoPremiseWorkspace(t)
+	var stdout, stderr bytes.Buffer
+	for _, text := range []string{"Third", "Fourth"} {
+		if err := run([]string{"add", path, "--text", text}, &stdout, &stderr); err != nil {
+			t.Fatal(err)
+		}
+		stdout.Reset()
+		stderr.Reset()
+	}
+	if err := run([]string{
+		"derive", path, "--source", "P1", "--source", "P2", "--source", "P3", "--source", "P4",
+		"--target-text", "Four sources establish the target.", "--json",
+	}, &stdout, &stderr); err != nil {
+		t.Fatalf("derive: %v\nstderr: %s", err, stderr.String())
+	}
+	var output deriveOutput
+	if err := json.Unmarshal(stdout.Bytes(), &output); err != nil {
+		t.Fatal(err)
+	}
+	if len(output.Diagnostics) != 1 || output.Diagnostics[0].Code != "concludia_junctor_sources_many" || output.Diagnostics[0].Element != "J1" || output.Diagnostics[0].Severity != diagnostic.SeverityWarning {
+		t.Fatalf("diagnostics = %#v", output.Diagnostics)
+	}
+	if len(output.Junctor.Sources) != 4 {
+		t.Fatalf("warning blocked derivation: %#v", output.Junctor)
+	}
+	stdout.Reset()
+	stderr.Reset()
+	if err := run([]string{"list", path, "--json"}, &stdout, &stderr); err != nil {
+		t.Fatal(err)
+	}
+	var listed listOutput
+	if err := json.Unmarshal(stdout.Bytes(), &listed); err != nil || len(listed.Diagnostics) != 0 {
+		t.Fatalf("ordinary read repeated authoring warning: %#v, err %v", listed.Diagnostics, err)
+	}
+}
+
 func TestDerivePromotesExistingPremise(t *testing.T) {
 	path := twoPremiseWorkspace(t)
 	var stdout, stderr bytes.Buffer

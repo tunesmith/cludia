@@ -188,7 +188,10 @@ cludia derive case.arg \
 ```
 
 The mutation result reports the new target, junctor, role changes, and component
-changes.
+changes. More than three sources remains valid but produces
+`concludia_junctor_sources_many`, recommending intermediate lemmas while the
+reasoning is still easy to factor. Batch derivations give the same warning, and
+`add-source` emits it when crossing from three to four sources.
 
 ### 6. Challenge or repair
 

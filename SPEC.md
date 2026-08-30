@@ -137,6 +137,14 @@ and an undercut MUST NOT silently retract or modify the junctor.
 The tool MUST read, preserve, inspect, remove, and export ordinary Concludia
 `OR` junctors. Creating or editing `OR` junctors MAY be deferred.
 
+An `AND` junctor with more than three sources remains structurally valid, but
+focused authoring SHOULD prefer intermediate lemmas for clarity. `derive` and
+batch authoring MUST emit the stable `concludia_junctor_sources_many` warning
+when they create such a junctor. `add-source` MUST emit it when an ordinary
+workspace junctor crosses from three to four sources. The advisory MUST NOT
+block or roll back an otherwise valid mutation and SHOULD NOT be repeated by
+ordinary workspace reads.
+
 ### 3.4 Legacy direct support
 
 The current Concludia `.arg` syntax permits one-source support clauses and
@@ -672,6 +680,9 @@ V1 is complete when automated tests demonstrate at least:
     derivation targets, generated junctors, undercuts or undermines, and
     counterpoints of counterpoints through caller keys; any invalid relation or
     final graph writes nothing and consumes no identifier.
+26. Creating an `AND` junctor with more than three sources through `derive` or
+    batch, or crossing that threshold through `add-source`, succeeds with one
+    actionable warning while ordinary workspace reads remain quiet.
 
 ## 14. Open decisions
 

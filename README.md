@@ -250,6 +250,11 @@ relation references. A new statement targeted by a derivation receives its
 final `L` ID directly rather than being created and immediately promoted from a
 temporary `P` ID.
 
+When a batch or `derive` creates an `AND` junctor with more than three sources,
+the successful receipt warns that intermediate lemmas may improve clarity.
+`add-source` gives the same advisory when it crosses from three to four. Large
+junctors remain valid, and normal workspace reads do not repeat the warning.
+
 Focused creation assigns role-appropriate canonical IDs from the exact next
 values stored in `cludia-next-ids`. Automatic IDs increase monotonically;
 deletion leaves gaps, and failed mutations or dry runs consume nothing. An

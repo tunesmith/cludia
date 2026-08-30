@@ -180,6 +180,7 @@ func applyBatch(path string, dryRun, jsonOutput bool, doc *argument.Document, pr
 	for _, item := range result.Derivations {
 		derivations = append(derivations, batchDerivationOutput{Key: item.Key, Target: item.Target, Junctor: item.Junctor})
 		changes = append(changes, changeOutput{Operation: "added", ElementType: "junctor", ID: item.Junctor.ID})
+		diagnostics = appendJunctorSizeAdvisory(diagnostics, item.Junctor)
 	}
 	for _, item := range result.Defeats {
 		from := batchReferenceInput{Key: item.From.Key, ID: item.From.ID}

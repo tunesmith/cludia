@@ -120,6 +120,9 @@ func mutateJunctorSource(path, junctorID, sourceRef string, add, dryRun, jsonOut
 	if diagnostics == nil {
 		diagnostics = []diagnostic.Diagnostic{}
 	}
+	if add && len(result.Previous.Sources) <= preferredJunctorSourceLimit && len(result.Current.Sources) > preferredJunctorSourceLimit {
+		diagnostics = appendJunctorSizeAdvisory(diagnostics, result.Current)
+	}
 	current := result.Current
 	output := junctorMutationOutput{
 		SchemaVersion: outputSchemaVersion, Action: action, DryRun: dryRun,

@@ -12,7 +12,6 @@ than retained as project history; this file tracks only possible future work.
 | # | Suggestion | Current disposition |
 |---|---|---|
 | 2 | Reuse one counterpoint at multiple explicit defeat locations | Requires a coordinated Concludia and `.arg` format decision |
-| 7 | Surface excessive junctor size earlier | Ready for implementation |
 | 8 | Selected-derivation and defeat-inclusive explanation views | Partly ready; effective-support semantics remain open |
 
 ## 2. Reusing one counterpoint at multiple explicit defeat locations
@@ -45,25 +44,6 @@ Concludia currently models premise defeats, inference defeats, and
 counterpoints of counterpoints. It does not define a proposition-level rebuttal
 of a derived lemma or conclusion independently of its incoming inference
 paths. Cludia should not invent that semantic primitive independently.
-
-## 7. Surface excessive junctor size earlier
-
-### Recommendation
-
-Concludia validation warns when a junctor has more than three sources and
-recommends introducing intermediate lemmas. In the mystery play test, those
-warnings appeared only after the graph already contained many junctors with
-four to eight sources.
-
-Cludia should keep large junctors structurally valid but surface the advisory
-while the author can still factor the reasoning easily:
-
-- after `derive` creates a junctor with more than three sources; and
-- after `add-source` crosses from three to four sources.
-
-Prefer targeted mutation diagnostics over repeating the warning on every
-ordinary workspace read. The warning must remain advisory: some natural
-sufficiency claims genuinely have more than three sources.
 
 ## 8. Selected-derivation and defeat-inclusive explanation views
 
@@ -108,7 +88,6 @@ one path as the argument.
 
 ## Priority order
 
-1. Surface oversized-junctor warnings during `derive` and `add-source`.
-2. Add explicit `ledger --inference JUNCTOR` branch selection.
-3. Design a defeat-inclusive rooted explanation view.
-4. Revisit shared counterpoints only after the `.arg` format decision.
+1. Add explicit `ledger --inference JUNCTOR` branch selection.
+2. Design a defeat-inclusive rooted explanation view.
+3. Revisit shared counterpoints only after the `.arg` format decision.
