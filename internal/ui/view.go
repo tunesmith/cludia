@@ -165,6 +165,9 @@ func (m Model) renderedDetailBody() ([]string, int, int) {
 			marker = "> "
 		}
 		label := displayID(line.id, line.challenged)
+		if value, ok := m.evaluation.Statement(line.id); ok {
+			label += " " + string(effectiveTruth(value.StoredTruth, value.EffectiveTruth))
+		}
 		prefixWidth := displayWidth(indent) + 2 + displayWidth(label) + 2
 		textWidth := maxInt(1, width-prefixWidth)
 		wrapped := wrapWords(line.text, textWidth)
@@ -346,17 +349,10 @@ func truthStatus(stored, effective argument.Truth, source evaluation.TruthSource
 	if effective != argument.TruthTrue && effective != argument.TruthFalse && effective != argument.TruthUnknown {
 		effective = stored
 	}
-	switch source {
-	case evaluation.TruthDerived:
-		return fmt.Sprintf("%s · derived", effective)
-	case evaluation.TruthUnassigned:
-		return fmt.Sprintf("%s · unassigned", effective)
-	default:
-		if stored != effective {
-			return fmt.Sprintf("%s → %s", stored, effective)
-		}
-		return string(effective)
+	if source == evaluation.TruthAsserted && stored != effective {
+		return fmt.Sprintf("%s → %s", stored, effective)
 	}
+	return string(effective)
 }
 
 func renderID(value string, challenged bool) string {

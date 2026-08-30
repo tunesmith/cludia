@@ -70,13 +70,7 @@ func evaluatedJunctorFor(junctor argument.Junctor, result evaluation.Result) eva
 }
 
 func formatTruthStatus(statement evaluatedStatement) string {
-	if statement.TruthSource == evaluation.TruthDerived {
-		return fmt.Sprintf("%s · derived", statement.EffectiveTruth)
-	}
-	if statement.TruthSource == evaluation.TruthUnassigned {
-		return fmt.Sprintf("%s · unassigned", statement.EffectiveTruth)
-	}
-	if statement.Truth != statement.EffectiveTruth {
+	if statement.TruthSource == evaluation.TruthAsserted && statement.Truth != statement.EffectiveTruth {
 		return fmt.Sprintf("%s → %s", statement.Truth, statement.EffectiveTruth)
 	}
 	return string(statement.EffectiveTruth)

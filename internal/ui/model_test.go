@@ -174,10 +174,13 @@ func TestDetailScopesChallengesAndSupportsNavigationStack(t *testing.T) {
 	m.width, m.height = 100, 32
 	m = m.openDetail("L2")
 	view := m.View()
-	for _, want := range []string{"STATEMENT DETAIL", "L2!", "lemma[fact]  T · derived", "JUSTIFICATIONS", "1 — AND", "UNDERCUTS", "CP3", "P2"} {
+	for _, want := range []string{"STATEMENT DETAIL", "L2!", "lemma[fact]  T", "JUSTIFICATIONS", "1 — AND", "L1 T", "P4 T", "UNDERCUTS", "CP3 T", "P2 T"} {
 		if !strings.Contains(view, want) {
 			t.Fatalf("detail view missing %q:\n%s", want, view)
 		}
+	}
+	if strings.Contains(view, "derived") {
+		t.Fatalf("detail view exposes repetitive provenance:\n%s", view)
 	}
 	if got := m.detailSelectableIDs(); len(got) < 4 || got[0] != "L1" || got[2] != "CP3" {
 		t.Fatalf("detail selectable ids = %#v", got)
