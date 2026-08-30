@@ -25,13 +25,14 @@ type topOutput struct {
 }
 
 type ledgerOutput struct {
-	SchemaVersion int                     `json:"schema_version"`
-	Profile       validation.Profile      `json:"profile"`
-	Evaluation    evaluationMetadata      `json:"evaluation"`
-	Document      documentOutput          `json:"document"`
-	Root          string                  `json:"root"`
-	Rows          []query.LedgerRow       `json:"rows"`
-	Diagnostics   []diagnostic.Diagnostic `json:"diagnostics"`
+	SchemaVersion     int                     `json:"schema_version"`
+	Profile           validation.Profile      `json:"profile"`
+	Evaluation        evaluationMetadata      `json:"evaluation"`
+	Document          documentOutput          `json:"document"`
+	Root              string                  `json:"root"`
+	SelectedInference *query.LedgerInference  `json:"selected_inference,omitempty"`
+	Rows              []query.LedgerRow       `json:"rows"`
+	Diagnostics       []diagnostic.Diagnostic `json:"diagnostics"`
 }
 
 func runTop(args []string, stdout, stderr io.Writer) error {
@@ -103,8 +104,9 @@ func runLedger(args []string, stdout, stderr io.Writer) error {
 	fs := flag.NewFlagSet("ledger", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 	jsonOutput := fs.Bool("json", false, "output versioned JSON")
+	inferenceID := fs.String("inference", "", "show only the root branch through this incoming junctor ID")
 	fs.Usage = func() { writeLedgerUsage(fs.Output()) }
-	if err := fs.Parse(flagsFirst(args, map[string]bool{})); err != nil {
+	if err := fs.Parse(flagsFirst(args, map[string]bool{"inference": true})); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
 			return nil
 		}
@@ -128,13 +130,29 @@ func runLedger(args []string, stdout, stderr io.Writer) error {
 		}
 		return errValidationFailed
 	}
-	root, rows, err := query.LedgerEvaluated(doc, fs.Arg(1), evaluated)
+	var root string
+	var rows []query.LedgerRow
+	var selection *query.LedgerInference
+	var err error
+	selectedID := strings.TrimSpace(*inferenceID)
+	if selectedID == "" {
+		root, rows, err = query.LedgerEvaluated(doc, fs.Arg(1), evaluated)
+	} else {
+		var selected query.LedgerInference
+		root, rows, selected, err = query.LedgerInferenceEvaluated(doc, fs.Arg(1), selectedID, evaluated)
+		if err == nil {
+			selection = &selected
+		}
+	}
 	if err != nil {
+		if inferenceErr, ok := err.(*query.LedgerInferenceError); ok {
+			return writeMutationFailure(stdout, *jsonOutput, profile, inferenceErr.Code, inferenceErr.Message, inferenceErr.Element)
+		}
 		return writeMutationFailure(stdout, *jsonOutput, profile, "ledger_root_invalid", err.Error(), fs.Arg(1))
 	}
 	output := ledgerOutput{
 		SchemaVersion: outputSchemaVersion, Profile: profile, Evaluation: evaluationMeta(evaluated), Document: documentSummary(doc),
-		Root: root, Rows: rows, Diagnostics: nonNilDiagnostics(diagnostics),
+		Root: root, SelectedInference: selection, Rows: rows, Diagnostics: nonNilDiagnostics(diagnostics),
 	}
 	if *jsonOutput {
 		return writeIndentedJSON(stdout, output)
@@ -189,13 +207,14 @@ func writeHumanTop(w io.Writer, output topOutput, width int) {
 func writeHumanLedger(w io.Writer, output ledgerOutput, width int) {
 	if width < 80 {
 		for _, row := range output.Rows {
-			fmt.Fprintf(w, "%s  %s\n", ledgerDisplayLabel(row), row.EffectiveTruth)
+			fmt.Fprintf(w, "%s  %s\n", ledgerDisplayLabel(row), ledgerTruth(output, row))
 			fmt.Fprintln(w, row.Statement.Text)
-			for _, derivation := range ledgerDerivations(row) {
+			for _, derivation := range ledgerDerivations(output, row) {
 				fmt.Fprintln(w, derivation)
 			}
 			fmt.Fprintln(w)
 		}
+		writeLedgerTruthFootnote(w, output)
 		return
 	}
 	labelWidth := maxDisplayLabelWidthLedger(output.Rows, len("LABEL"))
@@ -206,7 +225,7 @@ func writeHumanLedger(w io.Writer, output ledgerOutput, width int) {
 	for _, row := range output.Rows {
 		statementLines := wrapFullText(row.Statement.Text, statementWidth)
 		derivationLines := make([]string, 0)
-		for _, value := range ledgerDerivations(row) {
+		for _, value := range ledgerDerivations(output, row) {
 			derivationLines = append(derivationLines, wrapFullText(value, derivationWidth)...)
 		}
 		lineCount := maxInt(len(statementLines), len(derivationLines))
@@ -217,7 +236,7 @@ func writeHumanLedger(w io.Writer, output ledgerOutput, width int) {
 			labelCell, truthCell := "", ""
 			if i == 0 {
 				labelCell = ledgerDisplayLabel(row)
-				truthCell = string(row.EffectiveTruth)
+				truthCell = ledgerTruth(output, row)
 			}
 			statementCell, derivationCell := "", ""
 			if i < len(statementLines) {
@@ -229,18 +248,36 @@ func writeHumanLedger(w io.Writer, output ledgerOutput, width int) {
 			fmt.Fprintf(w, "%s  %s  %s  %s\n", padText(labelCell, labelWidth), padText(truthCell, truthWidth), padText(statementCell, statementWidth), derivationCell)
 		}
 	}
+	writeLedgerTruthFootnote(w, output)
 }
 
-func ledgerDerivations(row query.LedgerRow) []string {
+func ledgerDerivations(output ledgerOutput, row query.LedgerRow) []string {
 	result := make([]string, 0, len(row.Derivations))
 	for _, support := range row.Derivations {
 		value := fmt.Sprintf("%s(%s)", support.Connector, strings.Join(support.Sources, ", "))
 		if support.Type == "direct" {
 			value += " [direct]"
 		}
+		if output.SelectedInference != nil && output.SelectedInference.Undercut && row.Statement.ID == output.Root && support.ID == output.SelectedInference.Junctor.ID {
+			value += " [undercut]"
+		}
 		result = append(result, value)
 	}
 	return result
+}
+
+func ledgerTruth(output ledgerOutput, row query.LedgerRow) string {
+	truth := string(row.EffectiveTruth)
+	if output.SelectedInference != nil && output.SelectedInference.OtherRoutesAffectTruth && row.Statement.ID == output.Root {
+		truth += "*"
+	}
+	return truth
+}
+
+func writeLedgerTruthFootnote(w io.Writer, output ledgerOutput) {
+	if output.SelectedInference != nil && output.SelectedInference.OtherRoutesAffectTruth {
+		fmt.Fprintln(w, "* truth comes from another justification not shown")
+	}
 }
 
 func displayLabel(id string, challenged bool) string {
@@ -361,6 +398,6 @@ func writeTopUsage(w io.Writer) {
 }
 
 func writeLedgerUsage(w io.Writer) {
-	fmt.Fprintln(w, "Usage: cludia ledger [--json] FILE STATEMENT")
-	fmt.Fprintln(w, "Show the complete support derivation to a statement in stable topological order.")
+	fmt.Fprintln(w, "Usage: cludia ledger [--inference JUNCTOR] [--json] FILE STATEMENT")
+	fmt.Fprintln(w, "Show the complete support derivation to a statement, optionally selecting one incoming root junctor.")
 }

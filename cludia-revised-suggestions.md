@@ -12,7 +12,7 @@ than retained as project history; this file tracks only possible future work.
 | # | Suggestion | Current disposition |
 |---|---|---|
 | 2 | Reuse one counterpoint at multiple explicit defeat locations | Requires a coordinated Concludia and `.arg` format decision |
-| 8 | Selected-derivation and defeat-inclusive explanation views | Partly ready; effective-support semantics remain open |
+| 8 | Defeat-inclusive explanation views | Effective-support semantics remain open |
 
 ## 2. Reusing one counterpoint at multiple explicit defeat locations
 
@@ -45,22 +45,7 @@ counterpoints of counterpoints. It does not define a proposition-level rebuttal
 of a derived lemma or conclusion independently of its incoming inference
 paths. Cludia should not invent that semantic primitive independently.
 
-## 8. Selected-derivation and defeat-inclusive explanation views
-
-### Selected derivation
-
-A normal `ledger` correctly returns the union of the complete upstream support
-closures for every incoming justification. When a target has several
-independent derivations, it would also be useful to select one authored branch:
-
-```text
-cludia ledger FILE STATEMENT --inference JUNCTOR
-```
-
-This should include the selected target, the selected incoming junctor, and the
-complete upstream support closure of that junctor's sources. It must validate
-that the junctor actually targets the selected statement. This is explicit
-branch selection, not a shortest-proof or argument-quality ranking.
+## 8. Defeat-inclusive explanation views
 
 ### Defeat-inclusive explanation
 
@@ -88,6 +73,5 @@ one path as the argument.
 
 ## Priority order
 
-1. Add explicit `ledger --inference JUNCTOR` branch selection.
-2. Design a defeat-inclusive rooted explanation view.
-3. Revisit shared counterpoints only after the `.arg` format decision.
+1. Design a defeat-inclusive rooted explanation view.
+2. Revisit shared counterpoints only after the `.arg` format decision.

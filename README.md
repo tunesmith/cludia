@@ -197,6 +197,7 @@ bin/cludia export inquiry.arg --root L1 --output conclusion.arg \
 bin/cludia list inquiry.arg --state isolated
 bin/cludia top inquiry.arg --challenged --limit 20 --offset 0 --json
 bin/cludia ledger inquiry.arg L1 --json
+bin/cludia ledger inquiry.arg L1 --inference J1 --json
 bin/cludia show inquiry.arg P1 --relations
 bin/cludia components inquiry.arg
 bin/cludia component inquiry.arg P1 --json
@@ -227,6 +228,14 @@ proof-local topological order: every source precedes its target, while premises
 are delayed toward their first use and document order resolves equivalent
 choices. Their human output preserves full statement text and their versioned
 JSON is the shared read model for agents and the TUI.
+
+`ledger --inference J1` narrows only the selected root statement to that exact
+incoming junctor; each source still brings its complete upstream support. The
+operation is a read-only branch view, not a persisted preferred proof. An
+accepted undercut appears as `[undercut]`. If hidden root-level justifications
+change the root's overall truth, the truth cell receives a compact `*` and a
+footnote; the fixed-width truth column keeps statement and derivation columns
+aligned. The TUI continues to use the default complete ledger.
 
 `move-statement` moves one statement immediately before or after another in the
 single durable general order. It accepts IDs or slugs, changes no identity or

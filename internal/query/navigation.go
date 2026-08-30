@@ -29,6 +29,24 @@ type LedgerRow struct {
 	Acceptance     evaluation.Acceptance  `json:"acceptance,omitempty"`
 }
 
+// LedgerInference describes one explicitly selected incoming junctor and how
+// it relates to the root's complete grounded truth.
+type LedgerInference struct {
+	Junctor                    argument.Junctor `json:"junctor"`
+	EffectiveTruth             argument.Truth   `json:"effective_truth"`
+	Undercut                   bool             `json:"undercut"`
+	OtherJustificationsOmitted bool             `json:"other_justifications_omitted"`
+	OtherRoutesAffectTruth     bool             `json:"other_routes_affect_truth"`
+}
+
+type LedgerInferenceError struct {
+	Code    string
+	Message string
+	Element string
+}
+
+func (e *LedgerInferenceError) Error() string { return e.Message }
+
 // Top returns non-counterpoint support sinks in document order.
 func Top(doc *argument.Document) []TopItem {
 	items := topItems(doc)
@@ -85,7 +103,7 @@ func applyTopEvaluation(items []TopItem, evaluated evaluation.Result) {
 // stable, proof-local topological order. Defeats contribute challenge state but
 // not rows.
 func Ledger(doc *argument.Document, reference string) (string, []LedgerRow, error) {
-	root, rows, err := ledgerRows(doc, reference)
+	root, rows, err := ledgerRows(doc, reference, "")
 	if err != nil {
 		return "", nil, err
 	}
@@ -97,7 +115,7 @@ func Ledger(doc *argument.Document, reference string) (string, []LedgerRow, erro
 	return root, rows, nil
 }
 
-func ledgerRows(doc *argument.Document, reference string) (string, []LedgerRow, error) {
+func ledgerRows(doc *argument.Document, reference, selectedJunctorID string) (string, []LedgerRow, error) {
 	if doc == nil {
 		return "", nil, fmt.Errorf("document is nil")
 	}
@@ -108,12 +126,30 @@ func ledgerRows(doc *argument.Document, reference string) (string, []LedgerRow, 
 	if root.Role == argument.RoleCounterpoint {
 		return "", nil, fmt.Errorf("ledger root statement %s is a counterpoint", root.ID)
 	}
+	if selectedJunctorID != "" {
+		junctor, ok := doc.Junctor(selectedJunctorID)
+		if !ok {
+			return "", nil, &LedgerInferenceError{
+				Code: "ledger_inference_not_found", Message: fmt.Sprintf("selected inference %q was not found", selectedJunctorID), Element: selectedJunctorID,
+			}
+		}
+		if junctor.Target != root.ID {
+			return "", nil, &LedgerInferenceError{
+				Code:    "ledger_inference_target_mismatch",
+				Message: fmt.Sprintf("selected inference %s targets %s rather than ledger root %s", junctor.ID, junctor.Target, root.ID),
+				Element: junctor.ID,
+			}
+		}
+	}
 
 	included := map[string]bool{root.ID: true}
 	for changed := true; changed; {
 		changed = false
 		for _, junctor := range doc.Junctors {
 			if !included[junctor.Target] {
+				continue
+			}
+			if selectedJunctorID != "" && junctor.Target == root.ID && junctor.ID != selectedJunctorID {
 				continue
 			}
 			for _, source := range junctor.Sources {
@@ -126,6 +162,9 @@ func ledgerRows(doc *argument.Document, reference string) (string, []LedgerRow, 
 		}
 		for _, support := range doc.DirectSupports {
 			if !included[support.Target] || included[support.Source] {
+				continue
+			}
+			if selectedJunctorID != "" && support.Target == root.ID {
 				continue
 			}
 			if _, exists := doc.Statement(support.Source); !exists {
@@ -157,15 +196,21 @@ func ledgerRows(doc *argument.Document, reference string) (string, []LedgerRow, 
 		if !included[junctor.Target] {
 			continue
 		}
+		if selectedJunctorID != "" && junctor.Target == root.ID && junctor.ID != selectedJunctorID {
+			continue
+		}
 		for _, source := range junctor.Sources {
 			addDependency(source, junctor.Target)
 		}
 	}
 	for _, support := range doc.DirectSupports {
+		if selectedJunctorID != "" && support.Target == root.ID {
+			continue
+		}
 		addDependency(support.Source, support.Target)
 	}
 
-	depths := supportDepths(doc)
+	depths := ledgerSupportDepths(doc, root.ID, selectedJunctorID)
 	ready := make([]string, 0)
 	for _, statement := range doc.Statements {
 		if included[statement.ID] && outdegree[statement.ID] == 0 {
@@ -199,19 +244,66 @@ func ledgerRows(doc *argument.Document, reference string) (string, []LedgerRow, 
 		statement, _ := doc.Statement(id)
 		rows = append(rows, LedgerRow{
 			Statement: *statement, Depth: depths[id],
-			Derivations: incomingSupports(doc, id, included),
+			Derivations: incomingLedgerSupports(doc, id, included, root.ID, selectedJunctorID),
 		})
 	}
 	return root.ID, rows, nil
 }
 
 func LedgerEvaluated(doc *argument.Document, reference string, evaluated evaluation.Result) (string, []LedgerRow, error) {
-	root, rows, err := ledgerRows(doc, reference)
+	root, rows, err := ledgerRows(doc, reference, "")
 	if err != nil {
 		return "", nil, err
 	}
 	applyLedgerEvaluation(rows, evaluated)
 	return root, rows, nil
+}
+
+// LedgerInferenceEvaluated returns the complete upstream closure of one
+// explicitly selected junctor at the ledger root. Deeper statements retain all
+// of their authored justifications.
+func LedgerInferenceEvaluated(doc *argument.Document, reference, junctorID string, evaluated evaluation.Result) (string, []LedgerRow, LedgerInference, error) {
+	root, rows, err := ledgerRows(doc, reference, junctorID)
+	if err != nil {
+		return "", nil, LedgerInference{}, err
+	}
+	applyLedgerEvaluation(rows, evaluated)
+	junctor, _ := doc.Junctor(junctorID)
+	junctorValue, _ := evaluated.Junctor(junctor.ID)
+	undercut := false
+	for _, edge := range evaluated.DisabledInferenceEdges {
+		if edge.JunctorID == junctor.ID && edge.AtTarget == root {
+			undercut = true
+			break
+		}
+	}
+	omitted := false
+	for _, candidate := range doc.Junctors {
+		if candidate.Target == root && candidate.ID != junctor.ID {
+			omitted = true
+			break
+		}
+	}
+	if !omitted {
+		for _, support := range doc.DirectSupports {
+			if support.Target == root {
+				omitted = true
+				break
+			}
+		}
+	}
+	selectedOnlyTruth := junctorValue.EffectiveTruth
+	if undercut {
+		selectedOnlyTruth = argument.TruthFalse
+	}
+	rootValue, _ := evaluated.Statement(root)
+	selection := LedgerInference{
+		Junctor: *junctor, EffectiveTruth: junctorValue.EffectiveTruth,
+		Undercut: undercut, OtherJustificationsOmitted: omitted,
+		OtherRoutesAffectTruth: omitted && selectedOnlyTruth != rootValue.EffectiveTruth,
+	}
+	selection.Junctor.Sources = append([]string(nil), junctor.Sources...)
+	return root, rows, selection, nil
 }
 
 func applyLedgerEvaluation(rows []LedgerRow, evaluated evaluation.Result) {
@@ -246,10 +338,13 @@ func StatementDirectlyChallenged(doc *argument.Document, id string) bool {
 	return false
 }
 
-func incomingSupports(doc *argument.Document, target string, included map[string]bool) []Support {
+func incomingLedgerSupports(doc *argument.Document, target string, included map[string]bool, root, selectedJunctorID string) []Support {
 	result := make([]Support, 0)
 	for _, junctor := range doc.Junctors {
 		if junctor.Target != target {
+			continue
+		}
+		if selectedJunctorID != "" && target == root && junctor.ID != selectedJunctorID {
 			continue
 		}
 		allIncluded := true
@@ -264,11 +359,34 @@ func incomingSupports(doc *argument.Document, target string, included map[string
 		}
 	}
 	for _, support := range doc.DirectSupports {
+		if selectedJunctorID != "" && target == root {
+			continue
+		}
 		if support.Target == target && included[support.Source] {
 			result = append(result, directSupport(support))
 		}
 	}
 	return result
+}
+
+func ledgerSupportDepths(doc *argument.Document, root, selectedJunctorID string) map[string]int {
+	incoming := make(map[string][][]string, len(doc.Statements))
+	for _, statement := range doc.Statements {
+		incoming[statement.ID] = [][]string{}
+	}
+	for _, junctor := range doc.Junctors {
+		if selectedJunctorID != "" && junctor.Target == root && junctor.ID != selectedJunctorID {
+			continue
+		}
+		incoming[junctor.Target] = append(incoming[junctor.Target], append([]string(nil), junctor.Sources...))
+	}
+	for _, support := range doc.DirectSupports {
+		if selectedJunctorID != "" && support.Target == root {
+			continue
+		}
+		incoming[support.Target] = append(incoming[support.Target], []string{support.Source})
+	}
+	return calculateSupportDepths(doc, incoming)
 }
 
 func supportDepths(doc *argument.Document) map[string]int {
@@ -282,6 +400,10 @@ func supportDepths(doc *argument.Document) map[string]int {
 	for _, support := range doc.DirectSupports {
 		incoming[support.Target] = append(incoming[support.Target], []string{support.Source})
 	}
+	return calculateSupportDepths(doc, incoming)
+}
+
+func calculateSupportDepths(doc *argument.Document, incoming map[string][][]string) map[string]int {
 	memo := make(map[string]int, len(doc.Statements))
 	visiting := make(map[string]bool, len(doc.Statements))
 	var depth func(string) int

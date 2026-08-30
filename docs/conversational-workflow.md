@@ -149,7 +149,13 @@ cludia list case.arg --state isolated --json
 cludia show case.arg footprints-at-wall --relations --json
 cludia component case.arg footprints-at-wall --json
 cludia top case.arg --challenged --limit 20 --offset 0 --json
+cludia ledger case.arg finding --inference J12 --json
 ```
+
+The default ledger includes every incoming justification at its root. When the
+agent is auditing one exact sufficiency claim, `--inference` selects that root
+junctor while preserving the complete support closure beneath its sources. It
+does not rank, prefer, or persist the branch.
 
 ### 3. Propose
 

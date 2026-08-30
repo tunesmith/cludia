@@ -342,7 +342,7 @@ func writeTopLevelUsage(w io.Writer) {
 	fmt.Fprintln(w, "  cludia component [--json] FILE ELEMENT")
 	fmt.Fprintln(w, "  cludia search [--json] FILE QUERY")
 	fmt.Fprintln(w, "  cludia top [--challenged] [--limit N] [--offset N] [--json] FILE")
-	fmt.Fprintln(w, "  cludia ledger [--json] FILE STATEMENT")
+	fmt.Fprintln(w, "  cludia ledger [--inference JUNCTOR] [--json] FILE STATEMENT")
 	fmt.Fprintln(w, "  cludia add-source [--json] FILE JUNCTOR --source STATEMENT")
 	fmt.Fprintln(w, "  cludia remove-source [--dry-run] [--json] FILE JUNCTOR --source STATEMENT")
 	fmt.Fprintln(w, "  cludia replace-source [--dry-run] [--json] FILE JUNCTOR --from STATEMENT --to STATEMENT")

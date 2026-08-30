@@ -287,6 +287,10 @@ capabilities.
 - Read a complete, stable, topologically ordered support ledger for a selected
   non-counterpoint statement, delaying premises toward their first use while
   using general document order to resolve equivalent choices.
+- Optionally restrict that ledger at its root to one explicitly selected
+  incoming junctor while retaining the complete upstream closure of the
+  junctor's sources. The selected junctor MUST target the ledger root; selection
+  is a read-only view and MUST NOT persist a preferred derivation.
 - List defeats targeting or originating from an element.
 - Validate under the workspace or Concludia profile.
 - Read versioned machine guidance for statement identity and revision behavior.
@@ -683,6 +687,10 @@ V1 is complete when automated tests demonstrate at least:
 26. Creating an `AND` junctor with more than three sources through `derive` or
     batch, or crossing that threshold through `add-source`, succeeds with one
     actionable warning while ordinary workspace reads remain quiet.
+27. `ledger --inference` includes only the selected incoming junctor at the
+    root, retains complete support below its sources, rejects mismatched
+    junctors, marks accepted undercuts, and identifies when omitted root
+    justifications change overall root truth without misaligning human columns.
 
 ## 14. Open decisions
 

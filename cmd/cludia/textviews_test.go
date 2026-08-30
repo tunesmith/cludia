@@ -6,11 +6,13 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 
 	"github.com/tunesmith/cludia/internal/argfile"
 	"github.com/tunesmith/cludia/internal/argument"
+	"github.com/tunesmith/cludia/internal/query"
 )
 
 func TestTopJSONAndHumanContract(t *testing.T) {
@@ -138,6 +140,90 @@ func TestLedgerJSONAndHumanContract(t *testing.T) {
 	}
 }
 
+func TestLedgerSelectedInferenceNarrowsRootAndMarksTruthFromOtherRoutes(t *testing.T) {
+	path := selectedInferenceWorkspace(t, false, true)
+	var stdout, stderr bytes.Buffer
+	if err := run([]string{"ledger", path, "L1", "--inference", "J1", "--json"}, &stdout, &stderr); err != nil {
+		t.Fatalf("selected ledger JSON: %v\nstderr: %s", err, stderr.String())
+	}
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(stdout.Bytes(), &raw); err != nil {
+		t.Fatal(err)
+	}
+	assertExactKeys(t, raw, "schema_version", "profile", "evaluation", "document", "root", "selected_inference", "rows", "diagnostics")
+	var output ledgerOutput
+	if err := json.Unmarshal(stdout.Bytes(), &output); err != nil {
+		t.Fatal(err)
+	}
+	if output.SelectedInference == nil || output.SelectedInference.Junctor.ID != "J1" || output.SelectedInference.EffectiveTruth != argument.TruthFalse || output.SelectedInference.Undercut || !output.SelectedInference.OtherJustificationsOmitted || !output.SelectedInference.OtherRoutesAffectTruth {
+		t.Fatalf("selection = %#v", output.SelectedInference)
+	}
+	if got := ledgerRowIDs(output.Rows); !reflect.DeepEqual(got, []string{"P1", "P2", "L1"}) {
+		t.Fatalf("selected rows = %#v", got)
+	}
+	if len(output.Rows[2].Derivations) != 1 || output.Rows[2].Derivations[0].ID != "J1" {
+		t.Fatalf("root derivations = %#v", output.Rows[2].Derivations)
+	}
+
+	stdout.Reset()
+	stderr.Reset()
+	t.Setenv("COLUMNS", "100")
+	if err := run([]string{"ledger", "--inference", "J1", path, "L1"}, &stdout, &stderr); err != nil {
+		t.Fatal(err)
+	}
+	human := stdout.String()
+	if !strings.Contains(human, "T*") || !strings.Contains(human, "* truth comes from another justification not shown") {
+		t.Fatalf("selected human ledger lacks compact truth note:\n%s", human)
+	}
+	lines := strings.Split(human, "\n")
+	header, sourceLine, rootLine := lineContaining(lines, "STATEMENT"), lineContaining(lines, "First"), lineContaining(lines, "Target")
+	statementColumn := strings.Index(header, "STATEMENT")
+	if statementColumn < 0 || strings.Index(sourceLine, "First") != statementColumn || strings.Index(rootLine, "Target") != statementColumn {
+		t.Fatalf("T* misaligned statement column %d:\n%s", statementColumn, human)
+	}
+}
+
+func TestLedgerSelectedInferenceMarksAcceptedUndercutCompactly(t *testing.T) {
+	path := selectedInferenceWorkspace(t, true, true)
+	var stdout, stderr bytes.Buffer
+	t.Setenv("COLUMNS", "100")
+	if err := run([]string{"ledger", path, "L1", "--inference", "J1"}, &stdout, &stderr); err != nil {
+		t.Fatal(err)
+	}
+	human := stdout.String()
+	if !strings.Contains(human, "T*") || !strings.Contains(human, "AND(P1, P2) [undercut]") || !strings.Contains(human, "* truth comes from another justification not shown") {
+		t.Fatalf("undercut ledger =\n%s", human)
+	}
+
+	path = selectedInferenceWorkspace(t, true, false)
+	stdout.Reset()
+	stderr.Reset()
+	if err := run([]string{"ledger", path, "L1", "--inference", "J1"}, &stdout, &stderr); err != nil {
+		t.Fatal(err)
+	}
+	human = stdout.String()
+	if !strings.Contains(human, "L1!") || !strings.Contains(human, "AND(P1, P2) [undercut]") || strings.Contains(human, "F*") || strings.Contains(human, "truth comes from another") {
+		t.Fatalf("sole undercut route ledger =\n%s", human)
+	}
+}
+
+func TestLedgerSelectedInferenceReportsStableSelectionFailures(t *testing.T) {
+	path := selectedInferenceWorkspace(t, false, true)
+	for _, test := range []struct {
+		id, code string
+	}{{"missing", "ledger_inference_not_found"}, {"J3", "ledger_inference_target_mismatch"}} {
+		var stdout, stderr bytes.Buffer
+		err := run([]string{"ledger", path, "L1", "--inference", test.id, "--json"}, &stdout, &stderr)
+		if !errors.Is(err, errValidationFailed) {
+			t.Fatalf("%s error = %v", test.id, err)
+		}
+		var failure failureOutput
+		if err := json.Unmarshal(stdout.Bytes(), &failure); err != nil || len(failure.Diagnostics) != 1 || failure.Diagnostics[0].Code != test.code {
+			t.Fatalf("%s failure = %#v, err %v", test.id, failure, err)
+		}
+	}
+}
+
 func TestLedgerRejectsCounterpointRoot(t *testing.T) {
 	path := textViewWorkspace(t)
 	var stdout, stderr bytes.Buffer
@@ -201,4 +287,55 @@ func textViewWorkspace(t *testing.T) string {
 		t.Fatal(err)
 	}
 	return path
+}
+
+func selectedInferenceWorkspace(t *testing.T, undercut, alternative bool) string {
+	t.Helper()
+	doc := &argument.Document{
+		ID: "selected-ledger", Title: "Selected Ledger", Metadata: []argument.Metadata{{Key: "profile", Value: "workspace"}},
+		Statements: []argument.Statement{
+			{ID: "P1", Role: argument.RolePremise, Kind: argument.KindFact, Truth: argument.TruthTrue, Text: "First"},
+			{ID: "P2", Role: argument.RolePremise, Kind: argument.KindFact, Truth: argument.TruthFalse, Text: "Second"},
+			{ID: "P3", Role: argument.RolePremise, Kind: argument.KindFact, Truth: argument.TruthTrue, Text: "Third"},
+			{ID: "P4", Role: argument.RolePremise, Kind: argument.KindFact, Truth: argument.TruthTrue, Text: "Fourth"},
+			{ID: "L1", Role: argument.RoleLemma, Kind: argument.KindFact, Truth: argument.TruthUnknown, Text: "Target"},
+			{ID: "P5", Role: argument.RolePremise, Kind: argument.KindFact, Truth: argument.TruthTrue, Text: "Other target source"},
+			{ID: "L2", Role: argument.RoleLemma, Kind: argument.KindFact, Truth: argument.TruthUnknown, Text: "Other target"},
+		},
+		Junctors: []argument.Junctor{
+			{ID: "J1", Connector: argument.ConnectorAND, Sources: []string{"P1", "P2"}, Target: "L1"},
+			{ID: "J3", Connector: argument.ConnectorAND, Sources: []string{"P1", "P5"}, Target: "L2"},
+		},
+		DirectSupports: []argument.DirectSupport{}, Defeats: []argument.Defeat{},
+	}
+	if alternative {
+		doc.Junctors = append(doc.Junctors, argument.Junctor{ID: "J2", Connector: argument.ConnectorAND, Sources: []string{"P3", "P4"}, Target: "L1"})
+	}
+	if undercut {
+		doc.Statements[1].Truth = argument.TruthTrue
+		doc.Statements = append(doc.Statements, argument.Statement{ID: "CP1", Role: argument.RoleCounterpoint, Kind: argument.KindFact, Truth: argument.TruthTrue, Text: "The first inference is undercut"})
+		doc.Defeats = append(doc.Defeats, argument.Defeat{From: "CP1", Scope: argument.DefeatInference, JunctorID: "J1", AtTarget: "L1"})
+	}
+	path := filepath.Join(t.TempDir(), "selected-ledger.arg")
+	if err := argfile.SaveAtomic(path, doc); err != nil {
+		t.Fatal(err)
+	}
+	return path
+}
+
+func ledgerRowIDs(rows []query.LedgerRow) []string {
+	ids := make([]string, 0, len(rows))
+	for _, row := range rows {
+		ids = append(ids, row.Statement.ID)
+	}
+	return ids
+}
+
+func lineContaining(lines []string, fragment string) string {
+	for _, line := range lines {
+		if strings.Contains(line, fragment) {
+			return line
+		}
+	}
+	return ""
 }

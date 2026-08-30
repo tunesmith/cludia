@@ -46,6 +46,9 @@ The connected argument supporting this decision is
 - The ledger is rooted at one statement and displays stable topological order
   with label, full statement text, and compact `AND(...)`, `OR(...)`, or direct
   derivation notation. Human output omits junctor IDs.
+- CLI ledger reads may explicitly select one incoming root junctor by ID. This
+  narrows only the root branch, retains complete support below its sources, and
+  does not alter the default complete Ledger or the TUI.
 - `cludia top` and `cludia ledger` expose the same deterministic read models in
   human and versioned JSON form for agent and interface parity.
 - The TUI automatically follows valid external file changes, preserves
