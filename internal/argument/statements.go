@@ -116,7 +116,11 @@ func EditStatement(doc *Document, options EditStatementOptions) (*Document, Edit
 	previous := *statement
 	if options.Truth != nil {
 		if next.HasIncomingSupport(statement.ID) {
-			return nil, EditStatementResult{}, mutationError("truth_assignment_nonleaf", fmt.Sprintf("truth can only be assigned to leaf premises and leaf counterpoints; %s has incoming support", statement.ID), statement.ID)
+			return nil, EditStatementResult{}, mutationError(
+				"truth_assignment_nonleaf",
+				fmt.Sprintf("truth can only be assigned to leaf premises and leaf counterpoints; %s has incoming support. Its effective truth is calculated: use evaluate to inspect it, or dispute it by challenging an upstream premise or undercutting an incoming inference. normalize-truth only repairs obsolete stored truth on sourced statements", statement.ID),
+				statement.ID,
+			)
 		}
 		if statement.Role != RolePremise && statement.Role != RoleCounterpoint {
 			return nil, EditStatementResult{}, mutationError("truth_assignment_role", fmt.Sprintf("truth can only be assigned to leaf premises and leaf counterpoints; %s has role %s", statement.ID, statement.Role), statement.ID)

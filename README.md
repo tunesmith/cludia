@@ -280,6 +280,16 @@ junctor and target, and `counterpoint` for a counterpoint of a counterpoint.
 counterpoint, or derived statement. It selects a derived statement's sole
 incoming junctor but requires `--inference` when multiple justifications or
 legacy direct support make the choice ambiguous.
+
+A defeat is not a caution label. If its counterpoint is accepted by grounded
+evaluation, it changes effective truth: an undermine falsifies its premise and
+an undercut disables its exact inference edge. Use one only when accepting the
+counterpoint really has that consequence. Absence of direct proof, a request
+for caution, or residual uncertainty is not automatically a defeat; keep a
+mere qualification in conversation or an adjacent note, or capture it as an
+unattached truth-apt statement. `cludia guidance` exposes the same contract in
+human and structured form.
+
 `remove-counterpoint` is leaf-first, supports `--dry-run`, and refuses to remove
 a statement that still has dependent counterpoints or support relations.
 

@@ -192,7 +192,17 @@ changes.
 
 ### 6. Challenge or repair
 
-If a real objection remains:
+Defeats are semantic, not annotations. Before attaching one, ask what accepting
+the counterpoint would do:
+
+- use an undermine only if it makes a premise false or materially out of scope;
+- use an undercut only if the stated sources no longer suffice for that target;
+- use a counterpoint of a counterpoint only if it defeats the earlier objection.
+
+No direct eyewitness, a request for caution, or residual uncertainty may be an
+important qualification without defeating the argument. Keep such a caveat in
+conversation or an adjacent note, or capture it as an unattached truth-apt
+statement. If a real objection remains:
 
 ```bash
 cludia undercut case.arg J1 \

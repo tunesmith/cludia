@@ -443,6 +443,19 @@ func TestEditRejectsExplicitTrueLemma(t *testing.T) {
 	if !errors.Is(err, errValidationFailed) {
 		t.Fatalf("edit lemma truth error = %v", err)
 	}
+	var failure failureOutput
+	if err := json.Unmarshal(stdout.Bytes(), &failure); err != nil || len(failure.Diagnostics) != 1 {
+		t.Fatalf("truth failure = %#v, %v", failure, err)
+	}
+	diagnostic := failure.Diagnostics[0]
+	if diagnostic.Code != "truth_assignment_nonleaf" || diagnostic.Element != "L1" {
+		t.Fatalf("truth diagnostic = %#v", diagnostic)
+	}
+	for _, want := range []string{"effective truth is calculated", "use evaluate", "challenging an upstream premise", "undercutting an incoming inference", "normalize-truth only repairs"} {
+		if !strings.Contains(diagnostic.Message, want) {
+			t.Fatalf("truth diagnostic missing %q: %s", want, diagnostic.Message)
+		}
+	}
 	after, readErr := os.ReadFile(path)
 	if readErr != nil || !bytes.Equal(before, after) {
 		t.Fatalf("workspace changed after invalid truth edit: %v", readErr)

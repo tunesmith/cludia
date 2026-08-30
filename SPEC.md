@@ -387,7 +387,12 @@ Guidance MUST also state that attached counterpoints are removed explicitly
 before deleting their target or an incident inference. It MUST state that
 focused capture accepts truth-apt propositions rather than questions, that
 unresolved hypotheses and disputed propositions use truth `U`, and that Cludia
-does not author confidence scores or probabilities.
+does not author confidence scores or probabilities. Guidance MUST explain that
+a defeat has grounded truth consequences and is appropriate only when accepting
+the counterpoint would make a premise false or materially out of scope, make a
+particular inference insufficient, or defeat an earlier counterpoint. Absence of
+direct proof, a request for caution, or residual uncertainty MUST NOT be
+presented as automatically defeating a claim.
 
 Batch input version 2 is the atomic authoring transaction over statements,
 focused `AND` derivations, and typed defeats. Its shape is:
@@ -655,7 +660,9 @@ V1 is complete when automated tests demonstrate at least:
 21. Top challenged-only filtering and offset/limit pagination preserve document
     order and do not alter the complete rooted query contract.
 22. Human and versioned machine guidance distinguish truth-apt unknown
-    propositions from unsupported questions and confidence scores.
+    propositions from unsupported questions and confidence scores, and
+    distinguish semantic defeats from caution, lack of direct proof, and
+    residual uncertainty.
 23. True, false, and unknown leaves propagate through AND, OR, alternative
     justifications, and direct support with versioned grounded defeat effects.
 24. Manual truth edits reject sourced statements, supported counterpoints
