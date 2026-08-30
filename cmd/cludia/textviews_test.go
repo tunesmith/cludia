@@ -176,6 +176,8 @@ func textViewWorkspace(t *testing.T) string {
 			statement("CP1", "challenge", "Challenge to isolated statement", argument.RoleCounterpoint),
 			statement("CP2", "answer", "Counterpoint to the challenge", argument.RoleCounterpoint),
 			statement("CP3", "undercut", "Challenge to final inference", argument.RoleCounterpoint),
+			statement("CP4", "source-challenge", "Challenge to the direct-support source", argument.RoleCounterpoint),
+			statement("CP5", "active-isolated-challenge", "Active challenge to the isolated statement", argument.RoleCounterpoint),
 		},
 		Junctors: []argument.Junctor{
 			{ID: "J1", Connector: argument.ConnectorAND, Sources: []string{"P1", "P2"}, Target: "L1"},
@@ -187,6 +189,8 @@ func textViewWorkspace(t *testing.T) string {
 			{From: "CP1", Scope: argument.DefeatPremise, To: "P5"},
 			{From: "CP2", Scope: argument.DefeatCounterpoint, To: "CP1"},
 			{From: "CP3", Scope: argument.DefeatInference, JunctorID: "J3", AtTarget: "L2"},
+			{From: "CP4", Scope: argument.DefeatPremise, To: "P2"},
+			{From: "CP5", Scope: argument.DefeatPremise, To: "P5"},
 		},
 	}
 	path := filepath.Join(t.TempDir(), "workspace.arg")

@@ -57,6 +57,7 @@ type Result struct {
 	DisabledInferenceEdges   []InferenceEdge   `json:"disabled_inference_edges"`
 	statementByID            map[string]StatementResult
 	junctorByID              map[string]JunctorResult
+	baseStatementTruthByID   map[string]argument.Truth
 }
 
 func (r Result) Statement(id string) (StatementResult, bool) {
@@ -67,6 +68,17 @@ func (r Result) Statement(id string) (StatementResult, bool) {
 func (r Result) Junctor(id string) (JunctorResult, bool) {
 	value, ok := r.junctorByID[id]
 	return value, ok
+}
+
+// TruthChangedByDefeat reports whether the grounded defeat overlay changes a
+// statement's truth from its support-propagated value. Because both values are
+// propagated through the complete support graph, this includes material
+// counterpoint effects anywhere upstream, not just defeats attached directly
+// to the statement.
+func (r Result) TruthChangedByDefeat(id string) bool {
+	base, baseOK := r.baseStatementTruthByID[id]
+	effective, effectiveOK := r.statementByID[id]
+	return baseOK && effectiveOK && base != effective.EffectiveTruth
 }
 
 type Error struct {
@@ -117,6 +129,7 @@ func Evaluate(doc *argument.Document) (Result, error) {
 		DisabledInferenceEdges: []InferenceEdge{},
 		statementByID:          make(map[string]StatementResult, len(doc.Statements)),
 		junctorByID:            make(map[string]JunctorResult, len(doc.Junctors)),
+		baseStatementTruthByID: baseStatements,
 	}
 	for edge := range disabled {
 		result.DisabledInferenceEdges = append(result.DisabledInferenceEdges, edge)

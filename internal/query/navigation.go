@@ -31,6 +31,15 @@ type LedgerRow struct {
 
 // Top returns non-counterpoint support sinks in document order.
 func Top(doc *argument.Document) []TopItem {
+	items := topItems(doc)
+	evaluated, err := evaluation.Evaluate(doc)
+	if err == nil {
+		applyTopEvaluation(items, evaluated)
+	}
+	return items
+}
+
+func topItems(doc *argument.Document) []TopItem {
 	if doc == nil {
 		return []TopItem{}
 	}
@@ -51,27 +60,44 @@ func Top(doc *argument.Document) []TopItem {
 		}
 		items = append(items, TopItem{
 			Statement: statement, Depth: depths[statement.ID],
-			Challenged: StatementChallenged(doc, statement.ID),
 		})
 	}
 	return items
 }
 
 func TopEvaluated(doc *argument.Document, evaluated evaluation.Result) []TopItem {
-	items := Top(doc)
+	items := topItems(doc)
+	applyTopEvaluation(items, evaluated)
+	return items
+}
+
+func applyTopEvaluation(items []TopItem, evaluated evaluation.Result) {
 	for index := range items {
 		value, _ := evaluated.Statement(items[index].Statement.ID)
+		items[index].Challenged = evaluated.TruthChangedByDefeat(items[index].Statement.ID)
 		items[index].EffectiveTruth = value.EffectiveTruth
 		items[index].TruthSource = value.TruthSource
 		items[index].Acceptance = value.Acceptance
 	}
-	return items
 }
 
 // Ledger returns the support-only upstream closure of a selected statement in
 // stable, proof-local topological order. Defeats contribute challenge state but
 // not rows.
 func Ledger(doc *argument.Document, reference string) (string, []LedgerRow, error) {
+	root, rows, err := ledgerRows(doc, reference)
+	if err != nil {
+		return "", nil, err
+	}
+	evaluated, err := evaluation.Evaluate(doc)
+	if err != nil {
+		return "", nil, err
+	}
+	applyLedgerEvaluation(rows, evaluated)
+	return root, rows, nil
+}
+
+func ledgerRows(doc *argument.Document, reference string) (string, []LedgerRow, error) {
 	if doc == nil {
 		return "", nil, fmt.Errorf("document is nil")
 	}
@@ -172,7 +198,7 @@ func Ledger(doc *argument.Document, reference string) (string, []LedgerRow, erro
 	for _, id := range ordered {
 		statement, _ := doc.Statement(id)
 		rows = append(rows, LedgerRow{
-			Statement: *statement, Depth: depths[id], Challenged: StatementChallenged(doc, id),
+			Statement: *statement, Depth: depths[id],
 			Derivations: incomingSupports(doc, id, included),
 		})
 	}
@@ -180,22 +206,29 @@ func Ledger(doc *argument.Document, reference string) (string, []LedgerRow, erro
 }
 
 func LedgerEvaluated(doc *argument.Document, reference string, evaluated evaluation.Result) (string, []LedgerRow, error) {
-	root, rows, err := Ledger(doc, reference)
+	root, rows, err := ledgerRows(doc, reference)
 	if err != nil {
 		return "", nil, err
 	}
+	applyLedgerEvaluation(rows, evaluated)
+	return root, rows, nil
+}
+
+func applyLedgerEvaluation(rows []LedgerRow, evaluated evaluation.Result) {
 	for index := range rows {
 		value, _ := evaluated.Statement(rows[index].Statement.ID)
+		rows[index].Challenged = evaluated.TruthChangedByDefeat(rows[index].Statement.ID)
 		rows[index].EffectiveTruth = value.EffectiveTruth
 		rows[index].TruthSource = value.TruthSource
 		rows[index].Acceptance = value.Acceptance
 	}
-	return root, rows, nil
 }
 
-// StatementChallenged reports direct statement defeat or an undercut against
-// any incoming junctor. Counter-counterpoints do not adjudicate this flag.
-func StatementChallenged(doc *argument.Document, id string) bool {
+// StatementDirectlyChallenged reports structural defeat attached to a
+// statement or one of its incoming junctors. It intentionally does not apply
+// grounded acceptance and is for local inspection rather than the compact !
+// marker shown by evaluated overview surfaces.
+func StatementDirectlyChallenged(doc *argument.Document, id string) bool {
 	if doc == nil {
 		return false
 	}

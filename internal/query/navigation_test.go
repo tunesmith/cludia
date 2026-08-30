@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/tunesmith/cludia/internal/argument"
+	"github.com/tunesmith/cludia/internal/evaluation"
 )
 
 func TestTopUsesDocumentOrderLongestDepthAndChallengeState(t *testing.T) {
@@ -16,7 +17,7 @@ func TestTopUsesDocumentOrderLongestDepthAndChallengeState(t *testing.T) {
 	if items[0].Statement.ID != "L2" || items[0].Depth != 2 || !items[0].Challenged {
 		t.Fatalf("first top item = %#v", items[0])
 	}
-	if items[1].Statement.ID != "P5" || items[1].Depth != 0 || !items[1].Challenged {
+	if items[1].Statement.ID != "P5" || items[1].Depth != 0 || items[1].Challenged {
 		t.Fatalf("second top item = %#v", items[1])
 	}
 	for _, item := range items {
@@ -66,10 +67,17 @@ func TestLedgerAcceptsSlugAndRejectsCounterpointRoot(t *testing.T) {
 	}
 }
 
-func TestCounterpointOfCounterpointDoesNotClearChallenge(t *testing.T) {
+func TestDirectChallengeRemainsInspectableWhenGroundedEffectIsRebutted(t *testing.T) {
 	doc := navigationDocument()
-	if !StatementChallenged(doc, "P5") {
-		t.Fatal("counter-counterpoint cleared challenge state")
+	if !StatementDirectlyChallenged(doc, "P5") {
+		t.Fatal("direct challenge was not discoverable")
+	}
+	evaluated, err := evaluation.Evaluate(doc)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if evaluated.TruthChangedByDefeat("P5") {
+		t.Fatal("rebutted direct challenge changed the displayed contestation state")
 	}
 }
 
@@ -180,6 +188,7 @@ func navigationDocument() *argument.Document {
 			statement("L1", "middle", argument.RoleLemma), statement("L2", "final", argument.RoleLemma),
 			statement("P5", "isolated", argument.RolePremise), statement("CP1", "challenge", argument.RoleCounterpoint),
 			statement("CP2", "answer", argument.RoleCounterpoint), statement("CP3", "undercut", argument.RoleCounterpoint),
+			statement("CP4", "source-challenge", argument.RoleCounterpoint),
 		},
 		Junctors: []argument.Junctor{
 			{ID: "J1", Connector: argument.ConnectorAND, Sources: []string{"P1", "P2"}, Target: "L1"},
@@ -191,6 +200,7 @@ func navigationDocument() *argument.Document {
 			{From: "CP1", Scope: argument.DefeatPremise, To: "P5"},
 			{From: "CP2", Scope: argument.DefeatCounterpoint, To: "CP1"},
 			{From: "CP3", Scope: argument.DefeatInference, JunctorID: "J3", AtTarget: "L2"},
+			{From: "CP4", Scope: argument.DefeatPremise, To: "P2"},
 		},
 	}
 }

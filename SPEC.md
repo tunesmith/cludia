@@ -250,6 +250,13 @@ workspace file:
 - Base-effective `T` counterpoints participate in grounded acceptance;
   counterpoint defeats produce `in`, `out`, or `undecided` labels.
 
+The compact `!` marker and the `challenged` field on Top and Ledger entries MUST
+mean that grounded defeats changed the statement's truth from its base
+support-propagated value. This effect propagates to downstream targets. A
+direct defeat that is rebutted, inactive, or outcome-neutral MUST NOT produce
+the marker. Directly attached defeats remain inspectable as typed relations in
+Statement Detail and structured relation output.
+
 Evaluation results MUST declare evaluation schema version and mode. Stored truth
 and calculated effective truth remain distinct public facts.
 

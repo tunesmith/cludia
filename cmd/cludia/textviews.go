@@ -38,7 +38,7 @@ func runTop(args []string, stdout, stderr io.Writer) error {
 	fs := flag.NewFlagSet("top", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 	jsonOutput := fs.Bool("json", false, "output versioned JSON")
-	challengedOnly := fs.Bool("challenged", false, "show only challenged top statements")
+	challengedOnly := fs.Bool("challenged", false, "show only top statements whose truth is changed by grounded counterpoints")
 	limit := fs.Int("limit", 0, "maximum number of statements to return (0 means all)")
 	offset := fs.Int("offset", 0, "number of matching statements to skip")
 	fs.Usage = func() { writeTopUsage(fs.Output()) }

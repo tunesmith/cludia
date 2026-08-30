@@ -67,7 +67,9 @@ func TestGroundedUndermineAndRecursiveCounterpoint(t *testing.T) {
 	doc.Statements = append(doc.Statements,
 		statement("CP1", argument.RoleCounterpoint, argument.TruthTrue),
 		statement("CP2", argument.RoleCounterpoint, argument.TruthTrue),
+		statement("L2", argument.RoleLemma, argument.TruthUnknown),
 	)
+	doc.DirectSupports = append(doc.DirectSupports, argument.DirectSupport{Source: "L1", Target: "L2", Connector: argument.ConnectorAND})
 	doc.Defeats = []argument.Defeat{{From: "CP1", Scope: argument.DefeatPremise, To: "P1"}}
 	result, err := Evaluate(doc)
 	if err != nil {
@@ -75,7 +77,11 @@ func TestGroundedUndermineAndRecursiveCounterpoint(t *testing.T) {
 	}
 	assertStatementTruth(t, result, "P1", argument.TruthFalse, TruthAsserted)
 	assertStatementTruth(t, result, "L1", argument.TruthFalse, TruthDerived)
+	assertStatementTruth(t, result, "L2", argument.TruthFalse, TruthDerived)
 	assertAcceptance(t, result, "CP1", AcceptanceIn)
+	if !result.TruthChangedByDefeat("P1") || !result.TruthChangedByDefeat("L1") || !result.TruthChangedByDefeat("L2") {
+		t.Fatalf("accepted undermine did not mark its propagated effect")
+	}
 
 	doc.Defeats = append(doc.Defeats, argument.Defeat{From: "CP2", Scope: argument.DefeatCounterpoint, To: "CP1"})
 	result, err = Evaluate(doc)
@@ -86,6 +92,10 @@ func TestGroundedUndermineAndRecursiveCounterpoint(t *testing.T) {
 	assertAcceptance(t, result, "CP2", AcceptanceIn)
 	assertStatementTruth(t, result, "P1", argument.TruthTrue, TruthAsserted)
 	assertStatementTruth(t, result, "L1", argument.TruthTrue, TruthDerived)
+	assertStatementTruth(t, result, "L2", argument.TruthTrue, TruthDerived)
+	if result.TruthChangedByDefeat("P1") || result.TruthChangedByDefeat("L1") || result.TruthChangedByDefeat("L2") {
+		t.Fatalf("rebutted counterpoint still marked a truth effect")
+	}
 }
 
 func TestGroundedUndercutDisablesOnlySelectedJustification(t *testing.T) {
@@ -97,6 +107,9 @@ func TestGroundedUndercutDisablesOnlySelectedJustification(t *testing.T) {
 		t.Fatal(err)
 	}
 	assertStatementTruth(t, result, "L1", argument.TruthFalse, TruthDerived)
+	if !result.TruthChangedByDefeat("L1") {
+		t.Fatal("effective undercut did not mark target")
+	}
 	if len(result.DisabledInferenceEdges) != 1 || result.DisabledInferenceEdges[0].JunctorID != "J1" {
 		t.Fatalf("disabled edges = %#v", result.DisabledInferenceEdges)
 	}
@@ -106,6 +119,9 @@ func TestGroundedUndercutDisablesOnlySelectedJustification(t *testing.T) {
 		t.Fatal(err)
 	}
 	assertStatementTruth(t, result, "L1", argument.TruthTrue, TruthDerived)
+	if result.TruthChangedByDefeat("L1") {
+		t.Fatal("ineffective undercut marked target despite alternative justification")
+	}
 }
 
 func TestSupportedCounterpointUsesDerivedTruthForAcceptance(t *testing.T) {

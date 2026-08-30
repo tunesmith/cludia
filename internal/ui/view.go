@@ -139,7 +139,7 @@ func (m Model) renderedDetailBody() ([]string, int, int) {
 		return []string{mutedStyle.Render("statement missing")}, -1, -1
 	}
 	width := m.contentWidth()
-	challenged := query.StatementChallenged(m.doc, statement.ID)
+	challenged := m.evaluation.TruthChangedByDefeat(statement.ID)
 	value, _ := m.evaluation.Statement(statement.ID)
 	status := truthStatus(statement.Truth, value.EffectiveTruth, value.TruthSource)
 	header := renderID(displayID(statement.ID, challenged), challenged) + statementHeadStyle.Render(fmt.Sprintf("  %s[%s]  %s", statement.Role, statement.Kind, status))

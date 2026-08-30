@@ -4,6 +4,8 @@
 - Date: 2026-08-26
 - Partial supersession: ADR 0010 later adds focused durable Top reordering while
   retaining this ADR's navigation model and deferral of general TUI authoring.
+- Challenge-marker supersession: ADR 0014's grounded evaluation replaces this
+  ADR's direct-attachment marker with propagated counterpoint impact.
 - Layout refinement: 2026-08-30 (display-cell wrapping, dimension safety, and
   viewport-sized page movement)
 
@@ -60,9 +62,10 @@ The connected argument supporting this decision is
   CLI or JSON integration surface.
 - Top and ledger semantics live in the domain query layer rather than Bubble
   Tea presentation code.
-- Full challenge adjudication remains out of scope: any attached undermine or
-  incoming-inference undercut marks a statement as challenged even when a
-  counterpoint itself has been countered.
+- The original direct-attachment challenge marker is superseded by ADR 0014.
+  `!` now means grounded counterpoints changed the statement's propagated truth,
+  possibly through a challenge elsewhere in its upstream derivation. Direct
+  challenges remain explicit in Statement Detail and typed relation output.
 - Search, isolated-only browsing, challenge-only browsing, copy/export, and all
   TUI mutations remain deferred until the three-view navigator is dogfooded.
 

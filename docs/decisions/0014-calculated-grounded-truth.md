@@ -40,6 +40,11 @@ and undercuts.
   effective truth, truth source, evaluation metadata, and counterpoint
   acceptance to read surfaces. Evaluation results have their own schema version
   1 and declare mode `grounded`.
+- The compact `!` marker and `challenged` summary field compare propagated truth
+  before defeats with effective truth after grounded defeats. They therefore
+  report a material counterpoint effect anywhere upstream, not merely a direct
+  attached challenge. A rebutted or outcome-neutral counterpoint does not mark
+  the statement. Direct defeats remain available in detail and relation reads.
 - This deterministic structural evaluation is not confidence, probability, or
   proof that natural-language entailment is sound.
 

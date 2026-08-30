@@ -207,6 +207,13 @@ Accepted undermines force premise targets false; accepted undercuts disable the
 identified inference edge. Evaluation outputs declare schema version 1 and mode
 `grounded`.
 
+On Top and Ledger reads, `!` (and JSON `challenged`) means that this grounded
+overlay changed the statement's truth from the value obtained by propagating
+support without defeats. The effect can originate anywhere upstream. Merely
+having a direct counterpoint is insufficient when it is rebutted, inactive, or
+does not change the result; direct defeat relations remain separately
+inspectable.
+
 A valid Concludia document should be a valid workspace. A valid workspace is
 not necessarily a valid Concludia argument.
 

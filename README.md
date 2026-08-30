@@ -95,7 +95,9 @@ cludia case.arg
 ```
 
 The default Top view lists non-counterpoint statements with no outgoing support
-in document order, with longest support depth and `!` on challenged statements.
+in document order, with longest support depth. `!` means grounded counterpoints
+changed the statement's truth somewhere in its upstream derivation; rebutted or
+outcome-neutral counterpoints do not produce it.
 Its title shows the selected row as `current of total` for a quick sense of place.
 All statement text wraps without truncation. Enter follows the selected
 statement into exact justification, challenge, and downstream-use detail; `f`
@@ -215,7 +217,9 @@ conflating their logical meanings.
 and text. Results preserve document order and report which fields matched.
 
 `top` lists non-counterpoint statements with no outgoing support in document
-order, including longest upstream support depth and challenge state. It accepts
+order, including longest upstream support depth and propagated counterpoint
+impact. Its `challenged` field and `!` marker mean that grounded defeats changed
+the statement's base propagated truth. It accepts
 `--challenged`, `--limit`, and `--offset` for ordered summary reads; these do not
 alter `root`, whose contract remains the complete rooted structure. `ledger`
 shows the complete support derivation to a selected statement in stable,
