@@ -237,72 +237,36 @@ func createDefeatWithDocument(path string, doc *argument.Document, profile valid
 		}
 		return errValidationFailed
 	}
-	next := doc.Clone()
-	allocator, err := argument.NewIDAllocator(next)
-	if err != nil {
-		return err
-	}
-	defeat := argument.Defeat{Scope: scope}
-	switch scope {
-	case argument.DefeatPremise:
-		target, ok := next.Statement(targetRef)
-		if !ok {
-			return writeMutationFailure(stdout, *flags.jsonOutput, profile, "target_not_found", fmt.Sprintf("premise %q not found", targetRef), targetRef)
-		}
-		if target.Role != argument.RolePremise {
-			return writeMutationFailure(stdout, *flags.jsonOutput, profile, "undermine_target_role", fmt.Sprintf("undermine target %s has role %s, expected premise", target.ID, target.Role), target.ID)
-		}
-		defeat.To = target.ID
-	case argument.DefeatInference:
-		junctor, ok := next.Junctor(targetRef)
-		if !ok {
-			return writeMutationFailure(stdout, *flags.jsonOutput, profile, "junctor_not_found", fmt.Sprintf("junctor %q not found", targetRef), targetRef)
-		}
-		defeat.JunctorID, defeat.AtTarget = junctor.ID, junctor.Target
-	case argument.DefeatCounterpoint:
-		target, ok := next.Statement(targetRef)
-		if !ok {
-			return writeMutationFailure(stdout, *flags.jsonOutput, profile, "target_not_found", fmt.Sprintf("counterpoint %q not found", targetRef), targetRef)
-		}
-		if target.Role != argument.RoleCounterpoint {
-			return writeMutationFailure(stdout, *flags.jsonOutput, profile, "counterpoint_target_role", fmt.Sprintf("counterpoint target %s has role %s, expected counterpoint", target.ID, target.Role), target.ID)
-		}
-		defeat.To = target.ID
-	}
 	truth, truthOK := parseTruth(*flags.truth)
 	kind, kindOK := parseKind(*flags.kind)
-	id, allocationErr := allocator.Statement(argument.RoleCounterpoint, strings.TrimSpace(*flags.id))
-	if allocationErr != nil {
-		return writeIDAllocationFailure(stdout, *flags.jsonOutput, profile, allocationErr)
+	element := strings.TrimSpace(*flags.id)
+	if element == "" {
+		element = argument.NextStatementID(doc, argument.RoleCounterpoint)
 	}
-	slug := strings.TrimSpace(*flags.slug)
-	if slug == "" {
-		slug = argument.UniqueSlug(next, *flags.text)
-	} else if collision := slugIDCollisionDiagnostic(next, slug, id); collision != nil {
-		if err := writeFailure(stdout, *flags.jsonOutput, profile, collision); err != nil {
-			return err
-		}
-		return errValidationFailed
-	}
-	statement := argument.Statement{
-		ID: id, Slug: slug, Role: argument.RoleCounterpoint, Kind: kind,
-		Truth: truth, Text: strings.TrimSpace(*flags.text),
-	}
-	defeat.From = id
-	next.Statements = append(next.Statements, statement)
-	next.Defeats = append(next.Defeats, defeat)
-	metadataChange := persistIDAllocator(next, allocator)
 	if !truthOK {
-		diagnostics = append(diagnostics, diagnostic.Diagnostic{Code: "truth_invalid", Message: fmt.Sprintf("invalid truth %q; expected T, F, or U", *flags.truth), Severity: diagnostic.SeverityError, Element: id})
+		return writeMutationFailure(stdout, *flags.jsonOutput, profile, "truth_invalid", fmt.Sprintf("invalid truth %q; expected T, F, or U", *flags.truth), element)
 	}
 	if !kindOK {
-		diagnostics = append(diagnostics, diagnostic.Diagnostic{Code: "kind_invalid", Message: fmt.Sprintf("invalid kind %q; expected fact or value", *flags.kind), Severity: diagnostic.SeverityError, Element: id})
+		return writeMutationFailure(stdout, *flags.jsonOutput, profile, "kind_invalid", fmt.Sprintf("invalid kind %q; expected fact or value", *flags.kind), element)
 	}
-	if !diagnostic.HasErrors(diagnostics) {
-		validated := validation.Validate(next, profile)
-		diagnostics = validated.Diagnostics
+
+	next, result, err := argument.AddDefeat(doc, argument.AddDefeatOptions{
+		Scope: scope, TargetRef: targetRef, Text: *flags.text,
+		RequestedID: strings.TrimSpace(*flags.id), Slug: strings.TrimSpace(*flags.slug),
+		Truth: truth, Kind: kind,
+	})
+	if err != nil {
+		if _, ok := err.(*argument.IDAllocationError); ok {
+			return writeIDAllocationFailure(stdout, *flags.jsonOutput, profile, err)
+		}
+		if addErr, ok := err.(*argument.AddDefeatError); ok {
+			return writeMutationFailure(stdout, *flags.jsonOutput, profile, addErr.Failure.Code, addErr.Failure.Message, addErr.Failure.Element)
+		}
+		return err
 	}
-	if diagnostic.HasErrors(diagnostics) {
+	validated := validation.Validate(next, profile)
+	diagnostics = validated.Diagnostics
+	if !validated.OK() {
 		if err := writeFailure(stdout, *flags.jsonOutput, profile, diagnostics); err != nil {
 			return err
 		}
@@ -314,20 +278,31 @@ func createDefeatWithDocument(path string, doc *argument.Document, profile valid
 	if diagnostics == nil {
 		diagnostics = []diagnostic.Diagnostic{}
 	}
+	previousNextIDs, nextIDsExisted := doc.MetadataValue(argument.NextIDsMetadataKey)
+	currentNextIDs, _ := next.MetadataValue(argument.NextIDsMetadataKey)
+	var metadataChange *changeOutput
+	if !nextIDsExisted || previousNextIDs != currentNextIDs {
+		operation := "added"
+		if nextIDsExisted {
+			operation = "updated"
+		}
+		change := changeOutput{Operation: operation, ElementType: "metadata", ID: argument.NextIDsMetadataKey}
+		metadataChange = &change
+	}
 	output := defeatMutationOutput{
 		SchemaVersion: outputSchemaVersion, Action: action, DryRun: false,
-		Profile: profile, Document: documentSummary(next), Counterpoint: statement, Defeat: defeat,
+		Profile: profile, Document: documentSummary(next), Counterpoint: result.Counterpoint, Defeat: result.Defeat,
 		Changes: appendMetadataChange([]changeOutput{
-			{Operation: "added", ElementType: "statement", ID: statement.ID},
-			{Operation: "added", ElementType: "defeat", ID: statement.ID},
+			{Operation: "added", ElementType: "statement", ID: result.Counterpoint.ID},
+			{Operation: "added", ElementType: "defeat", ID: result.Counterpoint.ID},
 		}, metadataChange),
 		Diagnostics: diagnostics,
 	}
 	if *flags.jsonOutput {
 		return writeIndentedJSON(stdout, output)
 	}
-	fmt.Fprintf(stdout, "Added %s %s:%s\n%s\n", action, statement.ID, statement.Slug, statement.Text)
-	fmt.Fprintf(stdout, "%s\n", formatDefeat(defeat))
+	fmt.Fprintf(stdout, "Added %s %s:%s\n%s\n", action, result.Counterpoint.ID, result.Counterpoint.Slug, result.Counterpoint.Text)
+	fmt.Fprintf(stdout, "%s\n", formatDefeat(result.Defeat))
 	for _, item := range output.Diagnostics {
 		writeDiagnostic(stdout, item)
 	}
