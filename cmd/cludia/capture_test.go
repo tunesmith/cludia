@@ -285,6 +285,27 @@ func TestInitSeparatesDigitLeadingDocumentIDAndStatementSlugFallbacks(t *testing
 	}
 }
 
+func TestFocusedAddRejectsSlugThatShadowsDurableID(t *testing.T) {
+	path := referenceCollisionWorkspace(t)
+	before, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var stdout, stderr bytes.Buffer
+	err = run([]string{"add", path, "--text", "Colliding alias", "--slug", "p1", "--json"}, &stdout, &stderr)
+	if !errors.Is(err, errValidationFailed) {
+		t.Fatalf("add error = %v", err)
+	}
+	var failure failureOutput
+	if err := json.Unmarshal(stdout.Bytes(), &failure); err != nil || len(failure.Diagnostics) != 1 || failure.Diagnostics[0].Code != "statement_slug_id_collision" {
+		t.Fatalf("failure = %#v, decode %v", failure, err)
+	}
+	after, readErr := os.ReadFile(path)
+	if readErr != nil || !bytes.Equal(before, after) {
+		t.Fatalf("collision changed workspace: %v", readErr)
+	}
+}
+
 func TestEditChangesOnlyTextAndReportsPreviousStatement(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "workspace.arg")
 	var stdout, stderr bytes.Buffer

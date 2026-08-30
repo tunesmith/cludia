@@ -93,6 +93,21 @@ func TestChallengeRoutesPremiseDerivedStatementCounterpointAndJunctor(t *testing
 	}
 }
 
+func TestChallengeGivesJunctorIDPrecedenceOverStatementSlug(t *testing.T) {
+	path := referenceCollisionWorkspace(t)
+	var stdout, stderr bytes.Buffer
+	if err := run([]string{"challenge", path, "shared", "--text", "Challenge the inference", "--json"}, &stdout, &stderr); err != nil {
+		t.Fatalf("challenge collision: %v\n%s", err, stderr.String())
+	}
+	var output defeatMutationOutput
+	if err := json.Unmarshal(stdout.Bytes(), &output); err != nil {
+		t.Fatal(err)
+	}
+	if output.Defeat.Scope != argument.DefeatInference || output.Defeat.JunctorID != "shared" || output.Defeat.AtTarget != "L1" {
+		t.Fatalf("challenge output = %#v", output)
+	}
+}
+
 func TestChallengeDerivedStatementRequiresExplicitAmbiguousInference(t *testing.T) {
 	path := repairWorkspace(t)
 	var stdout, stderr bytes.Buffer

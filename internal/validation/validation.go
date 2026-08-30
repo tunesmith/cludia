@@ -166,6 +166,23 @@ func Validate(doc *argument.Document, profile Profile) Result {
 		}
 	}
 
+	for _, statement := range doc.Statements {
+		slug, ownerID := statement.Slug, statement.ID
+		if slug == "" {
+			continue
+		}
+		if exact, exists := statementByID[slug]; exists && exact.ID == ownerID {
+			continue
+		}
+		if ownerType, exists := allIDs[slug]; exists {
+			result.warning(
+				"statement_slug_shadows_id",
+				fmt.Sprintf("slug %q on statement %s is shadowed by a durable %s id; exact IDs take precedence", slug, ownerID, ownerType),
+				ownerID,
+			)
+		}
+	}
+
 	for _, support := range doc.DirectSupports {
 		if support.Connector != argument.ConnectorAND && support.Connector != argument.ConnectorOR {
 			result.error("direct_support_connector_invalid", fmt.Sprintf("invalid connector %q", support.Connector), support.Source+"->"+support.Target)

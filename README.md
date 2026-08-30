@@ -233,6 +233,10 @@ explicit ID is accepted only when it equals the relevant exact next value.
 Existing custom IDs remain readable and survive ordinary round trips, but new
 focused authoring does not create them.
 
+Exact durable IDs take precedence over mutable statement slugs in every
+unqualified reference. Imported slug/ID collisions remain readable with a
+warning; focused authoring refuses to create new collisions.
+
 When `derive --target` first justifies an existing premise, Cludia promotes it
 with the next `L` ID, retires its former `P` ID, and atomically rewrites modeled
 references. Structured output reports `previous_id` and `current_id`; external

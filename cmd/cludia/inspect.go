@@ -117,7 +117,9 @@ func runShow(args []string, stdout, stderr io.Writer) error {
 	reference := fs.Arg(1)
 	isolated := query.IsolatedStatementIDs(doc)
 	output := showOutput{SchemaVersion: outputSchemaVersion, Profile: profile, Diagnostics: diagnostics}
-	if statement, ok := doc.Statement(reference); ok {
+	resolved, found := doc.ResolveElement(reference)
+	if found && resolved.Type == argument.ElementStatement {
+		statement, _ := doc.Statement(resolved.ID)
 		output.ElementType = "statement"
 		view := statementOutput{Statement: *statement, Isolated: isolated[statement.ID]}
 		output.Statement = &view
@@ -125,7 +127,8 @@ func runShow(args []string, stdout, stderr io.Writer) error {
 			relations := query.StatementRelations(doc, statement.ID)
 			output.Relations = &relations
 		}
-	} else if junctor, ok := doc.Junctor(reference); ok {
+	} else if found && resolved.Type == argument.ElementJunctor {
+		junctor, _ := doc.Junctor(resolved.ID)
 		output.ElementType = "junctor"
 		copy := *junctor
 		copy.Sources = append([]string(nil), junctor.Sources...)

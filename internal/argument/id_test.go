@@ -137,3 +137,39 @@ func TestUniqueSlugPrefixesDigitLeadingText(t *testing.T) {
 		t.Fatalf("slug length = %d, max %d", len(got), maxSlugLength)
 	}
 }
+
+func TestStatementAndElementResolutionGiveDurableIDsPrecedence(t *testing.T) {
+	doc := &Document{
+		Statements: []Statement{
+			{ID: "P1", Slug: "junctor-shadow"},
+			{ID: "shared", Slug: "second"},
+			{ID: "P2", Slug: "shared"},
+		},
+		Junctors: []Junctor{{ID: "junctor-shadow"}},
+	}
+
+	statement, ok := doc.Statement("shared")
+	if !ok || statement.ID != "shared" {
+		t.Fatalf("statement resolution = %#v, %t", statement, ok)
+	}
+	resolved, ok := doc.ResolveElement("junctor-shadow")
+	if !ok || resolved.Type != ElementJunctor || resolved.ID != "junctor-shadow" {
+		t.Fatalf("element resolution = %#v, %t", resolved, ok)
+	}
+}
+
+func TestUniqueSlugAndCollisionDetectionReserveDurableIDs(t *testing.T) {
+	doc := &Document{
+		Statements: []Statement{{ID: "reserved", Slug: "other"}},
+		Junctors:   []Junctor{{ID: "derived-claim"}},
+	}
+	if got := UniqueSlug(doc, "Reserved"); got != "reserved-2" {
+		t.Fatalf("statement-ID-aware slug = %q", got)
+	}
+	if got := UniqueSlug(doc, "Derived claim"); got != "derived-claim-2" {
+		t.Fatalf("junctor-ID-aware slug = %q", got)
+	}
+	if elementType, id, ok := SlugIDCollision(doc, "derived-claim", "P1"); !ok || elementType != ElementJunctor || id != "derived-claim" {
+		t.Fatalf("collision = %q %q %t", elementType, id, ok)
+	}
+}

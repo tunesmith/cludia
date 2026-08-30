@@ -178,6 +178,7 @@ The workspace profile MUST enforce:
 
 - all referenced statement and junctor IDs exist;
 - IDs are unique within the document;
+- statement slugs are unique within their namespace;
 - junctors have exactly one target;
 - newly authored junctors have two or more distinct sources;
 - no self-support or self-defeat relation;
@@ -308,6 +309,12 @@ JSON is a public interface and MUST:
   references;
 - report all durable changes made by a mutation;
 - avoid silently dropping constructs unknown to a focused command.
+
+Reference resolution follows ADR 0012. In statement contexts, exact statement
+IDs precede slugs. In statement-or-junctor contexts, every exact durable ID
+precedes every slug. Imported slug/ID collisions remain readable with a stable
+warning, while focused mutations MUST reject creating a new collision without
+writing.
 
 Flags SHOULD be accepted consistently before or after positional arguments.
 Mutation commands that can remove or cascade through relations SHOULD support

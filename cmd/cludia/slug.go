@@ -86,6 +86,14 @@ func runRenameSlug(args []string, stdout, stderr io.Writer) error {
 	case *clearSlug:
 		current = ""
 	}
+	if current != "" {
+		if collision := slugIDCollisionDiagnostic(next, current, statement.ID); collision != nil {
+			if err := writeFailure(stdout, *jsonOutput, profile, collision); err != nil {
+				return err
+			}
+			return errValidationFailed
+		}
+	}
 	statement.Slug = current
 	rootUpdated := false
 	if previous != "" && previous != current {

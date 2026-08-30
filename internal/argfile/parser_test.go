@@ -134,6 +134,16 @@ func TestGeneratedJunctorIDDoesNotCollideWithStatementID(t *testing.T) {
 	}
 }
 
+func TestStatementReferenceResolutionGivesExactIDPrecedenceOverSlug(t *testing.T) {
+	parsed := Parse("argument refs \"References\"\npremise first:claim ::T \"Slug owner\"\npremise claim:exact ::T \"ID owner\"\nlemma result \"Result\"\n  <- AND(claim, first)\n")
+	if diagnostic.HasErrors(parsed.Diagnostics) {
+		t.Fatalf("parse diagnostics: %#v", parsed.Diagnostics)
+	}
+	if got := parsed.Document.Junctors[0].Sources; !reflect.DeepEqual(got, []string{"claim", "first"}) {
+		t.Fatalf("resolved sources = %#v", got)
+	}
+}
+
 func assertDiagnosticCode(t *testing.T, diagnostics []diagnostic.Diagnostic, code string) {
 	t.Helper()
 	for _, item := range diagnostics {

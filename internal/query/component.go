@@ -83,14 +83,18 @@ func Components(doc *argument.Document) []Component {
 }
 
 func ComponentContaining(doc *argument.Document, reference string) (Component, bool) {
+	resolved, ok := doc.ResolveElement(reference)
+	if !ok {
+		return Component{}, false
+	}
 	for _, component := range Components(doc) {
 		for _, statement := range component.Statements {
-			if statement.ID == reference || statement.Slug == reference {
+			if resolved.Type == argument.ElementStatement && statement.ID == resolved.ID {
 				return component, true
 			}
 		}
 		for _, junctor := range component.Junctors {
-			if junctor.ID == reference {
+			if resolved.Type == argument.ElementJunctor && junctor.ID == resolved.ID {
 				return component, true
 			}
 		}

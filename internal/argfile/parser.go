@@ -263,11 +263,8 @@ func resolveRecords(doc *argument.Document, records []*rawStatement, result *Par
 	}
 
 	resolveStatement := func(reference string, line int, context string) string {
-		if _, exists := idLines[reference]; exists {
-			return reference
-		}
-		if id, exists := slugs[reference]; exists {
-			return id
+		if statement, exists := doc.Statement(reference); exists {
+			return statement.ID
 		}
 		result.addError("reference_unknown", line, fmt.Sprintf("reference %q in %s does not match any statement id or slug", reference, context), reference)
 		return reference

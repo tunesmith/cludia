@@ -149,6 +149,11 @@ func runAdd(args []string, stdout, stderr io.Writer) error {
 	slug := strings.TrimSpace(*slugName)
 	if slug == "" {
 		slug = argument.UniqueSlug(next, *text)
+	} else if collision := slugIDCollisionDiagnostic(next, slug, id); collision != nil {
+		if err := writeFailure(stdout, *jsonOutput, profile, collision); err != nil {
+			return err
+		}
+		return errValidationFailed
 	}
 	truth, truthOK := parseTruth(*truthName)
 	kind, kindOK := parseKind(*kindName)

@@ -79,6 +79,11 @@ a mutable human-readable alias with one current value; durable relations are
 resolved and canonically written by ID. Text edits that preserve an ID require
 explicit same-proposition intent under ADR 0007.
 
+Unqualified references follow ADR 0012: exact durable IDs take precedence over
+statement slugs. Imported slug/ID collisions are preserved and warned about so
+ordinary Concludia files remain readable. Focused slug generation and mutation
+do not create new collisions with statement or junctor IDs.
+
 Statement declaration sequence is the durable general order. Reordering moves
 the complete statement block, including support clauses attached to that target,
 without changing any modeled relation. Top, search, components, rooted export,

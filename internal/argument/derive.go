@@ -151,6 +151,12 @@ func Derive(doc *Document, options DeriveOptions) (*Document, DeriveResult, erro
 		slug := strings.TrimSpace(newTarget.Slug)
 		if slug == "" {
 			slug = UniqueSlug(next, newTarget.Text)
+		} else if elementType, existingID, collides := SlugIDCollision(next, slug, id); collides {
+			return nil, DeriveResult{}, &DeriveError{Failures: []DeriveFailure{{
+				Code:    "statement_slug_id_collision",
+				Message: fmt.Sprintf("slug %q would be shadowed by %s id %s; choose a different slug", slug, elementType, existingID),
+				Element: id,
+			}}}
 		}
 		next.Statements = append(next.Statements, Statement{
 			ID: id, Slug: slug, Role: newTarget.Role, Kind: newTarget.Kind,

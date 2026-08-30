@@ -128,17 +128,19 @@ func runChallenge(args []string, stdout, stderr io.Writer) error {
 		return errValidationFailed
 	}
 	selectedInference := strings.TrimSpace(*inferenceRef)
-	if junctor, ok := doc.Junctor(targetRef); ok {
+	resolved, found := doc.ResolveElement(targetRef)
+	if found && resolved.Type == argument.ElementJunctor {
+		junctor, _ := doc.Junctor(resolved.ID)
 		if selectedInference != "" {
 			return writeMutationFailure(stdout, *flags.jsonOutput, profile, "challenge_inference_redundant", "--inference is not used when the challenged element is already a junctor", junctor.ID)
 		}
 		return createDefeatWithDocument(path, doc, profile, diagnostics, "challenge", argument.DefeatInference, junctor.ID, flags, stdout)
 	}
 
-	statement, ok := doc.Statement(targetRef)
-	if !ok {
+	if !found || resolved.Type != argument.ElementStatement {
 		return writeMutationFailure(stdout, *flags.jsonOutput, profile, "challenge_target_not_found", fmt.Sprintf("statement or junctor %q not found", targetRef), targetRef)
 	}
+	statement, _ := doc.Statement(resolved.ID)
 	switch statement.Role {
 	case argument.RolePremise:
 		if selectedInference != "" {
@@ -276,6 +278,11 @@ func createDefeatWithDocument(path string, doc *argument.Document, profile valid
 	slug := strings.TrimSpace(*flags.slug)
 	if slug == "" {
 		slug = argument.UniqueSlug(next, *flags.text)
+	} else if collision := slugIDCollisionDiagnostic(next, slug, id); collision != nil {
+		if err := writeFailure(stdout, *flags.jsonOutput, profile, collision); err != nil {
+			return err
+		}
+		return errValidationFailed
 	}
 	statement := argument.Statement{
 		ID: id, Slug: slug, Role: argument.RoleCounterpoint, Kind: kind,

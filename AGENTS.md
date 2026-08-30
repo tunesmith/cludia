@@ -42,6 +42,9 @@ not silently redefine the format or semantics in implementation.
   state-bound whole-document `renumber` operation may compact IDs.
 - Slugs are optional mutable aliases, not identity. Keep only the current slug
   and warn about external references outside the checked scope.
+- Resolve exact durable IDs before statement slugs. Preserve imported slug/ID
+  collisions with a warning, but do not create new collisions through focused
+  authoring.
 - Identity guidance must remain use-case neutral; do not assume users maintain
   any fixed number or arrangement of workspace files.
 - Rooted export must include every upstream justification and attached defeat

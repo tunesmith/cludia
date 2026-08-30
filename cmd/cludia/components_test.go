@@ -52,6 +52,21 @@ func TestComponentShowsCompleteIslandByJunctor(t *testing.T) {
 	}
 }
 
+func TestComponentGivesJunctorIDPrecedenceOverStatementSlug(t *testing.T) {
+	path := referenceCollisionWorkspace(t)
+	var stdout, stderr bytes.Buffer
+	if err := run([]string{"component", path, "shared", "--json"}, &stdout, &stderr); err != nil {
+		t.Fatal(err)
+	}
+	var output componentOutput
+	if err := json.Unmarshal(stdout.Bytes(), &output); err != nil {
+		t.Fatal(err)
+	}
+	if output.Anchor != "P2" || len(output.Junctors) != 1 || output.Junctors[0].ID != "shared" {
+		t.Fatalf("component = %#v", output)
+	}
+}
+
 func TestComponentShowsIsolatedStatementBySlug(t *testing.T) {
 	path := componentTestWorkspace(t)
 	var stdout, stderr bytes.Buffer

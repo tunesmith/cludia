@@ -62,6 +62,23 @@ func TestNextIDMetadataValidation(t *testing.T) {
 	assertCode(t, result.Diagnostics, "next_ids_invalid")
 }
 
+func TestImportedSlugIDCollisionWarnsWithoutInvalidatingWorkspace(t *testing.T) {
+	doc := &argument.Document{
+		ID: "collision", Title: "Collision",
+		Statements: []argument.Statement{
+			{ID: "P1", Slug: "shared", Role: argument.RolePremise, Kind: argument.KindFact, Truth: argument.TruthTrue, Text: "One"},
+			statement("P2", argument.RolePremise),
+			statement("L1", argument.RoleLemma),
+		},
+		Junctors: []argument.Junctor{{ID: "shared", Connector: argument.ConnectorAND, Sources: []string{"P1", "P2"}, Target: "L1"}},
+	}
+	result := Validate(doc, ProfileWorkspace)
+	if !result.OK() {
+		t.Fatalf("compatibility collision should warn rather than fail: %#v", result.Diagnostics)
+	}
+	assertCode(t, result.Diagnostics, "statement_slug_shadows_id")
+}
+
 func TestDirectedSupportCycleIsRejected(t *testing.T) {
 	doc := &argument.Document{
 		ID: "cycle", Title: "Cycle",

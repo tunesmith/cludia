@@ -116,9 +116,13 @@ func UniqueSlug(doc *Document, text string) string {
 	}
 	used := make(map[string]bool, len(doc.Statements))
 	for _, statement := range doc.Statements {
+		used[statement.ID] = true
 		if statement.Slug != "" {
 			used[statement.Slug] = true
 		}
+	}
+	for _, junctor := range doc.Junctors {
+		used[junctor.ID] = true
 	}
 	if !used[base] {
 		return base
@@ -129,4 +133,24 @@ func UniqueSlug(doc *Document, text string) string {
 			return candidate
 		}
 	}
+}
+
+// SlugIDCollision reports whether a slug would shadow another element's
+// durable ID. ownerID allows a statement whose custom ID equals its own slug to
+// remain readable for compatibility.
+func SlugIDCollision(doc *Document, slug, ownerID string) (ElementType, string, bool) {
+	if doc == nil || slug == "" {
+		return "", "", false
+	}
+	for _, statement := range doc.Statements {
+		if statement.ID == slug && statement.ID != ownerID {
+			return ElementStatement, statement.ID, true
+		}
+	}
+	for _, junctor := range doc.Junctors {
+		if junctor.ID == slug {
+			return ElementJunctor, junctor.ID, true
+		}
+	}
+	return "", "", false
 }

@@ -104,6 +104,18 @@ func diagnosticError(code, message, element string) []diagnostic.Diagnostic {
 	return []diagnostic.Diagnostic{{Code: code, Message: message, Severity: diagnostic.SeverityError, Element: element}}
 }
 
+func slugIDCollisionDiagnostic(doc *argument.Document, slug, ownerID string) []diagnostic.Diagnostic {
+	elementType, id, collides := argument.SlugIDCollision(doc, slug, ownerID)
+	if !collides {
+		return nil
+	}
+	return diagnosticError(
+		"statement_slug_id_collision",
+		fmt.Sprintf("slug %q would be shadowed by %s id %s; choose a different slug", slug, elementType, id),
+		ownerID,
+	)
+}
+
 func writeIDAllocationFailure(stdout io.Writer, jsonOutput bool, profile validation.Profile, err error) error {
 	if allocationErr, ok := err.(*argument.IDAllocationError); ok {
 		return writeMutationFailure(stdout, jsonOutput, profile, allocationErr.Code, allocationErr.Message, allocationErr.Element)
