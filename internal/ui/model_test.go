@@ -2,14 +2,17 @@ package ui
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
+	"unicode/utf8"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/x/ansi"
 	"github.com/tunesmith/cludia/internal/argfile"
 	"github.com/tunesmith/cludia/internal/argument"
 	"github.com/tunesmith/cludia/internal/query"
@@ -72,6 +75,97 @@ func TestNarrowTopReflowsWithoutTruncating(t *testing.T) {
 	flat := strings.Join(strings.Fields(view), " ")
 	if !strings.Contains(flat, "A deliberately long final statement whose complete text must wrap without being summarized or omitted") || strings.Contains(view, "...") {
 		t.Fatalf("narrow view truncated statement:\n%s", view)
+	}
+}
+
+func TestUnicodeWrappingUsesDisplayCellsAndPreservesGraphemes(t *testing.T) {
+	text := "界界 e\u0301lan 👩‍💻 family👨‍👩‍👧‍👦"
+	lines := wrapWords(text, 4)
+	for _, line := range lines {
+		if width := displayWidth(line); width > 4 {
+			t.Fatalf("wrapped line width = %d: %q (%#v)", width, line, lines)
+		}
+		if !utf8.ValidString(line) {
+			t.Fatalf("invalid UTF-8 line: %q", line)
+		}
+	}
+	joined := strings.ReplaceAll(strings.Join(lines, ""), " ", "")
+	if want := strings.ReplaceAll(text, " ", ""); joined != want {
+		t.Fatalf("wrapped text changed content: got %q want %q (%#v)", joined, want, lines)
+	}
+	parts := splitDisplayCells("e\u0301👩‍💻界", 2)
+	if got, want := parts, []string{"e\u0301", "👩‍💻", "界"}; !reflect.DeepEqual(got, want) {
+		t.Fatalf("grapheme split = %#v, want %#v", got, want)
+	}
+}
+
+func TestViewNeverExceedsTerminalDimensions(t *testing.T) {
+	doc := testUIDocument().Clone()
+	doc.Title = "非常に長い題名 👩‍💻 e\u0301vidence"
+	doc.Statements[5].Text = "漢字 evidence e\u0301lan 👨‍👩‍👧‍👦 remains complete at usable widths"
+	for _, size := range []struct{ width, height int }{
+		{1, 1}, {8, 3}, {20, 5}, {56, 12}, {90, 30},
+	} {
+		base := newModel("", doc, diskVersion{})
+		for _, screen := range []struct {
+			name  string
+			model Model
+		}{
+			{name: "top", model: base},
+			{name: "detail", model: base.openDetail("L2")},
+			{name: "ledger", model: base.openLedger("L2")},
+		} {
+			m := screen.model
+			m.width, m.height = size.width, size.height
+			view := m.View()
+			lines := strings.Split(view, "\n")
+			if len(lines) > size.height {
+				t.Fatalf("%s %dx%d view has %d lines:\n%s", screen.name, size.width, size.height, len(lines), view)
+			}
+			for _, line := range lines {
+				if width := ansi.StringWidth(line); width > size.width {
+					t.Fatalf("%s %dx%d line width = %d: %q", screen.name, size.width, size.height, width, line)
+				}
+			}
+		}
+	}
+}
+
+func TestPageMovementUsesRenderedViewportAndKeepsSelectionVisible(t *testing.T) {
+	top := newModel("", pageTestDocument(), diskVersion{})
+	top.width, top.height = 100, 7 // four body rows including the header
+	top = top.ensureSelectionVisible()
+	top = pressKey(top, "pgdown")
+	if top.topCursor != 3 {
+		t.Fatalf("Top PgDown cursor = %d, want viewport-derived 3", top.topCursor)
+	}
+	_, start, end := top.renderedTopBody()
+	if start < top.topScroll || end > top.topScroll+top.viewportBudget() {
+		t.Fatalf("Top paged selection not visible: cursor=%d scroll=%d bounds=%d:%d", top.topCursor, top.topScroll, start, end)
+	}
+	top = pressKey(top, "pgup")
+	if top.topCursor != 0 {
+		t.Fatalf("Top PgUp cursor = %d", top.topCursor)
+	}
+
+	ledger := newModel("", testUIDocument(), diskVersion{})
+	ledger.width, ledger.height = 110, 7
+	ledger = ledger.openLedger("L2").ensureSelectionVisible()
+	ledger = pressKey(ledger, "pgdown")
+	if ledger.ledgerCursor != 3 {
+		t.Fatalf("Ledger PgDown cursor = %d, want viewport-derived 3", ledger.ledgerCursor)
+	}
+
+	detail := newModel("", testUIDocument(), diskVersion{})
+	detail.width, detail.height = 56, 8
+	detail = detail.openDetail("L2").ensureSelectionVisible()
+	detail = pressKey(detail, "pgdown")
+	if detail.detailCursor == 0 {
+		t.Fatal("Detail PgDown made no progress")
+	}
+	_, start, end = detail.renderedDetailBody()
+	if start < detail.detailScroll || end > detail.detailScroll+detail.viewportBudget() {
+		t.Fatalf("Detail paged selection not visible: cursor=%d scroll=%d bounds=%d:%d", detail.detailCursor, detail.detailScroll, start, end)
 	}
 }
 
@@ -618,4 +712,15 @@ func testUIDocument() *argument.Document {
 			{From: "CP3", Scope: argument.DefeatInference, JunctorID: "J3", AtTarget: "L2"},
 		},
 	}
+}
+
+func pageTestDocument() *argument.Document {
+	doc := &argument.Document{ID: "pages", Title: "Pages", Metadata: []argument.Metadata{{Key: "profile", Value: "workspace"}}}
+	for index := 1; index <= 12; index++ {
+		doc.Statements = append(doc.Statements, argument.Statement{
+			ID: fmt.Sprintf("P%d", index), Role: argument.RolePremise, Kind: argument.KindFact,
+			Truth: argument.TruthTrue, Text: fmt.Sprintf("Statement %d", index),
+		})
+	}
+	return doc
 }

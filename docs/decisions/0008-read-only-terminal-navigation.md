@@ -4,6 +4,8 @@
 - Date: 2026-08-26
 - Partial supersession: ADR 0010 later adds focused durable Top reordering while
   retaining this ADR's navigation model and deferral of general TUI authoring.
+- Layout refinement: 2026-08-30 (display-cell wrapping, dimension safety, and
+  viewport-sized page movement)
 
 ## Context
 
@@ -30,8 +32,13 @@ The connected argument supporting this decision is
   views.
 - Top lists non-counterpoint statements with no outgoing support in document
   order, with longest support depth and a compact challenge marker.
-- Statement text is always complete and wraps; list and ledger views do not
-  summarize or truncate it.
+- Statement text is complete at usable widths and wraps by grapheme-aware
+  terminal display cells; list and ledger views do not summarize it.
+- A final render boundary prevents any output line or view from exceeding the
+  terminal dimensions. At dimensions too small to display a grapheme or normal
+  chrome, fitting takes precedence over completeness.
+- PgUp and PgDn move according to rendered viewport rows rather than a fixed
+  logical-item count and retain the edge-only selection-reveal behavior.
 - Statement Detail exposes distinct justifications, their undercuts, direct
   statement challenges, recursive counterpoints, and downstream uses.
 - The ledger is rooted at one statement and displays stable topological order

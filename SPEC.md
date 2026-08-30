@@ -496,7 +496,11 @@ automatically reload valid external file changes without replacing its last
 valid in-memory document with invalid contents. Capital `J` and `K` in Top MAY
 move the highlighted statement through the shared durable statement-order
 operation. The TUI MUST refuse a stale move when external changes invalidate
-the displayed Top adjacency. Other durable TUI authoring remains deferred.
+the displayed Top adjacency. Text wrapping MUST measure grapheme-aware terminal
+display cells, and the final rendered view MUST fit the current terminal width
+and height even at extreme dimensions. PgUp and PgDn MUST move by the rendered
+viewport rather than a fixed logical-item count while keeping the new selection
+visible. Other durable TUI authoring remains deferred.
 
 Pixel layout, graph rendering, keyboard navigation, and batch ergonomics need
 not be identical.

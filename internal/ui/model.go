@@ -134,9 +134,9 @@ func (m Model) updateTop(key string) (Model, tea.Cmd) {
 	case "K":
 		return m.beginTopMove(-1)
 	case "pgdown":
-		m.topCursor = moveCursor(m.topCursor, len(m.topItems), 5)
+		m.topCursor = m.pageTop(1)
 	case "pgup":
-		m.topCursor = moveCursor(m.topCursor, len(m.topItems), -5)
+		m.topCursor = m.pageTop(-1)
 	case "home":
 		m.topCursor = moveCursor(0, len(m.topItems), 0)
 	case "end":
@@ -161,9 +161,9 @@ func (m Model) updateDetail(key string) Model {
 	case "k", "up":
 		m.detailCursor = moveCursor(m.detailCursor, len(ids), -1)
 	case "pgdown":
-		m.detailCursor = moveCursor(m.detailCursor, len(ids), 5)
+		m.detailCursor = m.pageDetail(1)
 	case "pgup":
-		m.detailCursor = moveCursor(m.detailCursor, len(ids), -5)
+		m.detailCursor = m.pageDetail(-1)
 	case "home":
 		m.detailCursor = moveCursor(0, len(ids), 0)
 	case "end":
@@ -191,9 +191,9 @@ func (m Model) updateLedger(key string) Model {
 	case "k", "up":
 		m.ledgerCursor = moveCursor(m.ledgerCursor, len(m.ledgerRows), -1)
 	case "pgdown":
-		m.ledgerCursor = moveCursor(m.ledgerCursor, len(m.ledgerRows), 5)
+		m.ledgerCursor = m.pageLedger(1)
 	case "pgup":
-		m.ledgerCursor = moveCursor(m.ledgerCursor, len(m.ledgerRows), -5)
+		m.ledgerCursor = m.pageLedger(-1)
 	case "home":
 		m.ledgerCursor = moveCursor(0, len(m.ledgerRows), 0)
 	case "end":
@@ -356,6 +356,71 @@ func (m Model) selectedTopID() string {
 		return ""
 	}
 	return m.topItems[clampCursor(m.topCursor, len(m.topItems))].Statement.ID
+}
+
+func (m Model) pageTop(direction int) int {
+	return pageCursorByRenderedLines(m.topCursor, len(m.topItems), direction, m.viewportBudget(), func(cursor int) (int, int) {
+		candidate := m
+		candidate.topCursor = cursor
+		_, start, end := candidate.renderedTopBody()
+		return start, end
+	})
+}
+
+func (m Model) pageDetail(direction int) int {
+	return pageCursorByRenderedLines(m.detailCursor, len(m.detailSelectableIDs()), direction, m.viewportBudget(), func(cursor int) (int, int) {
+		candidate := m
+		candidate.detailCursor = cursor
+		_, start, end := candidate.renderedDetailBody()
+		return start, end
+	})
+}
+
+func (m Model) pageLedger(direction int) int {
+	return pageCursorByRenderedLines(m.ledgerCursor, len(m.ledgerRows), direction, m.viewportBudget(), func(cursor int) (int, int) {
+		candidate := m
+		candidate.ledgerCursor = cursor
+		_, start, end := candidate.renderedLedgerBody()
+		return start, end
+	})
+}
+
+func pageCursorByRenderedLines(cursor, count, direction, budget int, bounds func(int) (int, int)) int {
+	cursor = clampCursor(cursor, count)
+	if count <= 1 || direction == 0 {
+		return cursor
+	}
+	budget = maxInt(1, budget)
+	currentStart, _ := bounds(cursor)
+	if direction > 0 {
+		targetLine := currentStart + budget
+		result := cursor
+		for candidate := cursor + 1; candidate < count; candidate++ {
+			start, _ := bounds(candidate)
+			if start >= targetLine {
+				break
+			}
+			result = candidate
+		}
+		if result == cursor {
+			result = cursor + 1
+		}
+		return clampCursor(result, count)
+	}
+
+	targetLine := currentStart - budget
+	result := cursor
+	for candidate := cursor - 1; candidate >= 0; candidate-- {
+		start, _ := bounds(candidate)
+		result = candidate
+		if start <= targetLine {
+			break
+		}
+	}
+	if result == cursor {
+		result = cursor - 1
+	}
+	return clampCursor(result, count)
 }
 
 func moveCursor(cursor, length, delta int) int {
