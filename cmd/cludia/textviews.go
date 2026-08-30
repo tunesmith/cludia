@@ -154,18 +154,20 @@ func writeHumanTop(w io.Writer, output topOutput, width int) {
 	if width < 80 {
 		for _, item := range output.Statements {
 			label := topDisplayLabel(item)
+			truth := item.EffectiveTruth
 			depth := ""
 			if item.Depth > 0 {
 				depth = fmt.Sprintf("  depth %d", item.Depth)
 			}
-			fmt.Fprintf(w, "%s%s\n%s\n\n", label, depth, item.Statement.Text)
+			fmt.Fprintf(w, "%s  %s%s\n%s\n\n", label, truth, depth, item.Statement.Text)
 		}
 		return
 	}
 	labelWidth := maxDisplayLabelWidthTop(output.Statements, len("LABEL"))
+	truthWidth := len("TRUTH")
 	depthWidth := len("DEPTH")
-	statementWidth := maxInt(24, width-labelWidth-depthWidth-4)
-	fmt.Fprintf(w, "%s  %s  %s\n", padText("LABEL", labelWidth), padText("DEPTH", depthWidth), "STATEMENT")
+	statementWidth := maxInt(24, width-labelWidth-truthWidth-depthWidth-6)
+	fmt.Fprintf(w, "%s  %s  %s  %s\n", padText("LABEL", labelWidth), padText("TRUTH", truthWidth), padText("DEPTH", depthWidth), "STATEMENT")
 	for _, item := range output.Statements {
 		lines := wrapFullText(item.Statement.Text, statementWidth)
 		depth := ""
@@ -173,12 +175,13 @@ func writeHumanTop(w io.Writer, output topOutput, width int) {
 			depth = strconv.Itoa(item.Depth)
 		}
 		for i, line := range lines {
-			labelCell, depthCell := "", ""
+			labelCell, truthCell, depthCell := "", "", ""
 			if i == 0 {
 				labelCell = topDisplayLabel(item)
+				truthCell = string(item.EffectiveTruth)
 				depthCell = depth
 			}
-			fmt.Fprintf(w, "%s  %s  %s\n", padText(labelCell, labelWidth), padText(depthCell, depthWidth), line)
+			fmt.Fprintf(w, "%s  %s  %s  %s\n", padText(labelCell, labelWidth), padText(truthCell, truthWidth), padText(depthCell, depthWidth), line)
 		}
 	}
 }
@@ -186,7 +189,7 @@ func writeHumanTop(w io.Writer, output topOutput, width int) {
 func writeHumanLedger(w io.Writer, output ledgerOutput, width int) {
 	if width < 80 {
 		for _, row := range output.Rows {
-			fmt.Fprintln(w, ledgerDisplayLabel(row))
+			fmt.Fprintf(w, "%s  %s\n", ledgerDisplayLabel(row), row.EffectiveTruth)
 			fmt.Fprintln(w, row.Statement.Text)
 			for _, derivation := range ledgerDerivations(row) {
 				fmt.Fprintln(w, derivation)
@@ -196,9 +199,10 @@ func writeHumanLedger(w io.Writer, output ledgerOutput, width int) {
 		return
 	}
 	labelWidth := maxDisplayLabelWidthLedger(output.Rows, len("LABEL"))
+	truthWidth := len("TRUTH")
 	derivationWidth := minInt(34, maxInt(20, width/4))
-	statementWidth := maxInt(30, width-labelWidth-derivationWidth-4)
-	fmt.Fprintf(w, "%s  %s  %s\n", padText("LABEL", labelWidth), padText("STATEMENT", statementWidth), "DERIVATION")
+	statementWidth := maxInt(30, width-labelWidth-truthWidth-derivationWidth-6)
+	fmt.Fprintf(w, "%s  %s  %s  %s\n", padText("LABEL", labelWidth), padText("TRUTH", truthWidth), padText("STATEMENT", statementWidth), "DERIVATION")
 	for _, row := range output.Rows {
 		statementLines := wrapFullText(row.Statement.Text, statementWidth)
 		derivationLines := make([]string, 0)
@@ -210,9 +214,10 @@ func writeHumanLedger(w io.Writer, output ledgerOutput, width int) {
 			lineCount = 1
 		}
 		for i := 0; i < lineCount; i++ {
-			labelCell := ""
+			labelCell, truthCell := "", ""
 			if i == 0 {
 				labelCell = ledgerDisplayLabel(row)
+				truthCell = string(row.EffectiveTruth)
 			}
 			statementCell, derivationCell := "", ""
 			if i < len(statementLines) {
@@ -221,7 +226,7 @@ func writeHumanLedger(w io.Writer, output ledgerOutput, width int) {
 			if i < len(derivationLines) {
 				derivationCell = derivationLines[i]
 			}
-			fmt.Fprintf(w, "%s  %s  %s\n", padText(labelCell, labelWidth), padText(statementCell, statementWidth), derivationCell)
+			fmt.Fprintf(w, "%s  %s  %s  %s\n", padText(labelCell, labelWidth), padText(truthCell, truthWidth), padText(statementCell, statementWidth), derivationCell)
 		}
 	}
 }
@@ -246,13 +251,11 @@ func displayLabel(id string, challenged bool) string {
 }
 
 func topDisplayLabel(item query.TopItem) string {
-	truth := formatTruthStatus(evaluatedStatement{Statement: item.Statement, EffectiveTruth: item.EffectiveTruth, TruthSource: item.TruthSource, Acceptance: item.Acceptance})
-	return displayLabel(item.Statement.ID, item.Challenged) + " " + truth
+	return displayLabel(item.Statement.ID, item.Challenged)
 }
 
 func ledgerDisplayLabel(row query.LedgerRow) string {
-	truth := formatTruthStatus(evaluatedStatement{Statement: row.Statement, EffectiveTruth: row.EffectiveTruth, TruthSource: row.TruthSource, Acceptance: row.Acceptance})
-	return displayLabel(row.Statement.ID, row.Challenged) + " " + truth
+	return displayLabel(row.Statement.ID, row.Challenged)
 }
 
 func textViewWidth() int {

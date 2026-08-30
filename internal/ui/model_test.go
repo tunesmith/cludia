@@ -23,12 +23,12 @@ func TestTopViewWrapsFullTextMarksChallengesAndNavigates(t *testing.T) {
 	m.width, m.height = 90, 24
 	view := m.View()
 	flat := strings.Join(strings.Fields(view), " ")
-	for _, want := range []string{"TOP · 1 of 2", "LABEL", "DEPTH", "STATEMENT", "L2! T · derived", "A deliberately long final statement whose complete text must wrap without being summarized or omitted", "P5! T"} {
+	for _, want := range []string{"TOP · 1 of 2", "LABEL", "TRUTH", "DEPTH", "STATEMENT", "L2!", "A deliberately long final statement whose complete text must wrap without being summarized or omitted", "P5!"} {
 		if !strings.Contains(flat, want) {
 			t.Fatalf("top view missing %q:\n%s", want, view)
 		}
 	}
-	if strings.Contains(view, "ROLE") || strings.Contains(view, "...") {
+	if strings.Contains(view, "ROLE") || strings.Contains(view, "derived") || strings.Contains(view, "...") {
 		t.Fatalf("top view contains forbidden content:\n%s", view)
 	}
 	m = pressKey(m, "j")
@@ -219,12 +219,12 @@ func TestLedgerViewUsesCompactDerivationAndEnterNavigation(t *testing.T) {
 	}
 	view := m.View()
 	flat := strings.Join(strings.Fields(view), " ")
-	for _, want := range []string{"LABEL", "STATEMENT", "DERIVATION", "AND(P1, P2)", "OR(P3, P4)", "AND(P2) [direct]", "without being summarized or omitted"} {
+	for _, want := range []string{"LABEL", "TRUTH", "STATEMENT", "DERIVATION", "AND(P1, P2)", "OR(P3, P4)", "AND(P2) [direct]", "without being summarized or omitted"} {
 		if !strings.Contains(flat, want) {
 			t.Fatalf("ledger view missing %q:\n%s", want, view)
 		}
 	}
-	if strings.Contains(view, "J1") || strings.Contains(view, "justified by") || strings.Contains(view, "...") {
+	if strings.Contains(view, "J1") || strings.Contains(view, "derived") || strings.Contains(view, "justified by") || strings.Contains(view, "...") {
 		t.Fatalf("ledger view contains forbidden notation:\n%s", view)
 	}
 	m = pressKey(m, "enter")

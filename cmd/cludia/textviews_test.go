@@ -40,12 +40,12 @@ func TestTopJSONAndHumanContract(t *testing.T) {
 	}
 	human := stdout.String()
 	flat := strings.Join(strings.Fields(human), " ")
-	for _, want := range []string{"LABEL", "DEPTH", "STATEMENT", "L2!", "A deliberately long final statement whose complete text must wrap without being summarized or omitted", "P5!"} {
+	for _, want := range []string{"LABEL", "TRUTH", "DEPTH", "STATEMENT", "L2!", "A deliberately long final statement whose complete text must wrap without being summarized or omitted", "P5!"} {
 		if !strings.Contains(flat, want) && !strings.Contains(human, want) {
 			t.Fatalf("top human missing %q:\n%s", want, human)
 		}
 	}
-	if strings.Contains(human, "...") {
+	if strings.Contains(human, "derived") || strings.Contains(human, "...") {
 		t.Fatalf("top human truncated text:\n%s", human)
 	}
 }
@@ -128,12 +128,12 @@ func TestLedgerJSONAndHumanContract(t *testing.T) {
 	}
 	human := stdout.String()
 	flat := strings.Join(strings.Fields(human), " ")
-	for _, want := range []string{"LABEL", "STATEMENT", "DERIVATION", "AND(P1, P2)", "OR(P3, P4)", "AND(P2) [direct]", "A deliberately long final statement whose complete text", "must wrap without being summarized or omitted"} {
+	for _, want := range []string{"LABEL", "TRUTH", "STATEMENT", "DERIVATION", "AND(P1, P2)", "OR(P3, P4)", "AND(P2) [direct]", "A deliberately long final statement whose complete text", "must wrap without being summarized or omitted"} {
 		if !strings.Contains(flat, want) && !strings.Contains(human, want) {
 			t.Fatalf("ledger human missing %q:\n%s", want, human)
 		}
 	}
-	if strings.Contains(human, "J1") || strings.Contains(human, "justified by") || strings.Contains(human, "...") {
+	if strings.Contains(human, "J1") || strings.Contains(human, "derived") || strings.Contains(human, "justified by") || strings.Contains(human, "...") {
 		t.Fatalf("ledger human exposed forbidden notation:\n%s", human)
 	}
 }

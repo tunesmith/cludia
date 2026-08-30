@@ -89,13 +89,14 @@ func (m Model) frame(title string, body []string, footer string) string {
 func (m Model) renderedTopBody() ([]string, int, int) {
 	width := m.contentWidth()
 	labelWidth := 5
+	truthWidth := len("TRUTH")
 	for _, item := range m.topItems {
 		labelWidth = maxInt(labelWidth, displayWidth(topLabel(item, false)))
 	}
 	if len(m.topItems) == 0 {
 		return []string{mutedStyle.Render("  no top statements")}, -1, -1
 	}
-	lines := []string{mutedStyle.Render("  " + pad("LABEL", labelWidth) + "  " + pad("DEPTH", 5) + "  STATEMENT")}
+	lines := []string{mutedStyle.Render("  " + pad("LABEL", labelWidth) + "  " + pad("TRUTH", truthWidth) + "  " + pad("DEPTH", 5) + "  STATEMENT")}
 	selectedStart, selectedEnd := -1, -1
 	for i, item := range m.topItems {
 		if i == m.topCursor {
@@ -112,12 +113,13 @@ func (m Model) renderedTopBody() ([]string, int, int) {
 func (m Model) renderedLedgerBody() ([]string, int, int) {
 	width := m.contentWidth()
 	labelWidth := 5
+	truthWidth := len("TRUTH")
 	for _, row := range m.ledgerRows {
 		labelWidth = maxInt(labelWidth, displayWidth(ledgerLabel(row, false)))
 	}
 	derivationWidth := minInt(34, maxInt(20, width/4))
-	statementWidth := maxInt(26, width-2-labelWidth-2-derivationWidth-2)
-	lines := []string{mutedStyle.Render("  " + pad("LABEL", labelWidth) + "  " + pad("STATEMENT", statementWidth) + "  DERIVATION")}
+	statementWidth := maxInt(26, width-2-labelWidth-2-truthWidth-2-derivationWidth-2)
+	lines := []string{mutedStyle.Render("  " + pad("LABEL", labelWidth) + "  " + pad("TRUTH", truthWidth) + "  " + pad("STATEMENT", statementWidth) + "  DERIVATION")}
 	selectedStart, selectedEnd := -1, -1
 	for i, row := range m.ledgerRows {
 		if i == m.ledgerCursor {
@@ -211,6 +213,8 @@ func renderLineViewport(lines []string, scroll, budget int) []string {
 
 func renderTopItem(item query.TopItem, width, labelWidth int, selected bool) []string {
 	label := topLabel(item, selected)
+	truth := string(effectiveTruth(item.Statement.Truth, item.EffectiveTruth))
+	truthWidth := len("TRUTH")
 	depth := ""
 	if item.Depth > 0 {
 		depth = fmt.Sprintf("%d", item.Depth)
@@ -220,8 +224,8 @@ func renderTopItem(item query.TopItem, width, labelWidth int, selected bool) []s
 		marker = "> "
 	}
 	var lines []string
-	if width < 80 || 2+labelWidth+2+5+2+20 > width {
-		header := marker + label
+	if width < 80 || 2+labelWidth+2+truthWidth+2+5+2+20 > width {
+		header := marker + label + "  " + truth
 		if depth != "" {
 			header += "  depth " + depth
 		}
@@ -230,13 +234,13 @@ func renderTopItem(item query.TopItem, width, labelWidth int, selected bool) []s
 			lines = append(lines, "    "+text)
 		}
 	} else {
-		textWidth := maxInt(20, width-2-labelWidth-2-5-2)
+		textWidth := maxInt(20, width-2-labelWidth-2-truthWidth-2-5-2)
 		wrapped := wrapWords(item.Statement.Text, textWidth)
 		for i, text := range wrapped {
 			if i == 0 {
-				lines = append(lines, marker+pad(label, labelWidth)+"  "+pad(depth, 5)+"  "+text)
+				lines = append(lines, marker+pad(label, labelWidth)+"  "+pad(truth, truthWidth)+"  "+pad(depth, 5)+"  "+text)
 			} else {
-				lines = append(lines, strings.Repeat(" ", 2+labelWidth+2+5+2)+text)
+				lines = append(lines, strings.Repeat(" ", 2+labelWidth+2+truthWidth+2+5+2)+text)
 			}
 		}
 	}
@@ -250,14 +254,16 @@ func renderTopItem(item query.TopItem, width, labelWidth int, selected bool) []s
 
 func renderLedgerItem(row query.LedgerRow, width, labelWidth int, selected bool) []string {
 	label := ledgerLabel(row, selected)
+	truth := string(effectiveTruth(row.Statement.Truth, row.EffectiveTruth))
+	truthWidth := len("TRUTH")
 	marker := "  "
 	if selected {
 		marker = "> "
 	}
 	derivations := ledgerNotation(row)
 	var lines []string
-	if width < 80 || 2+labelWidth+2+26+2+20 > width {
-		lines = append(lines, marker+label)
+	if width < 80 || 2+labelWidth+2+truthWidth+2+26+2+20 > width {
+		lines = append(lines, marker+label+"  "+truth)
 		for _, text := range wrapWords(row.Statement.Text, maxInt(1, width-4)) {
 			lines = append(lines, "    "+text)
 		}
@@ -266,7 +272,7 @@ func renderLedgerItem(row query.LedgerRow, width, labelWidth int, selected bool)
 		}
 	} else {
 		derivationWidth := minInt(34, maxInt(20, width/4))
-		textWidth := maxInt(26, width-2-labelWidth-2-derivationWidth-2)
+		textWidth := maxInt(26, width-2-labelWidth-2-truthWidth-2-derivationWidth-2)
 		statementLines := wrapWords(row.Statement.Text, textWidth)
 		derivationLines := make([]string, 0)
 		for _, derivation := range derivations {
@@ -285,7 +291,11 @@ func renderLedgerItem(row query.LedgerRow, width, labelWidth int, selected bool)
 			if i < len(derivationLines) {
 				derivationCell = derivationLines[i]
 			}
-			lines = append(lines, lineMarker+pad(labelCell, labelWidth)+"  "+pad(statementCell, textWidth)+"  "+derivationCell)
+			truthCell := ""
+			if i == 0 {
+				truthCell = truth
+			}
+			lines = append(lines, lineMarker+pad(labelCell, labelWidth)+"  "+pad(truthCell, truthWidth)+"  "+pad(statementCell, textWidth)+"  "+derivationCell)
 		}
 	}
 	if selected {
@@ -317,12 +327,19 @@ func displayID(id string, challenged bool) string {
 
 func topLabel(item query.TopItem, selected bool) string {
 	id := displayID(item.Statement.ID, item.Challenged)
-	return renderSelectableID(id, item.Challenged, selected) + " " + truthStatus(item.Statement.Truth, item.EffectiveTruth, item.TruthSource)
+	return renderSelectableID(id, item.Challenged, selected)
 }
 
 func ledgerLabel(row query.LedgerRow, selected bool) string {
 	id := displayID(row.Statement.ID, row.Challenged)
-	return renderSelectableID(id, row.Challenged, selected) + " " + truthStatus(row.Statement.Truth, row.EffectiveTruth, row.TruthSource)
+	return renderSelectableID(id, row.Challenged, selected)
+}
+
+func effectiveTruth(stored, effective argument.Truth) argument.Truth {
+	if effective == argument.TruthTrue || effective == argument.TruthFalse || effective == argument.TruthUnknown {
+		return effective
+	}
+	return stored
 }
 
 func truthStatus(stored, effective argument.Truth, source evaluation.TruthSource) string {
