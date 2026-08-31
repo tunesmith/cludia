@@ -70,8 +70,7 @@ trap 'rm -rf "$release_tmp_dir"' EXIT
 export GOCACHE="$release_tmp_dir/go-cache"
 
 echo "==> Checking whitespace"
-empty_tree="$(git hash-object -t tree /dev/null)"
-git diff --check "$empty_tree" HEAD
+git diff --check HEAD^ HEAD
 
 echo "==> Running tests"
 go test -count=1 ./...
