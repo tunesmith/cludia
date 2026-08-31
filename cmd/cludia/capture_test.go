@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package main
 
 import (
@@ -56,6 +59,12 @@ func TestInitAndAddCreateValidWorkspace(t *testing.T) {
 	parsed := argfile.ParseFile(path)
 	if diagnostic.HasErrors(parsed.Diagnostics) || len(parsed.Document.Statements) != 2 {
 		t.Fatalf("created workspace: %#v, diagnostics %#v", parsed.Document, parsed.Diagnostics)
+	}
+	if profile, ok := parsed.Document.MetadataValue("profile"); !ok || profile != "cludia" {
+		t.Fatalf("profile metadata = %q, %v", profile, ok)
+	}
+	if graphVersion, ok := parsed.Document.MetadataValue("version"); ok {
+		t.Fatalf("new workspace unexpectedly contains graph artifact version %q", graphVersion)
 	}
 	if value, _ := parsed.Document.MetadataValue(argument.NextIDsMetadataKey); value != "v1;P=3;L=1;C=1;CP=1;J=1" {
 		t.Fatalf("next-id metadata = %q", value)
@@ -130,7 +139,7 @@ func TestLegacyWorkspaceBootstrapsNextIDsOnFirstCreation(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "legacy.arg")
 	doc := &argument.Document{
 		ID: "legacy", Title: "Legacy",
-		Metadata: []argument.Metadata{{Key: "profile", Value: "workspace"}},
+		Metadata: []argument.Metadata{{Key: "profile", Value: "cludia"}},
 		Statements: []argument.Statement{
 			{ID: "P1", Role: argument.RolePremise, Kind: argument.KindFact, Truth: argument.TruthTrue, Text: "First"},
 			{ID: "P3", Role: argument.RolePremise, Kind: argument.KindFact, Truth: argument.TruthTrue, Text: "Third"},
@@ -162,7 +171,7 @@ func TestCreationRepairsStaleNextIDMetadataSafely(t *testing.T) {
 	doc := &argument.Document{
 		ID: "stale", Title: "Stale",
 		Metadata: []argument.Metadata{
-			{Key: "profile", Value: "workspace"},
+			{Key: "profile", Value: "cludia"},
 			{Key: argument.NextIDsMetadataKey, Value: "v1;P=2;L=1;C=1;CP=1;J=1"},
 		},
 		Statements: []argument.Statement{{ID: "P3", Role: argument.RolePremise, Kind: argument.KindFact, Truth: argument.TruthTrue, Text: "Third"}},

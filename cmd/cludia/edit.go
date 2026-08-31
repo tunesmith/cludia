@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package main
 
 import (
@@ -82,6 +85,7 @@ func runEdit(args []string, stdout, stderr io.Writer) error {
 	changes := []changeOutput{}
 	if result.Changed {
 		changes = append(changes, changeOutput{Operation: "updated", ElementType: "statement", ID: result.Current.ID})
+		changes = appendProfileMigrationChange(changes, doc)
 	}
 	output := mutationOutput{
 		SchemaVersion: outputSchemaVersion, Action: "edit", DryRun: false,

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package main
 
 import (
@@ -94,7 +97,7 @@ func sourcedCounterpointWorkspace(t *testing.T) string {
 	path := filepath.Join(t.TempDir(), "workspace.arg")
 	doc := &argument.Document{
 		ID: "truth", Title: "Truth",
-		Metadata: []argument.Metadata{{Key: "profile", Value: "workspace"}, {Key: argument.NextIDsMetadataKey, Value: "v1;P=3;L=1;C=1;CP=2;J=2"}},
+		Metadata: []argument.Metadata{{Key: "profile", Value: "cludia"}, {Key: argument.NextIDsMetadataKey, Value: "v1;P=3;L=1;C=1;CP=2;J=2"}},
 		Statements: []argument.Statement{
 			{ID: "P1", Role: argument.RolePremise, Kind: argument.KindFact, Truth: argument.TruthTrue, Text: "One"},
 			{ID: "P2", Role: argument.RolePremise, Kind: argument.KindFact, Truth: argument.TruthTrue, Text: "Two"},

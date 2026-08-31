@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package main
 
 import (
@@ -20,7 +23,7 @@ import (
 const outputSchemaVersion = 2
 
 var (
-	version             = "dev"
+	version             = "v1.0.0"
 	errValidationFailed = errors.New("validation failed")
 	launchTUI           = ui.Run
 )
@@ -225,7 +228,7 @@ func writeCommandUsage(w io.Writer, command string) bool {
 	case "validate":
 		writeValidateUsage(w)
 	case "check":
-		fmt.Fprintln(w, "Usage: cludia check [--profile workspace|concludia] [--json] FILE")
+		fmt.Fprintln(w, "Usage: cludia check [--profile cludia|concludia] [--json] FILE")
 		fmt.Fprintln(w, "Parse and structurally validate an .arg file.")
 	case "version":
 		fmt.Fprintln(w, "Usage: cludia version")
@@ -242,7 +245,7 @@ func runValidate(args []string, stdout, stderr io.Writer) error {
 	fs := flag.NewFlagSet("validate", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 	jsonOutput := fs.Bool("json", false, "output versioned JSON")
-	profileName := fs.String("profile", "", "validation profile: workspace or concludia")
+	profileName := fs.String("profile", "", "validation profile: cludia or concludia")
 	fs.Usage = func() { writeValidateUsage(fs.Output()) }
 	if err := fs.Parse(flagsFirst(args, map[string]bool{"profile": true})); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
@@ -370,7 +373,7 @@ func writeTopLevelUsage(w io.Writer) {
 }
 
 func writeValidateUsage(w io.Writer) {
-	fmt.Fprintln(w, "Usage: cludia validate [--profile workspace|concludia] [--json] FILE")
+	fmt.Fprintln(w, "Usage: cludia validate [--profile cludia|concludia] [--json] FILE")
 	fmt.Fprintln(w, "Parse and structurally validate an .arg file.")
 }
 

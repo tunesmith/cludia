@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package argument
 
 import "testing"
@@ -75,7 +78,7 @@ func addDefeatDocument() *Document {
 	return &Document{
 		ID: "defeat", Title: "Defeat",
 		Metadata: []Metadata{
-			{Key: "profile", Value: "workspace"},
+			{Key: "profile", Value: "cludia"},
 			{Key: NextIDsMetadataKey, Value: "v1;P=3;L=2;C=1;CP=2;J=2"},
 		},
 		Statements: []Statement{

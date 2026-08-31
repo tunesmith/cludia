@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package main
 
 import (
@@ -75,6 +78,7 @@ func runNormalizeTruth(args []string, stdout, stderr io.Writer) error {
 	for _, statement := range result.Statements {
 		changes = append(changes, changeOutput{Operation: "updated", ElementType: "statement", ID: statement.ID})
 	}
+	changes = appendProfileMigrationChange(changes, doc)
 	output := normalizeTruthOutput{
 		SchemaVersion: outputSchemaVersion, Action: "normalize-truth", DryRun: *dryRun, Applicable: true,
 		Profile: profile, Document: documentSummary(next), Statements: result.Statements,

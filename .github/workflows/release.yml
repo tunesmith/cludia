@@ -1,0 +1,64 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+
+      - name: Test
+        run: go test ./...
+
+      - name: Race test
+        run: go test -race ./...
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Build commands
+        run: go build ./cmd/...
+
+      - name: Verify checked-in and injected versions
+        run: |
+          checked_in="$(go run ./cmd/cludia --version)"
+          injected="$(go run -ldflags "-X main.version=${GITHUB_REF_NAME}" ./cmd/cludia --version)"
+          test "$checked_in" = "cludia ${GITHUB_REF_NAME}"
+          test "$injected" = "cludia ${GITHUB_REF_NAME}"
+
+      - name: Extract release notes
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          awk -v heading="## ${version} (" '
+            index($0, heading) == 1 { capture = 1; next }
+            capture && /^## / { exit }
+            capture { print }
+          ' CHANGELOG.md > release-notes.md
+          test -s release-notes.md
+
+      - name: Create source-only GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh release create "$GITHUB_REF_NAME"
+          --title "Cludia $GITHUB_REF_NAME"
+          --notes-file release-notes.md
+          --verify-tag

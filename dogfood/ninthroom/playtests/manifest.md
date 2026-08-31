@@ -10,15 +10,14 @@ solution. Do not continue editing a raw capture; copy it to a clearly named
 
 | ID | File | Solver | Story revision | Delivery | Capture state | First accusation | Notes |
 |---|---|---|---|---|---|---|---|
-| 01 | `01-human-original-post-solution.cludia` | Human, with agent-mediated CLI mutations | Initial conversational version; first committed in `072b488` | Six incremental sections | Began blind, then extended substantially after accusation and epilogue | Gideon, after Part VI | Hybrid reasoning record rather than a pristine accusation-time snapshot |
-| 02 | `02-agent-first-revision-blind.cludia` | Agent; model not recorded | First six-part revision, preserved by the split at `2ff1d06` | Six incremental sections | Reported blind solve through its completed accusation; no later curation reported | Gideon, after Part VI | Playtest was broadly successful but exposed procedural and evidentiary gaps addressed by the following story revision |
-| 03 | `03-agent-procedural-revision-premature-convergence.cludia` | Agent; model not recorded | Procedural-detail revision committed in `219a5ca` | Six incremental sections | Reported blind solve through its completed accusation; no later curation reported | Strong Gideon hypothesis after Part IV; final accusation after Part VI | Detailed non-standard Cludia usage; demonstrates premature culprit convergence caused by accumulated procedural records |
+| 01 | `01-human-original-post-solution.arg` | Human, with agent-mediated CLI mutations | Initial conversational version; first committed in `072b488` | Six incremental sections | Began blind, then extended substantially after accusation and epilogue | Gideon, after Part VI | Hybrid reasoning record rather than a pristine accusation-time snapshot |
+| 02 | `02-agent-first-revision-blind.arg` | Agent; model not recorded | First six-part revision, preserved by the split at `2ff1d06` | Six incremental sections | Reported blind solve through its completed accusation; no later curation reported | Gideon, after Part VI | Playtest was broadly successful but exposed procedural and evidentiary gaps addressed by the following story revision |
+| 03 | `03-agent-procedural-revision-premature-convergence.arg` | Agent; model not recorded | Procedural-detail revision committed in `219a5ca` | Six incremental sections | Reported blind solve through its completed accusation; no later curation reported | Strong Gideon hypothesis after Part IV; final accusation after Part VI | Detailed non-standard Cludia usage; demonstrates premature culprit convergence caused by accumulated procedural records |
 
 ## Playtest 01 details
 
-- Format metadata: workspace profile, version `0.1.0`.
-- Exact Cludia CLI build was not recorded (`cludia version` currently reports
-  `dev`).
+- Format metadata: Cludia profile, graph artifact version `0.1.0`.
+- The exact Cludia CLI build used for the playtest was not recorded.
 - The committed file contains post-solution bridging premises, forensic facts,
   intermediate lemmas, and a completed proof rooted at `L36`.
 - Because the file was first committed after that curation, Git does not contain
@@ -28,7 +27,7 @@ solution. Do not continue editing a raw capture; copy it to a clearly named
 
 ## Playtest 02 details
 
-- Format metadata: workspace profile, version `0.1.0`.
+- Format metadata: Cludia profile, graph artifact version `0.1.0`.
 - Workspace size: 296 statements, 75 junctors, and eight defeat relations.
 - The completed solution is rooted at `L74`; its upstream closure contains 96
   statements and 23 junctors.
@@ -43,7 +42,7 @@ solution. Do not continue editing a raw capture; copy it to a clearly named
 
 ## Playtest 03 details
 
-- Format metadata: workspace profile, version `0.1.0`.
+- Format metadata: Cludia profile, graph artifact version `0.1.0`.
 - Workspace size: 215 statements, 72 junctors, and six defeat relations.
 - The solver used bracketed epistemic categories inside statement text, including
   `OBSERVED`, `TESTIMONY`, provisional and strong inferences, suspect rankings,

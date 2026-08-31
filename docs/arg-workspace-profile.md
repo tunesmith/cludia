@@ -1,14 +1,10 @@
-# `.arg` Workspace Profile
+# `.arg` Cludia Profile
 
 ## Status
 
-This document defines the relaxed validation profile implemented over
-Concludia's existing text `.arg` syntax.
-
-The literal metadata value `profile="workspace"` is provisional. It describes
-format validation behavior and is not intended to name the product. It may be
-renamed before the first public release without implying a change to the tool
-name.
+This document defines Cludia's stable relaxed validation profile over
+Concludia's existing text `.arg` syntax. Its metadata and CLI name is `cludia`.
+The shared syntax is unchanged.
 
 ## Design
 
@@ -28,21 +24,30 @@ Concludia applies publication-oriented validation: the graph is connected,
 isolated statements are errors, premises are support leaves, and a root can be
 chosen.
 
-The workspace profile relaxes topology during discovery while retaining
+The Cludia profile relaxes topology during discovery while retaining
 referential integrity and cycle safety.
 
 ## Header and metadata
 
-An initial workspace uses the existing header:
+A new Cludia workspace uses the existing header and profile metadata:
 
 ```text
 argument case-id "Case title"
-meta profile="workspace", version="0.1.0"
+meta profile="cludia"
 ```
 
-`version` in current `.arg` practice describes the content artifact. It MUST
-NOT silently become the syntax version. A future language-level format version
-is an open design decision.
+Cludia does not add `meta version` to a new workspace. When imported or
+explicitly authored, that optional value describes a Concludia graph/artifact
+revision. It is not the Cludia software version and MUST NOT silently become a
+syntax version. A future language-level format version is an open design
+decision.
+
+Legacy `profile="workspace"` remains an input alias for this profile. Reads do
+not modify the file. Dry-run mutation receipts report an `updated` change for
+profile metadata, and the next successful durable save rewrites the value to
+`profile="cludia"` atomically. Failed operations leave the legacy marker
+unchanged. The `--profile` flag accepts the canonical names `cludia` and
+`concludia`, not the legacy file alias.
 
 If `profile` is absent, the document retains ordinary Concludia semantics. The
 new tool may still open it in workspace mode without rewriting the file.
@@ -50,7 +55,7 @@ new tool may still open it in workspace mode without rewriting the file.
 Focused Cludia authoring records exact next numeric IDs in one metadata value:
 
 ```text
-meta profile="workspace", version="0.1.0", cludia-next-ids="v1;P=2;L=1;C=1;CP=1;J=1"
+meta profile="cludia", cludia-next-ids="v1;P=2;L=1;C=1;CP=1;J=1"
 ```
 
 The five namespaces advance independently. Deletion leaves gaps and does not
@@ -193,7 +198,7 @@ validity.
 
 ## Validation profiles
 
-| Rule | Workspace | Concludia |
+| Rule | Cludia | Concludia |
 |---|---:|---:|
 | Valid references and unique IDs | required | required |
 | Cycle-free directed relations | required | required |
@@ -250,9 +255,9 @@ Opening and saving without an explicit transforming operation must preserve:
 Round trips without explicit normalization preserve legacy sourced truth tokens
 even though evaluation ignores them.
 
-If exact trivia preservation such as comments or whitespace is not supported,
-the first implementation must state that canonical rewrite behavior clearly
-and test semantic round-trip equivalence.
+Because exact trivia preservation such as comments or whitespace is not
+supported, Cludia states its canonical rewrite behavior clearly and tests
+semantic round-trip equivalence.
 
 The initial Go implementation uses canonical rewrite behavior. It preserves all
 modeled statements, metadata entries, source order, `AND` and `OR` junctors,

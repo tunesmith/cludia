@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package main
 
 import (
@@ -27,7 +30,7 @@ func TestValidateJSONContractAndProfileDetection(t *testing.T) {
 		t.Fatalf("schema_version = %d, err %v", schemaVersion, err)
 	}
 	var profile string
-	if err := json.Unmarshal(output["profile"], &profile); err != nil || profile != "workspace" {
+	if err := json.Unmarshal(output["profile"], &profile); err != nil || profile != "cludia" {
 		t.Fatalf("profile = %q, err %v", profile, err)
 	}
 	var diagnostics []json.RawMessage
@@ -49,6 +52,18 @@ func TestValidateInvalidProfileReturnsStructuredFailure(t *testing.T) {
 	}
 	if output.OK || len(output.Diagnostics) != 1 || output.Diagnostics[0].Code != "profile_unknown" {
 		t.Fatalf("unexpected output: %#v", output)
+	}
+}
+
+func TestCheckedInVersionOutput(t *testing.T) {
+	for _, args := range [][]string{{"version"}, {"--version"}} {
+		var stdout, stderr bytes.Buffer
+		if err := run(args, &stdout, &stderr); err != nil {
+			t.Fatalf("%v: %v", args, err)
+		}
+		if stdout.String() != "cludia v1.0.0\n" || stderr.Len() != 0 {
+			t.Fatalf("%v: stdout=%q stderr=%q", args, stdout.String(), stderr.String())
+		}
 	}
 }
 

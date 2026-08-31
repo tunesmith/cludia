@@ -1,7 +1,7 @@
 # Cludia
 
-`Cludia` is the permanent project and repository name, and `cludia` is the
-command-line binary. The workspace-profile identifier remains provisional.
+`Cludia` is the project and repository name, and `cludia` is the command-line
+binary. Version 1.0 uses `profile="cludia"` for its permissive inquiry profile.
 
 Cludia is a local, file-first reasoning workbench for growing disconnected
 observations into explicit arguments.
@@ -19,26 +19,31 @@ The central workflow is premise-up:
 7. Export the entire rooted structure around a mature conclusion as a
    Concludia argument.
 
-The first implementation is intentionally a Go CLI operating on a readable
+Cludia 1.0 is intentionally a Go CLI operating on a readable
 `.arg` file. An external LLM may use the JSON CLI during a conversation, but
 the tool does not call an LLM itself. A local web interface is planned only
 after conversational dogfooding identifies the right visual operations.
 
 ## Status
 
-This repository is the permanent project home. The Go CLI implements the v1
+This repository is the project home for Cludia v1.0.0. The Go CLI implements the v1
 file workflow: capture and editing, inspection and search, multi-premise
 derivation and repair, defeat authoring, lifecycle operations, validation, and
 rooted Concludia export. A terminal navigator adds deterministic Top, Statement
 Detail, and Derivation Ledger views over the same query layer, plus focused
-durable Top reordering. The project is pre-release and remains under active
-conversational dogfooding. Its
-`.arg` syntax and versioned JSON output remain compatibility-sensitive
-interfaces even before the first public release.
+durable Top reordering. The project remains under active conversational
+dogfooding after its first stable source release.
 
 The executable's exit-status, stdout/stderr, structured-failure, collection,
 and mutation-timing guarantees are documented in
 [docs/cli-json.md](docs/cli-json.md).
+
+Cludia 1.x guarantees file compatibility: it continues reading prior Cludia
+`.arg` files and supported ordinary Concludia `.arg` files without silent loss.
+Human CLI text, flags, and JSON response shapes may evolve during 1.x.
+Incompatible JSON changes receive a schema-version bump and release-note
+disclosure; older JSON schemas need not remain implemented. The current CLI
+response schema is 2, batch input schema is 2, and evaluation schema is 1.
 
 The principal decisions are:
 
@@ -108,22 +113,33 @@ Top. Valid external CLI or agent changes reload automatically; invalid contents
 leave the last valid in-memory view intact. A stale reorder is refused when an
 external change has altered the displayed Top adjacency.
 
-## Install from source
+## Installation
 
-Cludia currently requires Go 1.26.4 or newer. From a checkout:
+Install the current release with Homebrew:
 
 ```bash
-go test ./...
-go install ./cmd/cludia
+brew install tunesmith/tap/cludia
 cludia version
 ```
 
-`go install` writes to `GOBIN`, or to `$(go env GOPATH)/bin` when `GOBIN` is
-unset. That directory must be on `PATH`. An untagged development build reports
-its version as `dev`.
+Or install the tagged source with Go 1.26.4 or newer:
 
-Until a public release exists, clone the repository and install from the
-checkout rather than relying on `go install ...@latest`.
+```bash
+go install github.com/tunesmith/cludia/cmd/cludia@v1.0.0
+cludia version
+```
+
+From a source checkout:
+
+```bash
+go test ./...
+go build -o bin/cludia ./cmd/cludia
+bin/cludia version
+```
+
+`go install` writes to `GOBIN`, or to `$(go env GOPATH)/bin` when `GOBIN` is
+unset. That directory must be on `PATH`. Checked-in source, tagged Go installs,
+and the Homebrew formula all identify this release as `cludia v1.0.0`.
 
 ## Development
 
@@ -352,21 +368,29 @@ overwrite an existing output file.
 Local dogfooding workspaces may live under the ignored `personal/` directory so
 private inquiry data is not committed accidentally.
 
-Tracked project dogfooding artifacts live under `dogfood/`. The initial pair is
-the Cludia reasoning workspace and its corresponding Dagim implementation plan.
+Tracked project dogfooding artifacts live under `dogfood/`, including the
+forward-looking Cludia discovery workspace and Ninth Room playtests.
 
 The `check` command is an alias for `validate`. A file declaring
-`meta profile="workspace"` selects the workspace profile by default; otherwise
-validation defaults to the Concludia profile. `--profile` overrides either
-choice.
+`meta profile="cludia"` selects the permissive Cludia profile by default;
+otherwise validation defaults to the Concludia profile. Legacy files declaring
+`profile="workspace"` remain readable and are rewritten to `profile="cludia"`
+on their next successful durable save. Reads and failed operations never
+rewrite them. `--profile` accepts `cludia` or `concludia`.
+
+New Cludia files omit graph artifact `meta version`. If that optional metadata
+is imported or explicitly authored, Cludia preserves it. It is a revision of
+the graph artifact used by Concludia—not Cludia's software version and not a
+version of the `.arg` syntax.
 
 ## Documents
 
 - [VISION.md](VISION.md) explains the product motivation and philosophy.
 - [SPEC.md](SPEC.md) defines the normative v1 behavior.
-- [ROADMAP.md](ROADMAP.md) sequences implementation and dogfooding.
+- [ROADMAP.md](ROADMAP.md) tracks forward-looking post-1.0 work.
+- [CHANGELOG.md](CHANGELOG.md) records release changes and compatibility notes.
 - [docs/arg-workspace-profile.md](docs/arg-workspace-profile.md) defines the
-  implemented `.arg` workspace profile.
+  implemented `.arg` Cludia profile.
 - [docs/concludia-interoperability.md](docs/concludia-interoperability.md)
   specifies rooted export and round-trip behavior.
 - [docs/conversational-workflow.md](docs/conversational-workflow.md) describes
@@ -374,6 +398,8 @@ choice.
 - [docs/prior-art.md](docs/prior-art.md) records relevant systems and lessons.
 - [docs/open-questions.md](docs/open-questions.md) tracks intentionally deferred
   choices.
+- [docs/releasing.md](docs/releasing.md) defines the release and Homebrew
+  publication procedure.
 - [docs/decisions/](docs/decisions/) contains architectural decision records.
 - [examples/](examples/) contains a disconnected workspace and its exported
   Concludia closure.
@@ -391,3 +417,15 @@ semantics.
 Cludia borrows Concludia's statements, junctors, logical-force discipline, and
 defeat model. Its workspace topology is more permissive: disconnected and
 unfinished structures are normal rather than import errors.
+
+## License
+
+Cludia is licensed under
+[GPL-3.0-or-later](LICENSE). The license covers the entire repository,
+including code, documentation, examples, dogfood reasoning, playtests, and the
+Ninth Room mystery content. Copyright 2026 KeenWorks.
+
+Compatibility with the `.arg` format and Concludia does not license Concludia
+source code or branding and does not imply that Concludia is part of this
+GPL-covered program. See [CONTRIBUTING.md](CONTRIBUTING.md) for the current
+contribution policy.

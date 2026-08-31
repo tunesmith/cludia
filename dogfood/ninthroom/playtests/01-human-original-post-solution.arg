@@ -1,5 +1,5 @@
 argument ninth-room "The Ninth Room"
-meta profile="workspace", version="0.1.0"
+meta profile="cludia", version="0.1.0"
 
 premise[fact] P1:six-guests-are-trapped-vesper-house-until-morning ::T "The six guests are trapped in Vesper House until morning due to the water."
 

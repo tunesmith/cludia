@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package argument
 
 import (
@@ -70,7 +73,7 @@ func InitializeDocument(options InitializeOptions) (*Document, Statement, error)
 	}
 	doc := &Document{
 		ID: documentID, Title: title,
-		Metadata:       []Metadata{{Key: "profile", Value: "workspace"}, {Key: "version", Value: "0.1.0"}},
+		Metadata:       []Metadata{{Key: "profile", Value: "cludia"}},
 		Statements:     []Statement{},
 		Junctors:       []Junctor{},
 		DirectSupports: []DirectSupport{},

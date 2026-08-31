@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package main
 
 import (
@@ -203,6 +206,7 @@ func applyBatch(path string, dryRun, jsonOutput bool, doc *argument.Document, pr
 		changes = append(changes, changeOutput{Operation: "updated", ElementType: "metadata", ID: "root"})
 	}
 	changes = appendMetadataChange(changes, nextIDsMetadataChange(doc, next))
+	changes = appendProfileMigrationChange(changes, doc)
 	output := batchAuthorOutput{
 		SchemaVersion: outputSchemaVersion, Action: "add-batch", DryRun: dryRun,
 		Profile: profile, Document: documentSummary(next), Statements: statements,

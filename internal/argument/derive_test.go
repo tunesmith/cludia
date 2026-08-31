@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package argument
 
 import "testing"
@@ -108,7 +111,7 @@ func deriveDocument() *Document {
 	return &Document{
 		ID: "derive", Title: "Derive",
 		Metadata: []Metadata{
-			{Key: "profile", Value: "workspace"},
+			{Key: "profile", Value: "cludia"},
 			{Key: NextIDsMetadataKey, Value: "v1;P=4;L=1;C=1;CP=1;J=1"},
 		},
 		Statements: []Statement{

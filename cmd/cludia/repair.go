@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package main
 
 import (
@@ -124,10 +127,11 @@ func mutateJunctorSource(path, junctorID, sourceRef string, add, dryRun, jsonOut
 		diagnostics = appendJunctorSizeAdvisory(diagnostics, result.Current)
 	}
 	current := result.Current
+	changes := appendProfileMigrationChange([]changeOutput{{Operation: "updated", ElementType: "junctor", ID: result.Current.ID}}, doc)
 	output := junctorMutationOutput{
 		SchemaVersion: outputSchemaVersion, Action: action, DryRun: dryRun,
 		Profile: profile, Document: documentSummary(next), Junctor: &current,
-		PreviousJunctor: result.Previous, Changes: []changeOutput{{Operation: "updated", ElementType: "junctor", ID: result.Current.ID}},
+		PreviousJunctor: result.Previous, Changes: changes,
 		Diagnostics: diagnostics,
 	}
 	if add {
@@ -167,11 +171,12 @@ func replaceJunctorSource(path, junctorID, fromRef, toRef string, dryRun, jsonOu
 		diagnostics = []diagnostic.Diagnostic{}
 	}
 	current := result.Current
+	changes := appendProfileMigrationChange([]changeOutput{{Operation: "updated", ElementType: "junctor", ID: result.Current.ID}}, doc)
 	output := junctorMutationOutput{
 		SchemaVersion: outputSchemaVersion, Action: "replace-source", DryRun: dryRun,
 		Profile: profile, Document: documentSummary(next), Junctor: &current,
 		PreviousJunctor: result.Previous, SourceAdded: result.SourceAdded, SourceRemoved: result.SourceRemoved,
-		Changes:     []changeOutput{{Operation: "updated", ElementType: "junctor", ID: result.Current.ID}},
+		Changes:     changes,
 		Diagnostics: diagnostics,
 	}
 	return writeJunctorMutation(stdout, jsonOutput, output)
@@ -221,10 +226,10 @@ func runRemoveJunctor(args []string, stdout, stderr io.Writer) error {
 	output := junctorMutationOutput{
 		SchemaVersion: outputSchemaVersion, Action: "remove-junctor", DryRun: *dryRun,
 		Profile: profile, Document: documentSummary(next), PreviousJunctor: result.Previous,
-		Changes: appendMetadataChange(
+		Changes: appendProfileMigrationChange(appendMetadataChange(
 			[]changeOutput{{Operation: "removed", ElementType: "junctor", ID: result.Previous.ID}},
 			nextIDsMetadataChange(doc, next),
-		),
+		), doc),
 		Diagnostics: diagnostics,
 	}
 	return writeJunctorMutation(stdout, *jsonOutput, output)

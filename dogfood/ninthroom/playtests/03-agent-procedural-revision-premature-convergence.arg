@@ -1,5 +1,5 @@
 argument ninth-room "The Ninth Room"
-meta profile="workspace", version="0.1.0", cludia-next-ids="v1;P=211;L=1;C=1;CP=7;J=74"
+meta profile="cludia", version="0.1.0", cludia-next-ids="v1;P=211;L=1;C=1;CP=7;J=74"
 
 premise[fact] P1:case-determine-who-killed-ruth-dallow-aldous-bell ::T "[CASE] Determine who killed Ruth Dallow and Aldous Bell, and explain the false object, false ledger account, and locked study."
 

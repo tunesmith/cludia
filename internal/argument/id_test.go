@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package argument
 
 import "testing"
@@ -98,7 +101,7 @@ func TestGeneratedIDsAndSlugsAreStableAndUnique(t *testing.T) {
 
 func TestCloneDoesNotShareSlices(t *testing.T) {
 	doc := &Document{
-		Metadata:   []Metadata{{Key: "profile", Value: "workspace"}},
+		Metadata:   []Metadata{{Key: "profile", Value: "cludia"}},
 		Statements: []Statement{{ID: "P1"}},
 		Junctors:   []Junctor{{ID: "J1", Sources: []string{"P1", "P2"}}},
 	}
@@ -107,7 +110,7 @@ func TestCloneDoesNotShareSlices(t *testing.T) {
 	clone.Statements[0].ID = "changed"
 	clone.Junctors[0].Sources[0] = "changed"
 
-	if doc.Metadata[0].Value != "workspace" || doc.Statements[0].ID != "P1" || doc.Junctors[0].Sources[0] != "P1" {
+	if doc.Metadata[0].Value != "cludia" || doc.Statements[0].ID != "P1" || doc.Junctors[0].Sources[0] != "P1" {
 		t.Fatal("Clone shares mutable slices with original")
 	}
 }

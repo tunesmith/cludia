@@ -4,10 +4,8 @@ This file contains only unresolved product and interoperability choices. Closed
 decisions belong in ADRs, the specification, and tests rather than remaining as
 historical notes here.
 
-## Workspace profile and shared format ownership
+## Shared format ownership and versioning
 
-- Should the provisional `profile="workspace"` identifier receive a permanent
-  format-facing name before public release?
 - Does Concludia remain the owner of the common `.arg` specification, or should
   a stable shared format eventually live in a neutral package or repository?
 - How should syntax version be declared independently from an artifact's
@@ -108,17 +106,3 @@ model calls, identify:
 - provider and credential policy;
 - whether generated output is a proposal queue or executable command; and
 - reproducibility and cost expectations.
-
-## License and distribution
-
-Before public distribution, decide and implement:
-
-- an explicit open-source license and contribution policy;
-- meaningful version injection and `cludia version` output;
-- public GitHub repository preparation and release notes;
-- reproducible tagged artifacts and a clean release preflight; and
-- Homebrew packaging after the artifact layout and supported platforms are
-  stable.
-
-Until then, cloning and installing from source remains sufficient for the sole
-current user.

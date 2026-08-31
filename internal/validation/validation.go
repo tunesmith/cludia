@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package validation
 
 import (
@@ -12,7 +15,7 @@ import (
 type Profile string
 
 const (
-	ProfileWorkspace Profile = "workspace"
+	ProfileCludia    Profile = "cludia"
 	ProfileConcludia Profile = "concludia"
 )
 
@@ -27,7 +30,7 @@ func (r Result) OK() bool {
 
 func Validate(doc *argument.Document, profile Profile) Result {
 	result := Result{Profile: profile, Diagnostics: []diagnostic.Diagnostic{}}
-	if profile != ProfileWorkspace && profile != ProfileConcludia {
+	if profile != ProfileCludia && profile != ProfileConcludia {
 		result.error("profile_unknown", fmt.Sprintf("unknown validation profile %q", profile), "")
 		return result
 	}

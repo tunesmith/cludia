@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package argument
 
 type Role string
@@ -45,13 +48,14 @@ type Metadata struct {
 }
 
 type Document struct {
-	ID             string          `json:"id"`
-	Title          string          `json:"title"`
-	Metadata       []Metadata      `json:"metadata"`
-	Statements     []Statement     `json:"statements"`
-	Junctors       []Junctor       `json:"junctors"`
-	DirectSupports []DirectSupport `json:"direct_supports"`
-	Defeats        []Defeat        `json:"defeats"`
+	ID                     string          `json:"id"`
+	Title                  string          `json:"title"`
+	Metadata               []Metadata      `json:"metadata"`
+	Statements             []Statement     `json:"statements"`
+	Junctors               []Junctor       `json:"junctors"`
+	DirectSupports         []DirectSupport `json:"direct_supports"`
+	Defeats                []Defeat        `json:"defeats"`
+	LegacyWorkspaceProfile bool            `json:"-"`
 }
 
 type Statement struct {

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package main
 
 import (
@@ -281,10 +284,10 @@ func createDefeatWithDocument(path string, doc *argument.Document, profile valid
 	output := defeatMutationOutput{
 		SchemaVersion: outputSchemaVersion, Action: action, DryRun: false,
 		Profile: profile, Document: documentSummary(next), Counterpoint: result.Counterpoint, Defeat: result.Defeat,
-		Changes: appendMetadataChange([]changeOutput{
+		Changes: appendProfileMigrationChange(appendMetadataChange([]changeOutput{
 			{Operation: "added", ElementType: "statement", ID: result.Counterpoint.ID},
 			{Operation: "added", ElementType: "defeat", ID: result.Counterpoint.ID},
-		}, metadataChange),
+		}, metadataChange), doc),
 		Diagnostics: diagnostics,
 	}
 	if *flags.jsonOutput {
@@ -353,6 +356,7 @@ func runRemoveCounterpoint(args []string, stdout, stderr io.Writer) error {
 		changes = append(changes, changeOutput{Operation: "removed", ElementType: "defeat", ID: result.Counterpoint.ID})
 	}
 	changes = appendMetadataChange(changes, nextIDsMetadataChange(doc, next))
+	changes = appendProfileMigrationChange(changes, doc)
 	output := counterpointRemovalOutput{
 		SchemaVersion: outputSchemaVersion, Action: "remove-counterpoint", DryRun: *dryRun,
 		Profile: profile, Document: documentSummary(next), Counterpoint: result.Counterpoint,

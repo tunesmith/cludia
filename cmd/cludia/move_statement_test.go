@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package main
 
 import (
@@ -124,7 +127,7 @@ func TestMoveStatementStructuredFailuresDoNotWrite(t *testing.T) {
 func TestMovedGeneralOrderFeedsQueriesExportAndRenumberPlan(t *testing.T) {
 	doc := &argument.Document{
 		ID: "general-order", Title: "General Order", Metadata: []argument.Metadata{
-			{Key: "profile", Value: "workspace"},
+			{Key: "profile", Value: "cludia"},
 			{Key: argument.NextIDsMetadataKey, Value: "v1;P=4;L=2;C=1;CP=1;J=2"},
 		},
 		Statements: []argument.Statement{
@@ -183,7 +186,7 @@ func statementMoveWorkspace(t *testing.T) string {
 	t.Helper()
 	doc := &argument.Document{
 		ID: "move", Title: "Move", Metadata: []argument.Metadata{
-			{Key: "profile", Value: "workspace"},
+			{Key: "profile", Value: "cludia"},
 			{Key: argument.NextIDsMetadataKey, Value: "v1;P=4;L=2;C=1;CP=2;J=2"},
 		},
 		Statements: []argument.Statement{

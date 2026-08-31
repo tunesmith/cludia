@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package ui
 
 import (
@@ -697,7 +700,7 @@ func testUIDocument() *argument.Document {
 		return argument.Statement{ID: id, Slug: slug, Text: text, Role: role, Kind: argument.KindFact, Truth: truth}
 	}
 	return &argument.Document{
-		ID: "tui", Title: "TUI Test", Metadata: []argument.Metadata{{Key: "profile", Value: "workspace"}},
+		ID: "tui", Title: "TUI Test", Metadata: []argument.Metadata{{Key: "profile", Value: "cludia"}},
 		Statements: []argument.Statement{
 			statement("P1", "one", "First source statement", argument.RolePremise),
 			statement("P2", "two", "Second source statement", argument.RolePremise),
@@ -729,7 +732,7 @@ func testUIDocument() *argument.Document {
 }
 
 func pageTestDocument() *argument.Document {
-	doc := &argument.Document{ID: "pages", Title: "Pages", Metadata: []argument.Metadata{{Key: "profile", Value: "workspace"}}}
+	doc := &argument.Document{ID: "pages", Title: "Pages", Metadata: []argument.Metadata{{Key: "profile", Value: "cludia"}}}
 	for index := 1; index <= 12; index++ {
 		doc.Statements = append(doc.Statements, argument.Statement{
 			ID: fmt.Sprintf("P%d", index), Role: argument.RolePremise, Kind: argument.KindFact,

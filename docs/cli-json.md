@@ -51,6 +51,11 @@ change to those shapes or meanings requires a schema-version change. Stable
 diagnostic codes may be added as new failure cases are recognized without
 changing the response schema.
 
+Cludia 1.x does not retain old JSON schema implementations indefinitely.
+Incompatible changes increment the applicable schema version and are disclosed
+in release notes; callers upgrade with the installed client. The durable 1.x
+compatibility promise applies to `.arg` files rather than old CLI requests.
+
 Each command's tests assert its exact top-level key set. Nested public mappings
 whose fields are part of a mutation protocol, such as derive role changes and
 renumber mappings, are likewise contract-tested.

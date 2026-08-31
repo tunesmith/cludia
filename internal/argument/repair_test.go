@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package argument
 
 import "testing"
@@ -42,7 +45,7 @@ func TestRemoveJunctorPreservesCallerAndAllocatorState(t *testing.T) {
 func repairDocument() *Document {
 	return &Document{
 		ID: "repair", Title: "Repair",
-		Metadata: []Metadata{{Key: "profile", Value: "workspace"}, {Key: NextIDsMetadataKey, Value: "v1;P=5;L=2;C=1;CP=1;J=2"}},
+		Metadata: []Metadata{{Key: "profile", Value: "cludia"}, {Key: NextIDsMetadataKey, Value: "v1;P=5;L=2;C=1;CP=1;J=2"}},
 		Statements: []Statement{
 			{ID: "P1", Role: RolePremise, Kind: KindFact, Truth: TruthTrue, Text: "One"},
 			{ID: "P2", Role: RolePremise, Kind: KindFact, Truth: TruthTrue, Text: "Two"},

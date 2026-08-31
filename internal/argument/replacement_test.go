@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package argument
 
 import "testing"
@@ -48,7 +51,7 @@ func TestReplacementTokenIsStateBound(t *testing.T) {
 
 func TestReplacementBootstrapsLegacyAllocatorBeforeRemovingHighestIDs(t *testing.T) {
 	doc := &Document{
-		ID: "legacy", Title: "Legacy", Metadata: []Metadata{{Key: "profile", Value: "workspace"}},
+		ID: "legacy", Title: "Legacy", Metadata: []Metadata{{Key: "profile", Value: "cludia"}},
 		Statements: []Statement{
 			{ID: "P1", Role: RolePremise, Kind: KindFact, Truth: TruthTrue, Text: "One"},
 			{ID: "P2", Role: RolePremise, Kind: KindFact, Truth: TruthTrue, Text: "Two"},
@@ -76,7 +79,7 @@ func TestReplacementBootstrapsLegacyAllocatorBeforeRemovingHighestIDs(t *testing
 func replacementDocument() *Document {
 	return &Document{
 		ID: "replace", Title: "Replace",
-		Metadata: []Metadata{{Key: "profile", Value: "workspace"}, {Key: NextIDsMetadataKey, Value: "v1;P=4;L=2;C=2;CP=1;J=3"}},
+		Metadata: []Metadata{{Key: "profile", Value: "cludia"}, {Key: NextIDsMetadataKey, Value: "v1;P=4;L=2;C=2;CP=1;J=3"}},
 		Statements: []Statement{
 			{ID: "P1", Role: RolePremise, Kind: KindFact, Truth: TruthTrue, Text: "One"},
 			{ID: "P2", Role: RolePremise, Kind: KindFact, Truth: TruthTrue, Text: "Two"},

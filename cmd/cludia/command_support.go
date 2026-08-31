@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package main
 
 import (
@@ -249,6 +252,18 @@ func appendMetadataChange(changes []changeOutput, change *changeOutput) []change
 		return append(changes, *change)
 	}
 	return changes
+}
+
+func appendProfileMigrationChange(changes []changeOutput, before *argument.Document) []changeOutput {
+	if before == nil || !before.LegacyWorkspaceProfile {
+		return changes
+	}
+	for _, change := range changes {
+		if change.ElementType == "metadata" && change.ID == "profile" {
+			return changes
+		}
+	}
+	return append(changes, changeOutput{Operation: "updated", ElementType: "metadata", ID: "profile"})
 }
 
 func validateAndPersistMutation(path string, next *argument.Document, profile validation.Profile, persist bool) (validation.Result, error) {

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package argument
 
 import "testing"
@@ -44,7 +47,7 @@ func TestDeleteStatementRejectsAttachedDefeatWithoutMutation(t *testing.T) {
 func removalDocument() *Document {
 	return &Document{
 		ID: "remove", Title: "Remove",
-		Metadata: []Metadata{{Key: "profile", Value: "workspace"}, {Key: NextIDsMetadataKey, Value: "v1;P=4;L=2;C=1;CP=2;J=2"}},
+		Metadata: []Metadata{{Key: "profile", Value: "cludia"}, {Key: NextIDsMetadataKey, Value: "v1;P=4;L=2;C=1;CP=2;J=2"}},
 		Statements: []Statement{
 			{ID: "P1", Role: RolePremise, Kind: KindFact, Truth: TruthTrue, Text: "One"},
 			{ID: "P2", Role: RolePremise, Kind: KindFact, Truth: TruthTrue, Text: "Two"},

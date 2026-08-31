@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package main
 
 import (
@@ -81,6 +84,7 @@ func runMoveStatement(args []string, stdout, stderr io.Writer) error {
 	changes := []changeOutput{}
 	if move.Changed {
 		changes = append(changes, changeOutput{Operation: "reordered", ElementType: "statement", ID: move.Statement.ID})
+		changes = appendProfileMigrationChange(changes, doc)
 	}
 	diagnostics = validated.Diagnostics
 	if diagnostics == nil {

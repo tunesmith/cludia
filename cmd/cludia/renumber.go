@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package main
 
 import (
@@ -132,7 +135,8 @@ func renumberChanges(before, after *argument.Document, result argument.RenumberR
 	if result.RootMetadataUpdated {
 		changes = append(changes, changeOutput{Operation: "updated", ElementType: "metadata", ID: "root"})
 	}
-	return appendMetadataChange(changes, nextIDsMetadataChange(before, after))
+	changes = appendMetadataChange(changes, nextIDsMetadataChange(before, after))
+	return appendProfileMigrationChange(changes, before)
 }
 
 func writeRenumber(w io.Writer, jsonOutput bool, output renumberOutput) error {

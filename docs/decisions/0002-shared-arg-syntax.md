@@ -1,7 +1,8 @@
-# ADR 0002: Reuse `.arg` syntax with a workspace validation profile
+# ADR 0002: Reuse `.arg` syntax with the Cludia validation profile
 
-- Status: Accepted, with provisional profile naming
+- Status: Accepted
 - Date: 2026-08-23
+- Amended: 2026-08-30 for the Cludia 1.0 release
 
 ## Context
 
@@ -15,15 +16,21 @@ role validation.
 
 ## Decision
 
-Use the existing `.arg` syntax and introduce a relaxed workspace validation
-profile through provisional metadata such as:
+Use the existing `.arg` syntax and identify the relaxed Cludia validation
+profile with stable metadata:
 
 ```text
-meta profile="workspace"
+meta profile="cludia"
 ```
 
-The literal profile value is not the product name and remains open to renaming
-before implementation.
+The pre-1.0 value `profile="workspace"` remains an input alias. Reads preserve
+the file unchanged, dry runs report the proposed metadata update, and the next
+successful durable save rewrites it atomically to `profile="cludia"`. CLI
+profile overrides use only the canonical names `cludia` and `concludia`.
+
+New Cludia workspaces do not add graph artifact `meta version`. Imported or
+explicitly authored graph-version metadata remains preserved; it is distinct
+from both the Cludia software version and any future `.arg` syntax version.
 
 A valid Concludia file must be readable as a workspace. A workspace may be
 disconnected and is promoted to Concludia only through explicit rooted export.
@@ -49,4 +56,3 @@ though focused v1 authoring creates only multi-premise `AND` junctors.
   persistence invariants before the new workflow is proven.
 - Universal graph format shared with Dagim: rejected because Dagim's blocking
   and completion semantics are materially different.
-

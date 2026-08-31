@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package main
 
 import (
@@ -180,6 +183,7 @@ func runDerive(args []string, stdout, stderr io.Writer) error {
 		}
 		changes = append(changes, changeOutput{Operation: operation, ElementType: "metadata", ID: argument.NextIDsMetadataKey})
 	}
+	changes = appendProfileMigrationChange(changes, doc)
 	validated, err := validateAndPersistMutation(fs.Arg(0), next, profile, true)
 	if err != nil {
 		return err

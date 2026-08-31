@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package argument
 
 import (
@@ -138,7 +141,7 @@ func TestAuthorBatchRejectsAmbiguousReferencesAndExplicitPremiseTargets(t *testi
 
 func batchAuthorDocument() *Document {
 	return &Document{
-		ID: "batch", Title: "Batch", Metadata: []Metadata{{Key: "profile", Value: "workspace"}},
+		ID: "batch", Title: "Batch", Metadata: []Metadata{{Key: "profile", Value: "cludia"}},
 		Statements: []Statement{
 			{ID: "P1", Role: RolePremise, Kind: KindFact, Truth: TruthTrue, Text: "First"},
 			{ID: "P2", Role: RolePremise, Kind: KindFact, Truth: TruthTrue, Text: "Second"},

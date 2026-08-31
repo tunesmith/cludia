@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package main
 
 import (
@@ -255,7 +258,7 @@ func textViewWorkspace(t *testing.T) string {
 		return argument.Statement{ID: id, Slug: slug, Text: text, Role: role, Kind: argument.KindFact, Truth: truth}
 	}
 	doc := &argument.Document{
-		ID: "text-views", Title: "Text Views", Metadata: []argument.Metadata{{Key: "profile", Value: "workspace"}},
+		ID: "text-views", Title: "Text Views", Metadata: []argument.Metadata{{Key: "profile", Value: "cludia"}},
 		Statements: []argument.Statement{
 			statement("P1", "one", "First source statement", argument.RolePremise),
 			statement("P2", "two", "Second source statement", argument.RolePremise),
@@ -297,7 +300,7 @@ func textViewWorkspace(t *testing.T) string {
 func selectedInferenceWorkspace(t *testing.T, undercut, alternative bool) string {
 	t.Helper()
 	doc := &argument.Document{
-		ID: "selected-ledger", Title: "Selected Ledger", Metadata: []argument.Metadata{{Key: "profile", Value: "workspace"}},
+		ID: "selected-ledger", Title: "Selected Ledger", Metadata: []argument.Metadata{{Key: "profile", Value: "cludia"}},
 		Statements: []argument.Statement{
 			{ID: "P1", Role: argument.RolePremise, Kind: argument.KindFact, Truth: argument.TruthTrue, Text: "First"},
 			{ID: "P2", Role: argument.RolePremise, Kind: argument.KindFact, Truth: argument.TruthFalse, Text: "Second"},

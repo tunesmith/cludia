@@ -1,5 +1,5 @@
 argument cludia-discovery "Cludia Discovery"
-meta profile="workspace", version="0.1.0", cludia-next-ids="v1;P=12;L=5;C=1;CP=1;J=5"
+meta profile="cludia", cludia-next-ids="v1;P=12;L=5;C=1;CP=1;J=5"
 
 premise[fact] P1:current-cludia-reads-expose-grounded-statement-truth-junctor ::T "Current Cludia reads expose grounded statement truth, junctor truth, accepted counterpoint effects, complete rooted structure, and selectable Ledger branches."
 
@@ -25,12 +25,3 @@ premise[fact] P8:current-dogfooding-has-not-demonstrated-that-bounded-undo ::T "
 
 lemma[value] L3:bounded-tui-reorder-undo-should-remain-deferred-until "Bounded TUI reorder undo should remain deferred until dogfooding demonstrates a concrete need."
   <- AND#J3(P6, P7, P8)
-
-premise[fact] P9:cludia-currently-single-user-pre-release-tool ::T "Cludia is currently a single-user pre-release tool."
-
-premise[value] P10:external-distribution-requires-explicit-license-meaningful-version ::T "External distribution requires an explicit license, meaningful version output, reproducible release artifacts, and a publication preflight."
-
-premise[value] P11:homebrew-packaging-should-follow-stable-binary-name-release ::T "Homebrew packaging should follow a stable binary name, release artifact layout, and tagged release process."
-
-lemma[value] L4:licensing-github-publication-versioned-release-artifacts-homebrew "Licensing, GitHub publication, versioned release artifacts, and Homebrew packaging should be one coordinated project when external distribution is intended."
-  <- AND#J4(P9, P10, P11)

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package main
 
 import (
@@ -91,6 +94,7 @@ func runDelete(args []string, stdout, stderr io.Writer) error {
 		changes = append(changes, changeOutput{Operation: "removed", ElementType: "defeat", ID: defeat.From})
 	}
 	changes = appendMetadataChange(changes, nextIDsMetadataChange(doc, next))
+	changes = appendProfileMigrationChange(changes, doc)
 	output := statementDeletionOutput{
 		SchemaVersion: outputSchemaVersion, Action: "delete", DryRun: *dryRun,
 		Profile: profile, Document: documentSummary(next), Statement: result.Statement,

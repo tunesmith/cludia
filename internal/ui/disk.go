@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package ui
 
 import (
@@ -59,7 +62,7 @@ func loadDocument(path string) (*argument.Document, diskVersion, error) {
 }
 
 func parseValidDocument(data []byte) (*argument.Document, error) {
-	doc, diagnostics := workspace.ParseValidated(data, validation.ProfileWorkspace)
+	doc, diagnostics := workspace.ParseValidated(data, validation.ProfileCludia)
 	if diagnostic.HasErrors(diagnostics) {
 		messages := make([]string, 0)
 		for _, item := range diagnostics {

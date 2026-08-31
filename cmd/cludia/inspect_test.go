@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package main
 
 import (
@@ -58,7 +61,7 @@ func referenceCollisionWorkspace(t *testing.T) string {
 	doc := &argument.Document{
 		ID: "collision", Title: "Collision",
 		Metadata: []argument.Metadata{
-			{Key: "profile", Value: "workspace"},
+			{Key: "profile", Value: "cludia"},
 			{Key: argument.NextIDsMetadataKey, Value: "v1;P=4;L=2;C=1;CP=1;J=1"},
 		},
 		Statements: []argument.Statement{

@@ -91,8 +91,9 @@ Format changes must also run compatibility and round-trip fixtures for:
 
 ## Change discipline
 
-- Exact command names may evolve before the first public release, but semantic
-  operations and compatibility behavior require tests and documentation.
+- Human command names and JSON schemas may evolve during 1.x, but semantic
+  operations and `.arg` compatibility behavior require tests, schema-version
+  discipline, release notes, and documentation.
 - Add or update an ADR for changes to profiles, topology, defeat semantics,
   LLM boundaries, or CLI/web parity.
 - Keep the domain core independent of CLI, MCP, and web presentation layers.

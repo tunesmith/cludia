@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package main
 
 import (
@@ -115,6 +118,7 @@ func runReplace(args []string, stdout, stderr io.Writer) error {
 		changes = append(changes, changeOutput{Operation: "removed", ElementType: "statement", ID: result.OldStatement.ID})
 	}
 	changes = appendMetadataChange(changes, nextIDsMetadataChange(doc, next))
+	changes = appendProfileMigrationChange(changes, doc)
 
 	validated, err := validateAndPersistMutation(fs.Arg(0), next, profile, applying && result.Applicable)
 	if err != nil {

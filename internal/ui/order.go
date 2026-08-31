@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package ui
 
 import (
@@ -61,7 +64,7 @@ func moveTopStatement(path, statementID, anchorID string, placement argument.Mov
 		if err != nil {
 			return topMoveResultMsg{doc: doc, version: check.version, err: err}
 		}
-		validated, err := workspace.ValidateAndPersist(path, next, validation.ProfileWorkspace, move.Changed)
+		validated, err := workspace.ValidateAndPersist(path, next, validation.ProfileCludia, move.Changed)
 		if err != nil {
 			return topMoveResultMsg{doc: doc, version: check.version, err: err}
 		}

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package argument
 
 import "testing"
@@ -5,7 +8,7 @@ import "testing"
 func TestRenumberDocumentRewritesEveryModeledReferenceOnClone(t *testing.T) {
 	doc := &Document{
 		ID: "renumber", Title: "Renumber",
-		Metadata: []Metadata{{Key: "profile", Value: "workspace"}, {Key: "root", Value: "old-c"}, {Key: NextIDsMetadataKey, Value: "v1;P=10;L=9;C=4;CP=7;J=8"}},
+		Metadata: []Metadata{{Key: "profile", Value: "cludia"}, {Key: "root", Value: "old-c"}, {Key: NextIDsMetadataKey, Value: "v1;P=10;L=9;C=4;CP=7;J=8"}},
 		Statements: []Statement{
 			{ID: "old-p", Role: RolePremise, Kind: KindFact, Truth: TruthTrue, Text: "Premise"},
 			{ID: "old-l", Role: RoleLemma, Kind: KindFact, Truth: TruthUnknown, Text: "Lemma"},

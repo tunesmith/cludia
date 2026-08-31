@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package main
 
 import (
@@ -61,13 +64,13 @@ func runInit(args []string, stdout, stderr io.Writer) error {
 		},
 	})
 	if err != nil {
-		return writeArgumentMutationFailure(stdout, *jsonOutput, validation.ProfileWorkspace, err)
+		return writeArgumentMutationFailure(stdout, *jsonOutput, validation.ProfileCludia, err)
 	}
 	var diagnostics []diagnostic.Diagnostic
-	validated, createErr := validateAndCreateMutation(fs.Arg(0), doc, validation.ProfileWorkspace)
+	validated, createErr := validateAndCreateMutation(fs.Arg(0), doc, validation.ProfileCludia)
 	diagnostics = append(diagnostics, validated.Diagnostics...)
 	if diagnostic.HasErrors(diagnostics) {
-		if err := writeFailure(stdout, *jsonOutput, validation.ProfileWorkspace, diagnostics); err != nil {
+		if err := writeFailure(stdout, *jsonOutput, validation.ProfileCludia, diagnostics); err != nil {
 			return err
 		}
 		return errValidationFailed
@@ -80,7 +83,7 @@ func runInit(args []string, stdout, stderr io.Writer) error {
 	}
 	output := mutationOutput{
 		SchemaVersion: outputSchemaVersion, Action: "init", DryRun: false,
-		Profile: validation.ProfileWorkspace, Document: documentSummary(doc), Statement: first,
+		Profile: validation.ProfileCludia, Document: documentSummary(doc), Statement: first,
 		Changes: appendMetadataChange([]changeOutput{
 			{Operation: "created", ElementType: "document", ID: doc.ID},
 			{Operation: "added", ElementType: "statement", ID: first.ID},
@@ -144,7 +147,10 @@ func runAdd(args []string, stdout, stderr io.Writer) error {
 	output := mutationOutput{
 		SchemaVersion: outputSchemaVersion, Action: "add", DryRun: false,
 		Profile: profile, Document: documentSummary(next), Statement: statement,
-		Changes: appendMetadataChange([]changeOutput{{Operation: "added", ElementType: "statement", ID: statement.ID}}, nextIDsMetadataChange(doc, next)), Diagnostics: diagnostics,
+		Changes: appendProfileMigrationChange(
+			appendMetadataChange([]changeOutput{{Operation: "added", ElementType: "statement", ID: statement.ID}}, nextIDsMetadataChange(doc, next)),
+			doc,
+		), Diagnostics: diagnostics,
 	}
 	return writeMutation(stdout, *jsonOutput, output)
 }

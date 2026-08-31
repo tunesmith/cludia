@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package main
 
 import (
@@ -110,6 +113,9 @@ func runRenameSlug(args []string, stdout, stderr io.Writer) error {
 	}
 	if result.RootMetadataUpdated {
 		changes = append(changes, changeOutput{Operation: "updated", ElementType: "metadata", ID: "root"})
+	}
+	if result.Changed {
+		changes = appendProfileMigrationChange(changes, doc)
 	}
 	output := slugMutationOutput{
 		SchemaVersion: outputSchemaVersion, Action: "rename-slug", Profile: profile,

@@ -1,5 +1,5 @@
 argument ninth-room "The Ninth Room"
-meta profile="workspace", version="0.1.0", cludia-next-ids="v1;P=215;L=75;C=1;CP=9;J=76"
+meta profile="cludia", version="0.1.0", cludia-next-ids="v1;P=215;L=75;C=1;CP=9;J=76"
 
 premise[fact] P1:neutral-narration-observable-conditions-this-mystery-reliable ::T "Neutral narration of observable conditions in this mystery is reliable."
 

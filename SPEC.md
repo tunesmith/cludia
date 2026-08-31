@@ -1,16 +1,14 @@
-# Cludia v1 Specification
+# Cludia 1.0 Specification
 
-> `Cludia` is the permanent project and repository name, and `cludia` is the
-> command-line binary. The `profile="workspace"` identifier remains
-> provisional.
+> `Cludia` is the project and repository name, `cludia` is the command-line
+> binary, and `profile="cludia"` is the stable permissive inquiry profile.
 
 ## 1. Status and normative language
 
-This document specifies the intended first implementation. `MUST`, `SHOULD`,
-and `MAY` are normative.
+This document specifies Cludia 1.0. `MUST`, `SHOULD`, and `MAY` are normative.
 
-The first implementation is a Go CLI over a local `.arg` file. After CLI
-dogfooding, v1 also includes a terminal navigator over the same query and
+Cludia 1.0 is a Go CLI over a local `.arg` file. It also includes a terminal
+navigator over the same query and
 persistence layers, with focused durable Top reordering. A later local web UI
 MUST have operation and information parity with the CLI.
 
@@ -28,7 +26,7 @@ MUST have operation and information parity with the CLI.
   structure, and all attached defeat chains.
 - **Concludia profile:** the validation rules required for importing a rooted,
   connected argument into Concludia.
-- **Workspace profile:** the relaxed validation rules used during inquiry.
+- **Cludia profile:** the relaxed validation rules used during inquiry.
 
 ## 3. Durable model
 
@@ -46,9 +44,16 @@ queries, rooted export, and deterministic mutation plans MUST observe it.
 Interfaces MAY apply hard dependency constraints over that preference, as the
 support Ledger does, but MUST NOT persist a competing view-specific order.
 
-The workspace-profile metadata value is provisional. Format profile and
-content version MUST remain conceptually distinct even if the initial syntax
-stores both in `meta`.
+New workspaces MUST declare `profile="cludia"`. Legacy
+`profile="workspace"` is an input alias: reads MUST NOT rewrite it, dry runs
+MUST report the proposed metadata migration, and the next successful durable
+save MUST atomically rewrite it to `profile="cludia"`. Failed operations MUST
+leave the legacy marker unchanged.
+
+New workspaces MUST NOT add graph artifact `meta version`. An imported or
+explicitly authored version MUST be preserved. That optional value is a
+Concludia graph/artifact revision, not Cludia's software version or a version
+of the `.arg` syntax.
 
 New Cludia workspaces MUST record the exact next numeric identifier for every
 focused namespace in versioned `cludia-next-ids` metadata. A legacy document
@@ -189,7 +194,7 @@ than silently adjudicating it.
 
 ## 4. Structural invariants
 
-The workspace profile MUST enforce:
+The Cludia profile MUST enforce:
 
 - all referenced statement and junctor IDs exist;
 - IDs are unique within the document;
@@ -203,7 +208,7 @@ The workspace profile MUST enforce:
   selected profile;
 - saves are atomic.
 
-The workspace profile MUST allow:
+The Cludia profile MUST allow:
 
 - isolated statements;
 - multiple disconnected components;
@@ -270,8 +275,9 @@ and calculated effective truth remain distinct public facts.
 
 ## 6. Required capabilities
 
-Exact command spelling is provisional, but v1 MUST provide the following
-capabilities.
+Cludia 1.0 MUST provide the following capabilities. Human CLI spelling, flags,
+and JSON schemas may evolve during 1.x under the compatibility policy in
+section 9.
 
 ### 6.1 Read and query
 
@@ -292,7 +298,7 @@ capabilities.
   junctor's sources. The selected junctor MUST target the ledger root; selection
   is a read-only view and MUST NOT persist a preferred derivation.
 - List defeats targeting or originating from an element.
-- Validate under the workspace or Concludia profile.
+- Validate under the Cludia or Concludia profile.
 - Read versioned machine guidance for statement identity and revision behavior.
 
 ### 6.2 Capture and edit
@@ -365,6 +371,11 @@ JSON is a public interface and MUST:
   references;
 - report all durable changes made by a mutation;
 - avoid silently dropping constructs unknown to a focused command.
+
+During 1.x, incompatible JSON changes MUST increment the applicable schema
+version and be disclosed in release notes. Cludia does not promise to retain
+implementations of older request or response schemas. Version 1.0.0 uses CLI
+response schema 2, batch input schema 2, and evaluation schema 1.
 
 CLI response schema version 2 adds calculated effective truth to read surfaces.
 `statement.truth` remains the persisted value. Evaluation results use their own
@@ -535,15 +546,23 @@ change.
 
 ## 9. File compatibility
 
-V1 MUST use the existing Concludia `.arg` syntax as its common syntax. A
-provisional metadata field identifies the relaxed workspace profile:
+V1 MUST use the existing Concludia `.arg` syntax as its common syntax. Stable
+metadata identifies the relaxed Cludia profile:
 
 ```text
-meta profile="workspace"
+meta profile="cludia"
 ```
 
-The literal profile value remains renameable before the first public release.
-It denotes validation semantics, not the product name.
+The legacy value `profile="workspace"` MUST be accepted as an input alias and
+migrated only on a successful durable save as specified in section 3.1. The
+profile denotes validation semantics; it is not a distinct syntax.
+
+Cludia 1.x guarantees that prior Cludia `.arg` files and supported ordinary
+Concludia `.arg` files remain readable without silent loss. This file
+compatibility promise does not freeze human CLI text, command flags, or JSON
+schemas. The `.arg` syntax remains unversioned. Optional `meta version` is a
+Concludia graph/artifact revision and MUST NOT be interpreted as Cludia's
+software version or a DSL version.
 
 A valid ordinary Concludia `.arg` document MUST be readable as a workspace.
 Round-tripping it without an explicit transforming operation MUST preserve:
