@@ -12,6 +12,7 @@ import (
 	"github.com/tunesmith/cludia/internal/argument"
 	"github.com/tunesmith/cludia/internal/diagnostic"
 	"github.com/tunesmith/cludia/internal/evaluation"
+	"github.com/tunesmith/cludia/internal/presentation"
 	"github.com/tunesmith/cludia/internal/validation"
 	"github.com/tunesmith/cludia/internal/workspace"
 )
@@ -73,10 +74,7 @@ func evaluatedJunctorFor(junctor argument.Junctor, result evaluation.Result) eva
 }
 
 func formatTruthStatus(statement evaluatedStatement) string {
-	if statement.TruthSource == evaluation.TruthAsserted && statement.Truth != statement.EffectiveTruth {
-		return fmt.Sprintf("%s → %s", statement.Truth, statement.EffectiveTruth)
-	}
-	return string(statement.EffectiveTruth)
+	return presentation.StatementStatus(statement.Statement, statement.EffectiveTruth, statement.TruthSource)
 }
 
 func evaluateDocument(doc *argument.Document) (evaluation.Result, []diagnostic.Diagnostic) {

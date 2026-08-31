@@ -14,6 +14,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/tunesmith/cludia/internal/diagnostic"
+	"github.com/tunesmith/cludia/internal/presentation"
 	"github.com/tunesmith/cludia/internal/query"
 	"github.com/tunesmith/cludia/internal/validation"
 )
@@ -42,7 +43,7 @@ func runTop(args []string, stdout, stderr io.Writer) error {
 	fs := flag.NewFlagSet("top", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 	jsonOutput := fs.Bool("json", false, "output versioned JSON")
-	challengedOnly := fs.Bool("challenged", false, "show only top statements whose truth is changed by grounded counterpoints")
+	challengedOnly := fs.Bool("challenged", false, "show only top statements whose effective status is changed by grounded counterpoints")
 	limit := fs.Int("limit", 0, "maximum number of statements to return (0 means all)")
 	offset := fs.Int("offset", 0, "number of matching statements to skip")
 	fs.Usage = func() { writeTopUsage(fs.Output()) }
@@ -175,20 +176,20 @@ func writeHumanTop(w io.Writer, output topOutput, width int) {
 	if width < 80 {
 		for _, item := range output.Statements {
 			label := topDisplayLabel(item)
-			truth := item.EffectiveTruth
+			status := presentation.StatementStatus(item.Statement, item.EffectiveTruth, item.TruthSource)
 			depth := ""
 			if item.Depth > 0 {
 				depth = fmt.Sprintf("  depth %d", item.Depth)
 			}
-			fmt.Fprintf(w, "%s  %s%s\n%s\n\n", label, truth, depth, item.Statement.Text)
+			fmt.Fprintf(w, "%s  %s%s\n%s\n\n", label, status, depth, item.Statement.Text)
 		}
 		return
 	}
 	labelWidth := maxDisplayLabelWidthTop(output.Statements, len("LABEL"))
-	truthWidth := len("TRUTH")
+	statusWidth := presentation.StatementStatusWidth
 	depthWidth := len("DEPTH")
-	statementWidth := maxInt(24, width-labelWidth-truthWidth-depthWidth-6)
-	fmt.Fprintf(w, "%s  %s  %s  %s\n", padText("LABEL", labelWidth), padText("TRUTH", truthWidth), padText("DEPTH", depthWidth), "STATEMENT")
+	statementWidth := maxInt(24, width-labelWidth-statusWidth-depthWidth-6)
+	fmt.Fprintf(w, "%s  %s  %s  %s\n", padText("LABEL", labelWidth), centerText(presentation.StatementStatusHeader, statusWidth), padText("DEPTH", depthWidth), "STATEMENT")
 	for _, item := range output.Statements {
 		lines := wrapFullText(item.Statement.Text, statementWidth)
 		depth := ""
@@ -196,13 +197,13 @@ func writeHumanTop(w io.Writer, output topOutput, width int) {
 			depth = strconv.Itoa(item.Depth)
 		}
 		for i, line := range lines {
-			labelCell, truthCell, depthCell := "", "", ""
+			labelCell, statusCell, depthCell := "", "", ""
 			if i == 0 {
 				labelCell = topDisplayLabel(item)
-				truthCell = string(item.EffectiveTruth)
+				statusCell = presentation.StatementStatus(item.Statement, item.EffectiveTruth, item.TruthSource)
 				depthCell = depth
 			}
-			fmt.Fprintf(w, "%s  %s  %s  %s\n", padText(labelCell, labelWidth), padText(truthCell, truthWidth), padText(depthCell, depthWidth), line)
+			fmt.Fprintf(w, "%s  %s  %s  %s\n", padText(labelCell, labelWidth), centerText(statusCell, statusWidth), padText(depthCell, depthWidth), line)
 		}
 	}
 }
@@ -210,21 +211,21 @@ func writeHumanTop(w io.Writer, output topOutput, width int) {
 func writeHumanLedger(w io.Writer, output ledgerOutput, width int) {
 	if width < 80 {
 		for _, row := range output.Rows {
-			fmt.Fprintf(w, "%s  %s\n", ledgerDisplayLabel(row), ledgerTruth(output, row))
+			fmt.Fprintf(w, "%s  %s\n", ledgerDisplayLabel(row), ledgerStatus(output, row))
 			fmt.Fprintln(w, row.Statement.Text)
 			for _, derivation := range ledgerDerivations(output, row) {
 				fmt.Fprintln(w, derivation)
 			}
 			fmt.Fprintln(w)
 		}
-		writeLedgerTruthFootnote(w, output)
+		writeLedgerStatusFootnote(w, output)
 		return
 	}
 	labelWidth := maxDisplayLabelWidthLedger(output.Rows, len("LABEL"))
-	truthWidth := len("TRUTH")
+	statusWidth := presentation.StatementStatusWidth
 	derivationWidth := minInt(34, maxInt(20, width/4))
-	statementWidth := maxInt(30, width-labelWidth-truthWidth-derivationWidth-6)
-	fmt.Fprintf(w, "%s  %s  %s  %s\n", padText("LABEL", labelWidth), padText("TRUTH", truthWidth), padText("STATEMENT", statementWidth), "DERIVATION")
+	statementWidth := maxInt(30, width-labelWidth-statusWidth-derivationWidth-6)
+	fmt.Fprintf(w, "%s  %s  %s  %s\n", padText("LABEL", labelWidth), centerText(presentation.StatementStatusHeader, statusWidth), padText("STATEMENT", statementWidth), "DERIVATION")
 	for _, row := range output.Rows {
 		statementLines := wrapFullText(row.Statement.Text, statementWidth)
 		derivationLines := make([]string, 0)
@@ -236,10 +237,10 @@ func writeHumanLedger(w io.Writer, output ledgerOutput, width int) {
 			lineCount = 1
 		}
 		for i := 0; i < lineCount; i++ {
-			labelCell, truthCell := "", ""
+			labelCell, statusCell := "", ""
 			if i == 0 {
 				labelCell = ledgerDisplayLabel(row)
-				truthCell = ledgerTruth(output, row)
+				statusCell = ledgerStatus(output, row)
 			}
 			statementCell, derivationCell := "", ""
 			if i < len(statementLines) {
@@ -248,10 +249,10 @@ func writeHumanLedger(w io.Writer, output ledgerOutput, width int) {
 			if i < len(derivationLines) {
 				derivationCell = derivationLines[i]
 			}
-			fmt.Fprintf(w, "%s  %s  %s  %s\n", padText(labelCell, labelWidth), padText(truthCell, truthWidth), padText(statementCell, statementWidth), derivationCell)
+			fmt.Fprintf(w, "%s  %s  %s  %s\n", padText(labelCell, labelWidth), centerText(statusCell, statusWidth), padText(statementCell, statementWidth), derivationCell)
 		}
 	}
-	writeLedgerTruthFootnote(w, output)
+	writeLedgerStatusFootnote(w, output)
 }
 
 func ledgerDerivations(output ledgerOutput, row query.LedgerRow) []string {
@@ -269,17 +270,17 @@ func ledgerDerivations(output ledgerOutput, row query.LedgerRow) []string {
 	return result
 }
 
-func ledgerTruth(output ledgerOutput, row query.LedgerRow) string {
-	truth := string(row.EffectiveTruth)
+func ledgerStatus(output ledgerOutput, row query.LedgerRow) string {
+	status := presentation.StatementStatus(row.Statement, row.EffectiveTruth, row.TruthSource)
 	if output.SelectedInference != nil && output.SelectedInference.OtherRoutesAffectTruth && row.Statement.ID == output.Root {
-		truth += "*"
+		status += "*"
 	}
-	return truth
+	return status
 }
 
-func writeLedgerTruthFootnote(w io.Writer, output ledgerOutput) {
+func writeLedgerStatusFootnote(w io.Writer, output ledgerOutput) {
 	if output.SelectedInference != nil && output.SelectedInference.OtherRoutesAffectTruth {
-		fmt.Fprintln(w, "* truth comes from another justification not shown")
+		fmt.Fprintln(w, "* proof comes from another justification not shown")
 	}
 }
 
@@ -362,6 +363,15 @@ func padText(value string, width int) string {
 		return value + strings.Repeat(" ", missing)
 	}
 	return value
+}
+
+func centerText(value string, width int) string {
+	missing := width - runeCount(value)
+	if missing <= 0 {
+		return value
+	}
+	left := missing / 2
+	return strings.Repeat(" ", left) + value + strings.Repeat(" ", missing-left)
 }
 
 func maxDisplayLabelWidthTop(items []query.TopItem, minimum int) int {

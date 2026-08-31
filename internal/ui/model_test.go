@@ -26,13 +26,19 @@ func TestTopViewWrapsFullTextMarksChallengesAndNavigates(t *testing.T) {
 	m.width, m.height = 90, 24
 	view := m.View()
 	flat := strings.Join(strings.Fields(view), " ")
-	for _, want := range []string{"TOP · 1 of 2", "LABEL", "TRUTH", "DEPTH", "STATEMENT", "L2!", "A deliberately long final statement whose complete text must wrap without being summarized or omitted", "P5!"} {
+	for _, want := range []string{"TOP · 1 of 2", "LABEL", "∴", "DEPTH", "STATEMENT", "L2!", "⊬", "A deliberately long final statement whose complete text must wrap without being summarized or omitted", "P5!", "T → F"} {
 		if !strings.Contains(flat, want) {
 			t.Fatalf("top view missing %q:\n%s", want, view)
 		}
 	}
-	if strings.Contains(view, "ROLE") || strings.Contains(view, "derived") || strings.Contains(view, "...") {
+	if strings.Contains(view, "ROLE") || strings.Contains(view, "TRUTH") || strings.Contains(view, "STATUS") || strings.Contains(view, "derived") || strings.Contains(view, "...") {
 		t.Fatalf("top view contains forbidden content:\n%s", view)
+	}
+	viewLines := strings.Split(view, "\n")
+	headerLine := uiLineContaining(viewLines, "∴")
+	derivedLine := uiLineContaining(viewLines, "L2!")
+	if strings.Index(headerLine, "∴") != strings.Index(derivedLine, "⊬") {
+		t.Fatalf("top status is not centered under ∴:\n%s", view)
 	}
 	m = pressKey(m, "j")
 	if m.selectedTopID() != "P5" {
@@ -66,8 +72,13 @@ func TestSelectedChallengedTopRowKeepsOneStyleAcrossFirstLine(t *testing.T) {
 		}
 	}
 	unselected := renderTopItem(item, 90, 5, false)
-	if !strings.Contains(unselected[0], "WARN[L2!]") {
+	if !strings.Contains(unselected[0], "WARN[L2!]") || !strings.Contains(unselected[0], "WARN[⊬]") {
 		t.Fatalf("unselected challenged label lost warning styling: %q", unselected[0])
+	}
+	item.Challenged = false
+	unchallenged := renderTopItem(item, 90, 5, false)
+	if strings.Contains(unchallenged[0], "WARN[") {
+		t.Fatalf("unchallenged status gained warning styling: %q", unchallenged[0])
 	}
 }
 
@@ -177,13 +188,27 @@ func TestDetailScopesChallengesAndSupportsNavigationStack(t *testing.T) {
 	m.width, m.height = 100, 32
 	m = m.openDetail("L2")
 	view := m.View()
-	for _, want := range []string{"STATEMENT DETAIL", "L2!", "lemma[fact]  F", "JUSTIFICATIONS", "1 — AND", "L1   T", "P4   T", "UNDERCUTS", "CP3  T", "P2!  F"} {
+	for _, want := range []string{"STATEMENT DETAIL", "L2!", "lemma[fact]  ⊬", "JUSTIFICATIONS", "1 — AND", "L1     ⊢", "P4     T", "UNDERCUTS", "CP3    T", "P2!    F"} {
 		if !strings.Contains(view, want) {
 			t.Fatalf("detail view missing %q:\n%s", want, view)
 		}
 	}
 	if strings.Contains(view, "derived") {
 		t.Fatalf("detail view exposes repetitive provenance:\n%s", view)
+	}
+	lines := strings.Split(view, "\n")
+	for _, pair := range []struct {
+		text, fragment string
+		column         int
+	}{
+		{"Fourth source statement", "P4", 18},
+		{"Challenge to final inference", "CP3", 20},
+		{"Second source statement", "P2!", 18},
+	} {
+		line := uiLineContaining(lines, pair.fragment)
+		if column := strings.Index(line, pair.text); column != pair.column {
+			t.Fatalf("detail text %q starts at column %d, want %d:\n%s", pair.text, column, pair.column, view)
+		}
 	}
 	if got := m.detailSelectableIDs(); len(got) < 4 || got[0] != "L1" || got[2] != "CP3" {
 		t.Fatalf("detail selectable ids = %#v", got)
@@ -225,12 +250,12 @@ func TestLedgerViewUsesCompactDerivationAndEnterNavigation(t *testing.T) {
 	}
 	view := m.View()
 	flat := strings.Join(strings.Fields(view), " ")
-	for _, want := range []string{"LABEL", "TRUTH", "STATEMENT", "DERIVATION", "AND(P1, P2)", "OR(P3, P4)", "AND(P2) [direct]", "without being summarized or omitted"} {
+	for _, want := range []string{"LABEL", "∴", "STATEMENT", "DERIVATION", "⊢", "⊬", "AND(P1, P2)", "OR(P3, P4)", "AND(P2) [direct]", "without being summarized or omitted"} {
 		if !strings.Contains(flat, want) {
 			t.Fatalf("ledger view missing %q:\n%s", want, view)
 		}
 	}
-	if strings.Contains(view, "J1") || strings.Contains(view, "derived") || strings.Contains(view, "justified by") || strings.Contains(view, "...") {
+	if strings.Contains(view, "TRUTH") || strings.Contains(view, "STATUS") || strings.Contains(view, "J1") || strings.Contains(view, "derived") || strings.Contains(view, "justified by") || strings.Contains(view, "...") {
 		t.Fatalf("ledger view contains forbidden notation:\n%s", view)
 	}
 	m = pressKey(m, "enter")
@@ -665,6 +690,41 @@ func TestEmptyTopView(t *testing.T) {
 	if view := m.View(); !strings.Contains(view, "TOP · 0 of 0") || !strings.Contains(view, "no top statements") {
 		t.Fatalf("empty top view:\n%s", view)
 	}
+}
+
+func TestUnknownLemmaUsesDiamondProofStatus(t *testing.T) {
+	doc := testUIDocument().Clone()
+	doc.Statements = append(doc.Statements, argument.Statement{
+		ID: "L3", Role: argument.RoleLemma, Kind: argument.KindFact,
+		Truth: argument.TruthUnknown, Text: "Unresolved derived statement",
+	})
+	m := newModel("", doc, diskVersion{})
+	m.width, m.height = 90, 30
+	view := m.View()
+	lines := strings.Split(view, "\n")
+	header := uiLineContaining(lines, "∴")
+	lemma := uiLineContaining(lines, "L3")
+	if strings.Index(header, "∴") != strings.Index(lemma, "◇") || strings.Contains(view, "TRUTH") || strings.Contains(view, "STATUS") {
+		t.Fatalf("unknown lemma proof status missing:\n%s", view)
+	}
+}
+
+func TestStatusCenteringUsesCompleteFixedWidth(t *testing.T) {
+	if got := center("T", 5); got != "  T  " {
+		t.Fatalf("centered truth = %q", got)
+	}
+	if got := center("T → F", 5); got != "T → F" {
+		t.Fatalf("full-width transition = %q", got)
+	}
+}
+
+func uiLineContaining(lines []string, fragment string) string {
+	for _, line := range lines {
+		if strings.Contains(line, fragment) {
+			return line
+		}
+	}
+	return ""
 }
 
 func pressKey(m Model, key string) Model {

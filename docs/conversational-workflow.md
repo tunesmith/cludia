@@ -65,13 +65,18 @@ cludia add case.arg \
   --json
 ```
 
-An unresolved hypothesis or disputed proposition is still truth-apt, but it
-should be captured explicitly as unknown rather than receiving the default true
-token:
+Disconnected premises are accepted facts and values whose relevance is not yet
+known. They are not hypotheses merely because they remain isolated. Keep
+speculative hypotheses, rival explanations, and brainstorming in conversation
+or adjacent notes until explicit recorded premises are intended to prove them.
+
+Truth `U` is for a proposition that belongs in the record but is genuinely
+uncertain—for example, a previously accepted observation whose reliability is
+now in doubt:
 
 ```bash
 cludia add case.arg \
-  --text "The intruder may have left by vehicle." \
+  --text "The porter accurately remembered the time of the delivery." \
   --truth U --json
 ```
 
@@ -204,18 +209,20 @@ reasoning is still easy to factor. Batch derivations give the same warning, and
 Defeats are semantic, not annotations. Before attaching one, ask what accepting
 the counterpoint would do:
 
+- require case-specific record information identifying an actual defect in the
+  exact target;
 - use an undermine only if it makes a premise false or materially out of scope;
 - use an undercut only if the stated sources no longer suffice for that target;
 - use a counterpoint of a counterpoint only if it defeats the earlier objection.
 
-No direct eyewitness, a request for caution, or residual uncertainty may be an
-important qualification without defeating the argument. Keep such a caveat in
-conversation or an adjacent note, or capture it as an unattached truth-apt
-statement. If a real objection remains:
+Bare possibility, an unsupported rival explanation, no direct eyewitness, or
+residual uncertainty may be important without defeating the argument. Keep
+such speculative material in conversation or an adjacent note. If a real,
+case-specific objection remains:
 
 ```bash
 cludia undercut case.arg J1 \
-  --text "A vehicle could have collected the intruder at the wall." \
+  --text "The gate log records a vehicle beside the wall during the relevant interval." \
   --json
 ```
 

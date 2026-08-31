@@ -10,10 +10,11 @@ reasoning.
 
 Cludia is a notebook for that interval between noticing and concluding.
 
-It begins as a corpus of short, truth-apt statements. Most are disconnected.
-Over time, some can be assembled into partial findings, lemmas, and eventually
-conclusions. Other statements remain unused, contradict a premise, or reveal
-that an appealing inference does not actually follow.
+It begins as a corpus of short, accepted factual and value statements. Most are
+disconnected. Over time, some can be assembled into partial findings, lemmas,
+and eventually conclusions. Other true statements remain unused or turn out to
+be red herrings; disconnectedness means only that their relevance is not yet
+known, not that they are speculative hypotheses.
 
 The desired experience is not primarily drawing a graph. It is being able to
 talk through the corpus with an LLM while the tool quietly maintains a durable,
@@ -66,7 +67,8 @@ but the invented hypothesis is not made true merely by explaining the clues.
 Cludia therefore keeps abduction outside the persisted edge semantics. A human
 or LLM may use any reasoning process to invent a candidate. Before persistence,
 the candidate is reconstructed as an explicit sufficiency claim. Hidden bridge
-premises must become statements.
+premises must become statements. A speculative theory is not captured as an
+unknown premise merely because it may or may not be true.
 
 This distinction lets the experience feel Sherlockian without pretending that
 suggestiveness is proof.

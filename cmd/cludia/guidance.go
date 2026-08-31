@@ -150,21 +150,26 @@ func runGuidance(args []string, stdout, stderr io.Writer) error {
 		return writeIndentedJSON(stdout, output)
 	}
 	fmt.Fprintln(stdout, "Statement authoring contract:")
-	fmt.Fprintln(stdout, "- Capture truth-apt propositions, not questions or prompts.")
+	fmt.Fprintln(stdout, "- Capture accepted facts and values as truth-apt propositions, not questions or prompts.")
+	fmt.Fprintln(stdout, "- Disconnected premises are ordinary investigation state: they may later prove useful, remain irrelevant, or turn out to be red herrings.")
 	fmt.Fprintln(stdout, "- Keep questions in conversation or adjacent notes until they can be stated as propositions.")
-	fmt.Fprintln(stdout, "- Add hypotheses, disputed claims, and other unresolved propositions with --truth U; capture defaults to --truth T.")
+	fmt.Fprintln(stdout, "- Keep speculative hypotheses, rival explanations, and brainstorming outside Cludia until explicit recorded premises are intended to prove them.")
+	fmt.Fprintln(stdout, "- Use --truth U for a recorded leaf proposition whose truth is genuinely uncertain, not merely for a theory that may or may not be true; capture defaults to --truth T.")
 	fmt.Fprintln(stdout, "- Cludia does not author confidence scores or probabilities.")
 	fmt.Fprintln(stdout, "- Only leaf premises and leaf counterpoints carry authored truth; sourced statements store U.")
 	fmt.Fprintln(stdout, "- Effective truth is calculated with grounded three-valued support and defeat semantics and is never persisted as cache state.")
+	fmt.Fprintln(stdout, "- Human reads show premise/counterpoint truth as T/F/U and lemma/conclusion provability as ⊢/◇/⊬ (proven/possibly proven/not proven).")
+	fmt.Fprintln(stdout, "- A derived ⊬ means the current argument does not prove the proposition; it does not prove the proposition false.")
 	fmt.Fprintln(stdout, "- Use evaluate to inspect the complete overlay and normalize-truth to repair legacy sourced T/F tokens.")
 	fmt.Fprintln(stdout)
 	fmt.Fprintln(stdout, "Defeat authoring contract:")
 	fmt.Fprintln(stdout, "- A defeat is a semantic relation with grounded truth consequences, not a caution label or annotation.")
+	fmt.Fprintln(stdout, "- Ground a counterpoint in case-specific record information that identifies an actual defect in the exact premise or inference it targets.")
 	fmt.Fprintln(stdout, "- Undermine a premise only when accepting the counterpoint would make that premise false or materially out of scope.")
 	fmt.Fprintln(stdout, "- Undercut an inference only when accepting the counterpoint means those sources do not suffice for that target.")
 	fmt.Fprintln(stdout, "- Counterpoint a counterpoint only when the new statement defeats the earlier objection.")
-	fmt.Fprintln(stdout, "- Absence of direct proof, a request for caution, or residual uncertainty is not automatically a defeat.")
-	fmt.Fprintln(stdout, "- Keep a mere qualification in conversation or an adjacent note, or capture it as an unattached truth-apt statement.")
+	fmt.Fprintln(stdout, "- Bare possibility, an unsupported rival explanation, absence of direct proof, or residual uncertainty is not automatically a defeat.")
+	fmt.Fprintln(stdout, "- Keep a mere qualification in conversation or an adjacent note; if it exposes a real defect, repair or narrow the exact inference.")
 	fmt.Fprintln(stdout, "- Use evaluate to inspect which counterpoints are IN, OUT, or UNDECIDED and which truths they change.")
 	fmt.Fprintln(stdout)
 	fmt.Fprintln(stdout, "Statement identity contract:")
@@ -195,7 +200,7 @@ func identityGuidance() guidanceOutput {
 		StatementAuthoring: statementAuthoringGuidance{
 			TruthAptRequired: true, QuestionsSupported: false,
 			QuestionAlternative:             "conversation or adjacent notes",
-			HypothesesAsUnknownPropositions: true, UnknownTruthFlag: "--truth U",
+			HypothesesAsUnknownPropositions: false, UnknownTruthFlag: "--truth U",
 			DefaultTruth: "T", ConfidenceSupported: false,
 		},
 		TruthEvaluation: truthEvaluationGuidance{
@@ -210,8 +215,8 @@ func identityGuidance() guidanceOutput {
 			UndercutWhen:               "accepting the counterpoint means the stated sources do not suffice for that target",
 			CounterpointWhen:           "the new counterpoint defeats the earlier counterpoint",
 			CaveatAutomaticallyDefeats: false,
-			NonDefeatExamples:          []string{"absence of direct proof", "request for caution", "residual uncertainty"},
-			NonDefeatAlternatives:      []string{"conversation", "adjacent note", "unattached truth-apt statement"},
+			NonDefeatExamples:          []string{"bare possibility", "absence of direct proof", "residual uncertainty"},
+			NonDefeatAlternatives:      []string{"conversation", "adjacent note", "repair or narrow the exact inference"},
 			InspectionCommand:          "evaluate",
 		},
 		StatementIdentity: statementIdentityGuidance{
@@ -254,5 +259,5 @@ func identityGuidance() guidanceOutput {
 
 func writeGuidanceUsage(w io.Writer) {
 	fmt.Fprintln(w, "Usage: cludia guidance [--json]")
-	fmt.Fprintln(w, "Explain leaf truth, grounded evaluation, defeat authoring, and the use-case-neutral identity, allocation, edit, replacement, and renumbering contract.")
+	fmt.Fprintln(w, "Explain evidence capture, leaf truth, derived provability, grounded defeats, and the use-case-neutral identity, allocation, edit, replacement, and renumbering contract.")
 }

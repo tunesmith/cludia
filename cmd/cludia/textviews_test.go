@@ -12,6 +12,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"unicode/utf8"
 
 	"github.com/tunesmith/cludia/internal/argfile"
 	"github.com/tunesmith/cludia/internal/argument"
@@ -45,13 +46,19 @@ func TestTopJSONAndHumanContract(t *testing.T) {
 	}
 	human := stdout.String()
 	flat := strings.Join(strings.Fields(human), " ")
-	for _, want := range []string{"LABEL", "TRUTH", "DEPTH", "STATEMENT", "L2!", "A deliberately long final statement whose complete text must wrap without being summarized or omitted", "P5!"} {
+	for _, want := range []string{"LABEL", "∴", "DEPTH", "STATEMENT", "L2!", "⊬", "A deliberately long final statement whose complete text must wrap without being summarized or omitted", "P5!", "T → F"} {
 		if !strings.Contains(flat, want) && !strings.Contains(human, want) {
 			t.Fatalf("top human missing %q:\n%s", want, human)
 		}
 	}
-	if strings.Contains(human, "derived") || strings.Contains(human, "...") {
+	if strings.Contains(human, "TRUTH") || strings.Contains(human, "STATUS") || strings.Contains(human, "derived") || strings.Contains(human, "...") {
 		t.Fatalf("top human truncated text:\n%s", human)
+	}
+	lines := strings.Split(human, "\n")
+	header := lineContaining(lines, "∴")
+	derived := lineContaining(lines, "L2!")
+	if runeIndex(header, "∴") != runeIndex(derived, "⊬") {
+		t.Fatalf("top status is not centered under ∴:\n%s", human)
 	}
 }
 
@@ -96,6 +103,39 @@ func TestTopFiltersAndPaginatesMatchingStatements(t *testing.T) {
 	}
 }
 
+func TestTopHumanUsesDiamondForUnknownLemmaWithoutStatusHeader(t *testing.T) {
+	path := textViewWorkspace(t)
+	parsed := argfile.Load(path)
+	parsed.Document.Statements = append(parsed.Document.Statements, argument.Statement{
+		ID: "L3", Role: argument.RoleLemma, Kind: argument.KindFact,
+		Truth: argument.TruthUnknown, Text: "Unresolved derived statement",
+	})
+	if err := argfile.SaveAtomic(path, parsed.Document); err != nil {
+		t.Fatal(err)
+	}
+	var stdout, stderr bytes.Buffer
+	t.Setenv("COLUMNS", "90")
+	if err := run([]string{"top", path}, &stdout, &stderr); err != nil {
+		t.Fatal(err)
+	}
+	human := stdout.String()
+	lines := strings.Split(human, "\n")
+	header := lineContaining(lines, "∴")
+	lemma := lineContaining(lines, "L3")
+	if runeIndex(header, "∴") != runeIndex(lemma, "◇") || strings.Contains(human, "TRUTH") || strings.Contains(human, "STATUS") {
+		t.Fatalf("unknown lemma proof status missing:\n%s", human)
+	}
+}
+
+func TestStatusCenteringUsesCompleteFixedWidth(t *testing.T) {
+	if got := centerText("T", 5); got != "  T  " {
+		t.Fatalf("centered truth = %q", got)
+	}
+	if got := centerText("T → F", 5); got != "T → F" {
+		t.Fatalf("full-width transition = %q", got)
+	}
+}
+
 func TestTopRejectsNegativePagination(t *testing.T) {
 	path := textViewWorkspace(t)
 	for _, args := range [][]string{{"top", path, "--limit", "-1"}, {"top", path, "--offset", "-1"}} {
@@ -133,12 +173,12 @@ func TestLedgerJSONAndHumanContract(t *testing.T) {
 	}
 	human := stdout.String()
 	flat := strings.Join(strings.Fields(human), " ")
-	for _, want := range []string{"LABEL", "TRUTH", "STATEMENT", "DERIVATION", "AND(P1, P2)", "OR(P3, P4)", "AND(P2) [direct]", "A deliberately long final statement whose complete text", "must wrap without being summarized or omitted"} {
+	for _, want := range []string{"LABEL", "∴", "STATEMENT", "DERIVATION", "⊢", "⊬", "AND(P1, P2)", "OR(P3, P4)", "AND(P2) [direct]", "A deliberately long final statement whose complete text", "must wrap without being summarized or omitted"} {
 		if !strings.Contains(flat, want) && !strings.Contains(human, want) {
 			t.Fatalf("ledger human missing %q:\n%s", want, human)
 		}
 	}
-	if strings.Contains(human, "J1") || strings.Contains(human, "derived") || strings.Contains(human, "justified by") || strings.Contains(human, "...") {
+	if strings.Contains(human, "TRUTH") || strings.Contains(human, "STATUS") || strings.Contains(human, "J1") || strings.Contains(human, "derived") || strings.Contains(human, "justified by") || strings.Contains(human, "...") {
 		t.Fatalf("ledger human exposed forbidden notation:\n%s", human)
 	}
 }
@@ -180,14 +220,14 @@ func TestLedgerSelectedInferenceNarrowsRootAndMarksTruthFromOtherRoutes(t *testi
 		t.Fatal(err)
 	}
 	human := stdout.String()
-	if !strings.Contains(human, "T*") || !strings.Contains(human, "* truth comes from another justification not shown") {
+	if !strings.Contains(human, "⊢*") || !strings.Contains(human, "* proof comes from another justification not shown") {
 		t.Fatalf("selected human ledger lacks compact truth note:\n%s", human)
 	}
 	lines := strings.Split(human, "\n")
 	header, sourceLine, rootLine := lineContaining(lines, "STATEMENT"), lineContaining(lines, "First"), lineContaining(lines, "Target")
-	statementColumn := strings.Index(header, "STATEMENT")
-	if statementColumn < 0 || strings.Index(sourceLine, "First") != statementColumn || strings.Index(rootLine, "Target") != statementColumn {
-		t.Fatalf("T* misaligned statement column %d:\n%s", statementColumn, human)
+	statementColumn := runeIndex(header, "STATEMENT")
+	if statementColumn < 0 || runeIndex(sourceLine, "First") != statementColumn || runeIndex(rootLine, "Target") != statementColumn {
+		t.Fatalf("⊢* misaligned statement column %d:\n%s", statementColumn, human)
 	}
 }
 
@@ -199,7 +239,7 @@ func TestLedgerSelectedInferenceMarksAcceptedUndercutCompactly(t *testing.T) {
 		t.Fatal(err)
 	}
 	human := stdout.String()
-	if !strings.Contains(human, "T*") || !strings.Contains(human, "AND(P1, P2) [undercut]") || !strings.Contains(human, "* truth comes from another justification not shown") {
+	if !strings.Contains(human, "⊢*") || !strings.Contains(human, "AND(P1, P2) [undercut]") || !strings.Contains(human, "* proof comes from another justification not shown") {
 		t.Fatalf("undercut ledger =\n%s", human)
 	}
 
@@ -210,7 +250,7 @@ func TestLedgerSelectedInferenceMarksAcceptedUndercutCompactly(t *testing.T) {
 		t.Fatal(err)
 	}
 	human = stdout.String()
-	if !strings.Contains(human, "L1!") || !strings.Contains(human, "AND(P1, P2) [undercut]") || strings.Contains(human, "F*") || strings.Contains(human, "truth comes from another") {
+	if !strings.Contains(human, "L1!") || !strings.Contains(human, "⊬") || !strings.Contains(human, "AND(P1, P2) [undercut]") || strings.Contains(human, "⊬*") || strings.Contains(human, "proof comes from another") {
 		t.Fatalf("sole undercut route ledger =\n%s", human)
 	}
 }
@@ -346,4 +386,12 @@ func lineContaining(lines []string, fragment string) string {
 		}
 	}
 	return ""
+}
+
+func runeIndex(value, fragment string) int {
+	byteIndex := strings.Index(value, fragment)
+	if byteIndex < 0 {
+		return -1
+	}
+	return utf8.RuneCountInString(value[:byteIndex])
 }

@@ -383,17 +383,18 @@ func runRemoveCounterpoint(args []string, stdout, stderr io.Writer) error {
 
 func writeUndermineUsage(w io.Writer) {
 	fmt.Fprintln(w, "Usage: cludia undermine [--json] FILE PREMISE --text TEXT")
-	fmt.Fprintln(w, "Add a counterpoint challenging the truth or scope of a premise.")
+	fmt.Fprintln(w, "Add a case-specific counterpoint that would make the exact premise false or materially out of scope.")
 }
 
 func writeUndercutUsage(w io.Writer) {
 	fmt.Fprintln(w, "Usage: cludia undercut [--json] FILE JUNCTOR --text TEXT")
-	fmt.Fprintln(w, "Add a counterpoint challenging whether a junctor's sources imply its target.")
+	fmt.Fprintln(w, "Add a case-specific counterpoint showing why the junctor's sources do not suffice for its exact target.")
 }
 
 func writeChallengeUsage(w io.Writer) {
 	fmt.Fprintln(w, "Usage: cludia challenge [--json] FILE ELEMENT --text TEXT [--inference JUNCTOR]")
 	fmt.Fprintln(w, "Challenge a premise, counterpoint, junctor, or a derived statement's selected incoming junctor without changing defeat semantics.")
+	fmt.Fprintln(w, "Bare possibility, unsupported rival explanation, absence of direct proof, or residual uncertainty is not by itself a defeat.")
 	fmt.Fprintln(w, "A derived statement with multiple incoming junctors requires --inference; legacy direct support cannot be undercut directly.")
 }
 

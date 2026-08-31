@@ -2,6 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-08-26
+- Amended: 2026-08-31 for role-aware proof status
 - Partial supersession: ADR 0010 later adds focused durable Top reordering while
   retaining this ADR's navigation model and deferral of general TUI authoring.
 - Challenge-marker supersession: ADR 0014's grounded evaluation replaces this
@@ -69,6 +70,14 @@ The connected argument supporting this decision is
   `!` now means grounded counterpoints changed the statement's propagated truth,
   possibly through a challenge elsewhere in its upstream derivation. Direct
   challenges remain explicit in Statement Detail and typed relation output.
+- Top, Detail, and Ledger present premise/counterpoint truth as `T/U/F` and
+  lemma/conclusion provability as `⊢/◇/⊬`. The compact value column remains
+  fixed-width and centers both its `∴` header and truth/proof values so mixed
+  roles align without implying that every value is literal truth. Detail uses
+  the same centered width beside variable-length labels.
+- A status value receives warning color under the exact same material grounded
+  defeat condition as `!`. Selection style wins for a selected row; the marker
+  preserves contestation in monochrome and while selected.
 - Search, isolated-only browsing, challenge-only browsing, copy/export, and all
   TUI mutations remain deferred until the three-view navigator is dogfooded.
 

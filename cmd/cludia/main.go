@@ -23,7 +23,7 @@ import (
 const outputSchemaVersion = 2
 
 var (
-	version             = "v1.0.0"
+	version             = "v1.0.1"
 	errValidationFailed = errors.New("validation failed")
 	launchTUI           = ui.Run
 )

@@ -8,8 +8,9 @@ observations into explicit arguments.
 
 The central workflow is premise-up:
 
-1. Capture short, truth-apt propositions; record unresolved hypotheses with
-   truth `U` rather than storing questions as statements.
+1. Capture accepted factual and value propositions. Use truth `U` only when a
+   recorded proposition is genuinely uncertain; keep speculative hypotheses
+   and brainstorming in conversation or adjacent notes.
 2. Accumulate them without requiring one connected graph or a conclusion.
 3. Select statements that may work together.
 4. Propose a new conclusion or lemma.
@@ -26,7 +27,7 @@ after conversational dogfooding identifies the right visual operations.
 
 ## Status
 
-This repository is the project home for Cludia v1.0.0. The Go CLI implements the v1
+This repository is the project home for Cludia v1.0.1. The Go CLI implements the v1
 file workflow: capture and editing, inspection and search, multi-premise
 derivation and repair, defeat authoring, lifecycle operations, validation, and
 rooted Concludia export. A terminal navigator adds deterministic Top, Statement
@@ -83,9 +84,9 @@ cludia derive case.arg \
   --source no-returning-prints \
   --target-text "The intruder crossed the garden wall."
 cludia undercut case.arg J1 \
-  --text "A vehicle could have collected the intruder at the wall."
+  --text "The gate log records a vehicle beside the wall during the relevant interval."
 cludia challenge case.arg crossed-wall \
-  --text "The stated sources leave another route open."
+  --text "The stated inference omits the recorded vehicle access."
 cludia export case.arg --root crossed-wall --output crossed-wall.arg
 ```
 
@@ -100,9 +101,15 @@ cludia case.arg
 ```
 
 The default Top view lists non-counterpoint statements with no outgoing support
-in document order, with longest support depth. `!` means grounded counterpoints
-changed the statement's truth somewhere in its upstream derivation; rebutted or
-outcome-neutral counterpoints do not produce it.
+in document order, with longest support depth. Premises show literal `T/U/F`;
+lemmas and conclusions show `⊢/◇/⊬` for proven, possibly proven, and not
+proven. Truth/proof values are centered in the fixed-width column beneath a
+centered `∴` header. `!` means
+grounded counterpoints changed the statement's effective status somewhere in
+its upstream derivation; rebutted or outcome-neutral counterpoints do not
+produce it. The TUI gives the value the same warning color under that exact
+condition. Selection styling takes precedence, while `!` keeps contestation
+visible without color.
 Its title shows the selected row as `current of total` for a quick sense of place.
 All statement text wraps without truncation. Enter follows the selected
 statement into exact justification, challenge, and downstream-use detail; `f`
@@ -125,7 +132,7 @@ cludia version
 Or install the tagged source with Go 1.26.4 or newer:
 
 ```bash
-go install github.com/tunesmith/cludia/cmd/cludia@v1.0.0
+go install github.com/tunesmith/cludia/cmd/cludia@v1.0.1
 cludia version
 ```
 
@@ -139,7 +146,7 @@ bin/cludia version
 
 `go install` writes to `GOBIN`, or to `$(go env GOPATH)/bin` when `GOBIN` is
 unset. That directory must be on `PATH`. Checked-in source, tagged Go installs,
-and the Homebrew formula all identify this release as `cludia v1.0.0`.
+and the Homebrew formula all identify this release as `cludia v1.0.1`.
 
 ## Development
 
@@ -200,9 +207,9 @@ bin/cludia replace-source inquiry.arg J1 --from P2 --to P3 --dry-run
 bin/cludia remove-source inquiry.arg J1 --source P3 --dry-run
 bin/cludia remove-junctor inquiry.arg J1 --dry-run
 
-bin/cludia undermine inquiry.arg P1 --text "The observation may be unreliable."
-bin/cludia undercut inquiry.arg J1 --text "The sources leave another possibility open."
-bin/cludia challenge inquiry.arg L1 --inference J1 --text "The sources do not suffice."
+bin/cludia undermine inquiry.arg P1 --text "The custody log shows the observation was attributed to the wrong item."
+bin/cludia undercut inquiry.arg J1 --text "The documented exception applies here but is absent from the sources."
+bin/cludia challenge inquiry.arg L1 --inference J1 --text "The sources omit the recorded exception required for this target."
 bin/cludia counterpoint inquiry.arg CP1 --text "The challenge is answered by later evidence."
 bin/cludia remove-counterpoint inquiry.arg CP2 --dry-run
 
@@ -249,8 +256,8 @@ JSON is the shared read model for agents and the TUI.
 incoming junctor; each source still brings its complete upstream support. The
 operation is a read-only branch view, not a persisted preferred proof. An
 accepted undercut appears as `[undercut]`. If hidden root-level justifications
-change the root's overall truth, the truth cell receives a compact `*` and a
-footnote; the fixed-width truth column keeps statement and derivation columns
+change the root's overall proof status, the value receives a compact `*` and a
+footnote; the fixed-width `∴` column keeps statement and derivation columns
 aligned. The TUI continues to use the default complete ledger.
 
 `move-statement` moves one statement immediately before or after another in the
@@ -314,11 +321,11 @@ legacy direct support make the choice ambiguous.
 A defeat is not a caution label. If its counterpoint is accepted by grounded
 evaluation, it changes effective truth: an undermine falsifies its premise and
 an undercut disables its exact inference edge. Use one only when accepting the
-counterpoint really has that consequence. Absence of direct proof, a request
-for caution, or residual uncertainty is not automatically a defeat; keep a
-mere qualification in conversation or an adjacent note, or capture it as an
-unattached truth-apt statement. `cludia guidance` exposes the same contract in
-human and structured form.
+case-specific counterpoint really has that consequence for the exact target.
+Bare possibility, unsupported rival explanations, absence of direct proof, or
+residual uncertainty is not automatically a defeat; keep speculative material
+in conversation or adjacent notes. `cludia guidance` exposes the same contract
+in human and structured form.
 
 `remove-counterpoint` is leaf-first, supports `--dry-run`, and refuses to remove
 a statement that still has dependent counterpoints or support relations.
@@ -326,9 +333,10 @@ a statement that still has dependent counterpoints or support relations.
 Text-changing `edit` requires `--same-proposition` and reports that declared
 identity-continuity intent; truth- and kind-only edits do not require it.
 `rename-slug` can explicitly rename, regenerate, or clear the optional current
-slug while preserving ID and relations. `guidance` explains that statements
-must be truth-apt, questions stay in conversation or adjacent notes, unresolved
-propositions use `--truth U`, and confidence scores are outside the model. It
+slug while preserving ID and relations. `guidance` distinguishes accepted but
+disconnected facts and values from speculative hypotheses, reserves
+`--truth U` for genuinely uncertain recorded propositions, and keeps questions
+and brainstorming in conversation or adjacent notes. It
 also exposes the use-case-neutral identity and replacement contract in human or
 versioned JSON form. Its
 scripted-authoring guidance requires callers to consume the returned

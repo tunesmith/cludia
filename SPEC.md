@@ -84,6 +84,12 @@ validation. A caller-supplied invalid slug MUST still be rejected.
 
 The CLI MUST provide explicit ways to capture unknown, false, and value
 statements. It MUST NOT assign numerical confidence, credibility, or weight.
+Truth `U` is for a recorded leaf proposition whose truth is genuinely
+unsettled—for example, a previously accepted claim now placed in doubt. It MUST
+NOT be presented as the normal persistence mechanism for speculative
+hypotheses, rival theories, possibilities, or brainstorming. Those remain in
+conversation or adjacent notes until explicit recorded premises are intended
+to establish them.
 
 Authored truth MAY be assigned only to an unsourced premise or unsourced
 counterpoint. Statements with incoming junctor or direct support derive their
@@ -273,6 +279,29 @@ Statement Detail and structured relation output.
 Evaluation results MUST declare evaluation schema version and mode. Stored truth
 and calculated effective truth remain distinct public facts.
 
+Human read surfaces MUST present effective status according to statement role:
+
+- premises and counterpoints retain literal `T`, `U`, and `F` truth;
+- lemmas and conclusions render effective `T`, `U`, and `F` as `⊢`, `◇`, and
+  `⊬`, meaning proven, possibly proven, and not proven under the authored
+  argument structure.
+
+Top and Ledger tables MUST reserve a fixed-width value column with both the
+`∴` header and every truth/proof value centered; they MUST NOT label the mixed
+column `TRUTH` or `STATUS`. Statement Detail MUST use the same centered width
+for related-statement values so variable-length IDs do not shift adjacent text.
+
+In the TUI, the displayed truth/proof value MUST receive warning styling under
+exactly the same `challenged` condition that produces `!`: grounded defeat
+changed effective status somewhere upstream. Rebutted, inactive, and
+outcome-neutral counterpoints MUST style neither marker. Selection styling MAY
+take precedence because `!` preserves the non-color signal.
+
+Derived `⊬ P` MUST NOT be described as proof of the natural-language negation
+of `P`. A contrary proposition must be represented and supported separately.
+JSON schema 2 continues reporting the underlying `effective_truth` value so
+scripts retain the complete three-valued evaluation contract.
+
 ## 6. Required capabilities
 
 Cludia 1.0 MUST provide the following capabilities. Human CLI spelling, flags,
@@ -407,15 +436,17 @@ IDs across independent mutations. Callers SHOULD omit explicit IDs and consume
 the assigned ID from each successful structured mutation result; any explicit
 ID MUST equal the role-appropriate exact next ID.
 Guidance MUST also state that attached counterpoints are removed explicitly
-before deleting their target or an incident inference. It MUST state that
-focused capture accepts truth-apt propositions rather than questions, that
-unresolved hypotheses and disputed propositions use truth `U`, and that Cludia
-does not author confidence scores or probabilities. Guidance MUST explain that
-a defeat has grounded truth consequences and is appropriate only when accepting
-the counterpoint would make a premise false or materially out of scope, make a
-particular inference insufficient, or defeat an earlier counterpoint. Absence of
-direct proof, a request for caution, or residual uncertainty MUST NOT be
-presented as automatically defeating a claim.
+before deleting their target or an incident inference. It MUST distinguish
+accepted but disconnected facts and values from speculative hypotheses, keep
+hypotheses and rival theories external until recorded premises are intended to
+prove them, reserve truth `U` for genuinely uncertain recorded propositions,
+and state that Cludia does not author confidence scores or probabilities.
+Guidance MUST explain that a defeat has grounded truth consequences and is
+appropriate only when accepting a case-specific counterpoint would make a
+premise false or materially out of scope, make the exact inference
+insufficient, or defeat an earlier counterpoint. Bare possibility, unsupported
+rival explanation, absence of direct proof, or residual uncertainty MUST NOT
+be presented as automatically defeating a claim.
 
 Batch input version 2 is the atomic authoring transaction over statements,
 focused `AND` derivations, and typed defeats. Its shape is:
@@ -427,7 +458,7 @@ focused `AND` derivations, and typed defeats. Its shape is:
     {"key": "source-a", "text": "Source A is true."},
     {"key": "source-b", "text": "Source B is true."},
     {"key": "finding", "text": "The finding follows."},
-    {"key": "objection", "role": "counterpoint", "text": "The sources leave another possibility open."}
+    {"key": "objection", "role": "counterpoint", "text": "The documented exception applies in this case and is absent from the stated sources."}
   ],
   "derivations": [
     {
@@ -690,9 +721,10 @@ V1 is complete when automated tests demonstrate at least:
     without writing.
 21. Top challenged-only filtering and offset/limit pagination preserve document
     order and do not alter the complete rooted query contract.
-22. Human and versioned machine guidance distinguish truth-apt unknown
-    propositions from unsupported questions and confidence scores, and
-    distinguish semantic defeats from caution, lack of direct proof, and
+22. Human and versioned machine guidance distinguish accepted disconnected
+    facts and values from speculative hypotheses, reserve `U` for genuinely
+    uncertain recorded propositions, and distinguish grounded semantic defeats
+    from bare possibility, unsupported alternatives, lack of direct proof, and
     residual uncertainty.
 23. True, false, and unknown leaves propagate through AND, OR, alternative
     justifications, and direct support with versioned grounded defeat effects.
@@ -710,6 +742,11 @@ V1 is complete when automated tests demonstrate at least:
     root, retains complete support below its sources, rejects mismatched
     junctors, marks accepted undercuts, and identifies when omitted root
     justifications change overall root truth without misaligning human columns.
+28. Human reads show premise/counterpoint truth as `T/U/F` and
+    lemma/conclusion provability as `⊢/◇/⊬`, without changing JSON effective
+    truth or treating an unproven proposition as a proven negation. Top and
+    Ledger center those values beneath `∴` without a `TRUTH` or `STATUS`
+    header, and Statement Detail preserves the same fixed-width alignment.
 
 ## 14. Open decisions
 

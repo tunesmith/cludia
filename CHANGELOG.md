@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.0.1 (2026-08-31)
+
+### Changed
+
+- Human CLI and TUI reads now present premises/counterpoints with literal
+  `T/U/F` and lemmas/conclusions with Concludia-compatible `⊢/◇/⊬`
+  provability. Fixed-width Top, Ledger, and Detail values are centered beneath
+  a centered `∴` header rather than calling every value truth or status.
+- The TUI applies warning color to the displayed truth/proof value under the
+  exact same material-defeat condition as the durable `!` marker; selection
+  styling takes precedence and `!` preserves the signal without color.
+- Agent guidance now distinguishes accepted disconnected evidence from
+  speculative hypotheses, reserves `U` for genuinely uncertain recorded
+  propositions, and requires case-specific, exact-scope counterpoints rather
+  than bare possibilities or unsupported rival explanations.
+
+### Compatibility
+
+- `.arg`, CLI JSON schema 2, batch schema 2, and evaluation schema 1 are
+  unchanged. JSON continues exposing `effective_truth: "T"|"U"|"F"`; the
+  role-aware proof glyphs are human presentation only.
+
 ## 1.0.0 (2026-08-30)
 
 ### Added
