@@ -34,7 +34,7 @@ type LedgerRow struct {
 type LedgerInference struct {
 	Junctor                    argument.Junctor `json:"junctor"`
 	EffectiveTruth             argument.Truth   `json:"effective_truth"`
-	Undercut                   bool             `json:"undercut"`
+	DisabledByUndercut         bool             `json:"disabled_by_undercut"`
 	OtherJustificationsOmitted bool             `json:"other_justifications_omitted"`
 	OtherRoutesAffectTruth     bool             `json:"other_routes_affect_truth"`
 }
@@ -299,7 +299,7 @@ func LedgerInferenceEvaluated(doc *argument.Document, reference, junctorID strin
 	rootValue, _ := evaluated.Statement(root)
 	selection := LedgerInference{
 		Junctor: *junctor, EffectiveTruth: junctorValue.EffectiveTruth,
-		Undercut: undercut, OtherJustificationsOmitted: omitted,
+		DisabledByUndercut: undercut, OtherJustificationsOmitted: omitted,
 		OtherRoutesAffectTruth: omitted && selectedOnlyTruth != rootValue.EffectiveTruth,
 	}
 	selection.Junctor.Sources = append([]string(nil), junctor.Sources...)

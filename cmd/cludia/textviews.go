@@ -258,7 +258,7 @@ func ledgerDerivations(output ledgerOutput, row query.LedgerRow) []string {
 		if support.Type == "direct" {
 			value += " [direct]"
 		}
-		if output.SelectedInference != nil && output.SelectedInference.Undercut && row.Statement.ID == output.Root && support.ID == output.SelectedInference.Junctor.ID {
+		if output.SelectedInference != nil && output.SelectedInference.DisabledByUndercut && row.Statement.ID == output.Root && support.ID == output.SelectedInference.Junctor.ID {
 			value += " [undercut]"
 		}
 		result = append(result, value)

@@ -56,9 +56,11 @@ whose fields are part of a mutation protocol, such as derive role changes and
 renumber mappings, are likewise contract-tested.
 
 Selected ledger reads add `selected_inference`, containing the selected
-junctor, its effective truth, accepted-undercut state, whether other root
+junctor, its `effective_truth`, `disabled_by_undercut`, whether other root
 justifications were omitted, and whether those omitted routes change the
-root's overall truth. Normal complete ledger reads omit this object.
+root's overall truth. Junctor effective truth remains the calculated result of
+its sources; disabling its target edge does not rewrite that truth. Normal
+complete ledger reads omit this object.
 
 ## Collections and diagnostics
 

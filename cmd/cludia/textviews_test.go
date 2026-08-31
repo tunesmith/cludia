@@ -151,11 +151,16 @@ func TestLedgerSelectedInferenceNarrowsRootAndMarksTruthFromOtherRoutes(t *testi
 		t.Fatal(err)
 	}
 	assertExactKeys(t, raw, "schema_version", "profile", "evaluation", "document", "root", "selected_inference", "rows", "diagnostics")
+	var selectedRaw map[string]json.RawMessage
+	if err := json.Unmarshal(raw["selected_inference"], &selectedRaw); err != nil {
+		t.Fatal(err)
+	}
+	assertExactKeys(t, selectedRaw, "junctor", "effective_truth", "disabled_by_undercut", "other_justifications_omitted", "other_routes_affect_truth")
 	var output ledgerOutput
 	if err := json.Unmarshal(stdout.Bytes(), &output); err != nil {
 		t.Fatal(err)
 	}
-	if output.SelectedInference == nil || output.SelectedInference.Junctor.ID != "J1" || output.SelectedInference.EffectiveTruth != argument.TruthFalse || output.SelectedInference.Undercut || !output.SelectedInference.OtherJustificationsOmitted || !output.SelectedInference.OtherRoutesAffectTruth {
+	if output.SelectedInference == nil || output.SelectedInference.Junctor.ID != "J1" || output.SelectedInference.EffectiveTruth != argument.TruthFalse || output.SelectedInference.DisabledByUndercut || !output.SelectedInference.OtherJustificationsOmitted || !output.SelectedInference.OtherRoutesAffectTruth {
 		t.Fatalf("selection = %#v", output.SelectedInference)
 	}
 	if got := ledgerRowIDs(output.Rows); !reflect.DeepEqual(got, []string{"P1", "P2", "L1"}) {

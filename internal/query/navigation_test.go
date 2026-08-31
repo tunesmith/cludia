@@ -191,7 +191,7 @@ func TestLedgerInferenceSelectsOnlyOneRootBranchAndKeepsFullSourceClosure(t *tes
 	if len(rows[len(rows)-1].Derivations) != 1 || rows[len(rows)-1].Derivations[0].ID != "J1" {
 		t.Fatalf("root derivations = %#v", rows[len(rows)-1].Derivations)
 	}
-	if selected.Junctor.ID != "J1" || selected.EffectiveTruth != argument.TruthFalse || selected.Undercut || !selected.OtherJustificationsOmitted || !selected.OtherRoutesAffectTruth {
+	if selected.Junctor.ID != "J1" || selected.EffectiveTruth != argument.TruthFalse || selected.DisabledByUndercut || !selected.OtherJustificationsOmitted || !selected.OtherRoutesAffectTruth {
 		t.Fatalf("selection = %#v", selected)
 	}
 }
@@ -209,7 +209,7 @@ func TestLedgerInferenceDistinguishesUndercutAndOtherRouteEffect(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if selected.EffectiveTruth != argument.TruthTrue || !selected.Undercut || !selected.OtherRoutesAffectTruth {
+	if selected.EffectiveTruth != argument.TruthTrue || !selected.DisabledByUndercut || !selected.OtherRoutesAffectTruth {
 		t.Fatalf("selection with alternative = %#v", selected)
 	}
 	doc.Junctors = doc.Junctors[:1]
@@ -221,7 +221,7 @@ func TestLedgerInferenceDistinguishesUndercutAndOtherRouteEffect(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !selected.Undercut || selected.OtherJustificationsOmitted || selected.OtherRoutesAffectTruth {
+	if !selected.DisabledByUndercut || selected.OtherJustificationsOmitted || selected.OtherRoutesAffectTruth {
 		t.Fatalf("selection without alternative = %#v", selected)
 	}
 }
