@@ -26,7 +26,7 @@ func TestGuidanceJSONContractIsUseCaseNeutral(t *testing.T) {
 	if !output.UseCaseNeutral || !output.StatementIdentity.IDRequired || !output.StatementIdentity.MateriallyDifferentGetsNewID || output.StatementIdentity.SemanticEquivalenceMechanical || !output.StatementIdentity.RolePrefixesCurrent || !output.StatementIdentity.PremisePromotionChangesID || !output.StatementIdentity.PremisePromotionExternalWarning || len(output.StatementIdentity.PremisePromotionMappingFields) != 2 || output.StatementIdentity.PremisePromotionMappingFields[0] != "previous_id" || output.StatementIdentity.PremisePromotionMappingFields[1] != "current_id" {
 		t.Fatalf("identity guidance = %#v", output)
 	}
-	if !output.StatementAuthoring.TruthAptRequired || output.StatementAuthoring.QuestionsSupported || output.StatementAuthoring.QuestionAlternative != "conversation or adjacent notes" || !output.StatementAuthoring.HypothesesAsUnknownPropositions || output.StatementAuthoring.UnknownTruthFlag != "--truth U" || output.StatementAuthoring.DefaultTruth != "T" || output.StatementAuthoring.ConfidenceSupported {
+	if !output.StatementAuthoring.TruthAptRequired || output.StatementAuthoring.QuestionsSupported || output.StatementAuthoring.QuestionAlternative != "conversation or adjacent notes" || output.StatementAuthoring.HypothesesAsUnknownPropositions || output.StatementAuthoring.UnknownTruthFlag != "--truth U" || output.StatementAuthoring.DefaultTruth != "T" || output.StatementAuthoring.ConfidenceSupported {
 		t.Fatalf("statement authoring guidance = %#v", output.StatementAuthoring)
 	}
 	if !output.TruthEvaluation.AuthoredTruthLeafOnly || !output.TruthEvaluation.EffectiveCalculated || output.TruthEvaluation.EffectivePersisted || output.TruthEvaluation.EvaluationVersion != 1 || output.TruthEvaluation.Mode != "grounded" || !output.TruthEvaluation.DefeatsIncluded || output.TruthEvaluation.EvaluateCommand != "evaluate" || output.TruthEvaluation.NormalizeCommand != "normalize-truth" {
@@ -60,7 +60,7 @@ func TestGuidanceHumanOutputExplainsTruthAptBoundary(t *testing.T) {
 	if err := run([]string{"guidance"}, &stdout, &stderr); err != nil {
 		t.Fatal(err)
 	}
-	for _, want := range []string{"truth-apt propositions", "not questions", "--truth U", "does not author confidence scores", "leaf premises and leaf counterpoints", "grounded three-valued", "normalize-truth", "semantic relation with grounded truth consequences", "not automatically a defeat", "sources do not suffice", "unattached truth-apt statement"} {
+	for _, want := range []string{"accepted facts and values", "Disconnected premises", "speculative hypotheses", "genuinely uncertain", "--truth U", "does not author confidence scores", "leaf premises and leaf counterpoints", "⊢/◇/⊬", "not prove the proposition false", "grounded three-valued", "normalize-truth", "case-specific record information", "Bare possibility", "not automatically a defeat", "sources do not suffice", "repair or narrow the exact inference"} {
 		if !bytes.Contains(stdout.Bytes(), []byte(want)) {
 			t.Fatalf("guidance missing %q:\n%s", want, stdout.String())
 		}

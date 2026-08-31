@@ -46,7 +46,7 @@ func TestEvaluateJSONAndHumanContract(t *testing.T) {
 	if err := run([]string{"evaluate", path}, &stdout, &stderr); err != nil {
 		t.Fatal(err)
 	}
-	if human := stdout.String(); !strings.Contains(human, "Evaluation v1 · grounded") || !strings.Contains(human, "L1\tstored U\teffective T\tderived") {
+	if human := stdout.String(); !strings.Contains(human, "Evaluation v1 · grounded") || !strings.Contains(human, "P1\tstored T\ttruth T\tasserted") || !strings.Contains(human, "L1\tstored U\tproof ⊢\tderived") {
 		t.Fatalf("human evaluation:\n%s", human)
 	}
 }

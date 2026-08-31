@@ -209,5 +209,5 @@ func writeInitUsage(w io.Writer) {
 
 func writeAddUsage(w io.Writer) {
 	fmt.Fprintln(w, "Usage: cludia add [--json] FILE --text TEXT [--truth T|F|U] [--kind fact|value]")
-	fmt.Fprintln(w, "Capture an isolated premise in an existing workspace.")
+	fmt.Fprintln(w, "Capture an accepted fact or value as an isolated premise; use U only for a genuinely uncertain recorded proposition, not a speculative hypothesis.")
 }

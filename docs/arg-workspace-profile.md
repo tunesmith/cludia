@@ -78,6 +78,11 @@ conclusion[fact] C1:final-finding "The apparent burglary was staged."
 
 Focused capture defaults to `premise[fact] ... ::T`. Truth tokens remain the
 existing `T`, `F`, and `U`; no numerical confidence field is introduced.
+Disconnected captured premises are accepted facts or values whose relevance is
+not yet known; isolation does not make them hypotheses. `U` records genuine
+uncertainty about a proposition that belongs in the record. Speculative
+hypotheses and rival theories remain external until explicit recorded premises
+are intended to establish them.
 
 Only unsourced premises and unsourced counterpoints carry authored truth.
 Sourced statements store `U` and receive calculated effective truth under ADR
@@ -162,13 +167,13 @@ That decision is not part of Cludia v1.
 ### Undermine a statement
 
 ```text
-undermine CP1:rain-erased-prints ::T "Rain may have erased the returning footprints." -> premise P2
+undermine CP1:rain-erased-prints ::T "Weather records show rain erased the returning footprints before the scene was documented." -> premise P2
 ```
 
 ### Undercut an inference
 
 ```text
-undercut CP2:vehicle-pickup ::T "A vehicle could have collected the intruder at the wall." -> inference J1:target L1
+undercut CP2:vehicle-pickup ::T "The gate log records a vehicle beside the wall during the relevant interval." -> inference J1:target L1
 ```
 
 ### Counterpoint of a counterpoint
@@ -219,6 +224,12 @@ justifications and direct supports, and grounded counterpoint acceptance.
 Accepted undermines force premise targets false; accepted undercuts disable the
 identified inference edge. Evaluation outputs declare schema version 1 and mode
 `grounded`.
+
+Human presentation is role-aware and follows Concludia: premises and
+counterpoints show literal `T/U/F`, while lemmas and conclusions show
+`⊢/◇/⊬` for proven, possibly proven, and not proven. The corresponding JSON
+field remains `effective_truth: "T"|"U"|"F"`. In particular, `⊬ P` means the
+authored structure does not currently prove `P`; it does not prove `not P`.
 
 On Top and Ledger reads, `!` (and JSON `challenged`) means that this grounded
 overlay changed the statement's truth from the value obtained by propagating

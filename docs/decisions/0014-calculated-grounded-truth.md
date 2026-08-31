@@ -2,6 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-08-30
+- Amended: 2026-08-31 for role-aware provability presentation
 - Supersedes: the V1 truth-propagation and defeat-evaluation deferral
 
 ## Context
@@ -40,6 +41,12 @@ and undercuts.
   effective truth, truth source, evaluation metadata, and counterpoint
   acceptance to read surfaces. Evaluation results have their own schema version
   1 and declare mode `grounded`.
+- Human reads present premises and counterpoints with literal `T/U/F`, and
+  present lemma/conclusion effective `T/U/F` as Concludia-compatible
+  `⊢/◇/⊬` (proven, possibly proven, and not proven). JSON retains the
+  underlying `effective_truth` value.
+- Derived `⊬ P` means that the current authored argument does not prove `P`; it
+  does not prove a separately stated negation of `P`.
 - The compact `!` marker and `challenged` summary field compare propagated truth
   before defeats with effective truth after grounded defeats. They therefore
   report a material counterpoint effect anywhere upstream, not merely a direct
@@ -56,6 +63,8 @@ and undercuts.
   rewriting its authored content.
 - Human and TUI views prioritize effective truth and show authored truth when it
   differs.
+- Role-aware glyphs keep proof status distinct from the literal truth assigned
+  to leaves without adding persisted state or another evaluator.
 - Scripts can inspect the complete overlay through `evaluate --json`.
 - Evaluation failures are treated as invalid read state and never produce a
   partial write.

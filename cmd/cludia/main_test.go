@@ -61,7 +61,7 @@ func TestCheckedInVersionOutput(t *testing.T) {
 		if err := run(args, &stdout, &stderr); err != nil {
 			t.Fatalf("%v: %v", args, err)
 		}
-		if stdout.String() != "cludia v1.0.0\n" || stderr.Len() != 0 {
+		if stdout.String() != "cludia v1.0.1\n" || stderr.Len() != 0 {
 			t.Fatalf("%v: stdout=%q stderr=%q", args, stdout.String(), stderr.String())
 		}
 	}

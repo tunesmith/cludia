@@ -11,6 +11,7 @@ import (
 
 	"github.com/tunesmith/cludia/internal/diagnostic"
 	"github.com/tunesmith/cludia/internal/evaluation"
+	"github.com/tunesmith/cludia/internal/presentation"
 	"github.com/tunesmith/cludia/internal/validation"
 )
 
@@ -59,10 +60,12 @@ func runEvaluate(args []string, stdout, stderr io.Writer) error {
 		return writeIndentedJSON(stdout, output)
 	}
 	fmt.Fprintf(stdout, "Evaluation v%d · %s\n", result.SchemaVersion, result.Mode)
-	for _, statement := range result.Statements {
-		fmt.Fprintf(stdout, "%s\tstored %s\teffective %s\t%s", statement.ID, statement.StoredTruth, statement.EffectiveTruth, statement.TruthSource)
-		if statement.Acceptance != "" {
-			fmt.Fprintf(stdout, "\t%s", statement.Acceptance)
+	for _, value := range result.Statements {
+		statement, _ := doc.Statement(value.ID)
+		status := presentation.EffectiveStatementStatus(statement.Role, value.EffectiveTruth)
+		fmt.Fprintf(stdout, "%s\tstored %s\t%s %s\t%s", value.ID, value.StoredTruth, presentation.StatusNoun(statement.Role), status, value.TruthSource)
+		if value.Acceptance != "" {
+			fmt.Fprintf(stdout, "\t%s", value.Acceptance)
 		}
 		fmt.Fprintln(stdout)
 	}
@@ -75,5 +78,5 @@ func runEvaluate(args []string, stdout, stderr io.Writer) error {
 
 func writeEvaluateUsage(w io.Writer) {
 	fmt.Fprintln(w, "Usage: cludia evaluate [--json] FILE")
-	fmt.Fprintln(w, "Calculate versioned grounded effective truth, counterpoint acceptance, and active defeat effects without modifying the file.")
+	fmt.Fprintln(w, "Calculate versioned grounded leaf truth, derived provability, counterpoint acceptance, and active defeat effects without modifying the file.")
 }

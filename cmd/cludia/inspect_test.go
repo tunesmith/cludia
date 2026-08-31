@@ -97,6 +97,18 @@ func TestShowBySlugIncludesStatementRelations(t *testing.T) {
 	}
 }
 
+func TestShowHumanUsesProofStatusForLemma(t *testing.T) {
+	path := filepath.Join("..", "..", "examples", "broken-window-workspace.arg")
+	var stdout, stderr bytes.Buffer
+	if err := run([]string{"show", path, "L1"}, &stdout, &stderr); err != nil {
+		t.Fatal(err)
+	}
+	human := stdout.String()
+	if !bytes.Contains([]byte(human), []byte("proof ⊢")) || bytes.Contains([]byte(human), []byte("truth T")) {
+		t.Fatalf("lemma human status:\n%s", human)
+	}
+}
+
 func TestShowJunctorIncludesUndercut(t *testing.T) {
 	path := filepath.Join("..", "..", "examples", "broken-window-workspace.arg")
 	var stdout, stderr bytes.Buffer

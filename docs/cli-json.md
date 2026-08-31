@@ -45,6 +45,12 @@ supported version is 2, the atomic statement, derivation, and defeat
 transaction. Grounded evaluation objects also carry an independent evaluation
 schema version, which is currently 1.
 
+`effective_truth` remains `T`, `U`, or `F` in JSON. Human presentation is
+role-aware: premises and counterpoints show those literal values, while lemmas
+and conclusions render them as `⊢`, `◇`, and `⊬`. No `proof_status` field is
+added in schema 2; callers can combine statement role with effective truth when
+they need the human interpretation.
+
 Within one schema version, field names, JSON types, meanings, and required
 collection behavior are stable for each response family. An incompatible
 change to those shapes or meanings requires a schema-version change. Stable

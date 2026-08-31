@@ -130,6 +130,12 @@ Calculated effective truth describes the structural three-valued consequence of
 the current authored leaves and grounded defeat overlay; it is not a semantic
 proof of the natural-language claims.
 
+For human presentation, Cludia follows Concludia's role-aware notation:
+effective `T/U/F` on lemmas and conclusions appears as `⊢/◇/⊬`. This is a
+presentation of the same calculated overlay, not a file-format conversion.
+`⊬ P` means the current argument does not prove `P`, not that it proves a
+separate negation of `P`.
+
 ## Diagnostics
 
 Failed export should identify actionable issues such as:

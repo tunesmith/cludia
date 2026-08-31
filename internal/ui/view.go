@@ -10,8 +10,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/x/ansi"
 	"github.com/rivo/uniseg"
-	"github.com/tunesmith/cludia/internal/argument"
-	"github.com/tunesmith/cludia/internal/evaluation"
+	"github.com/tunesmith/cludia/internal/presentation"
 	"github.com/tunesmith/cludia/internal/query"
 )
 
@@ -92,14 +91,14 @@ func (m Model) frame(title string, body []string, footer string) string {
 func (m Model) renderedTopBody() ([]string, int, int) {
 	width := m.contentWidth()
 	labelWidth := 5
-	truthWidth := len("TRUTH")
+	statusWidth := presentation.StatementStatusWidth
 	for _, item := range m.topItems {
 		labelWidth = maxInt(labelWidth, displayWidth(topLabel(item, false)))
 	}
 	if len(m.topItems) == 0 {
 		return []string{mutedStyle.Render("  no top statements")}, -1, -1
 	}
-	lines := []string{mutedStyle.Render("  " + pad("LABEL", labelWidth) + "  " + pad("TRUTH", truthWidth) + "  " + pad("DEPTH", 5) + "  STATEMENT")}
+	lines := []string{mutedStyle.Render("  " + pad("LABEL", labelWidth) + "  " + center(presentation.StatementStatusHeader, statusWidth) + "  " + pad("DEPTH", 5) + "  STATEMENT")}
 	selectedStart, selectedEnd := -1, -1
 	for i, item := range m.topItems {
 		if i == m.topCursor {
@@ -116,13 +115,13 @@ func (m Model) renderedTopBody() ([]string, int, int) {
 func (m Model) renderedLedgerBody() ([]string, int, int) {
 	width := m.contentWidth()
 	labelWidth := 5
-	truthWidth := len("TRUTH")
+	statusWidth := presentation.StatementStatusWidth
 	for _, row := range m.ledgerRows {
 		labelWidth = maxInt(labelWidth, displayWidth(ledgerLabel(row, false)))
 	}
 	derivationWidth := minInt(34, maxInt(20, width/4))
-	statementWidth := maxInt(26, width-2-labelWidth-2-truthWidth-2-derivationWidth-2)
-	lines := []string{mutedStyle.Render("  " + pad("LABEL", labelWidth) + "  " + pad("TRUTH", truthWidth) + "  " + pad("STATEMENT", statementWidth) + "  DERIVATION")}
+	statementWidth := maxInt(26, width-2-labelWidth-2-statusWidth-2-derivationWidth-2)
+	lines := []string{mutedStyle.Render("  " + pad("LABEL", labelWidth) + "  " + center(presentation.StatementStatusHeader, statusWidth) + "  " + pad("STATEMENT", statementWidth) + "  DERIVATION")}
 	selectedStart, selectedEnd := -1, -1
 	for i, row := range m.ledgerRows {
 		if i == m.ledgerCursor {
@@ -144,8 +143,8 @@ func (m Model) renderedDetailBody() ([]string, int, int) {
 	width := m.contentWidth()
 	challenged := m.evaluation.TruthChangedByDefeat(statement.ID)
 	value, _ := m.evaluation.Statement(statement.ID)
-	status := truthStatus(statement.Truth, value.EffectiveTruth, value.TruthSource)
-	header := renderID(displayID(statement.ID, challenged), challenged) + statementHeadStyle.Render(fmt.Sprintf("  %s[%s]  %s", statement.Role, statement.Kind, status))
+	status := presentation.StatementStatus(*statement, value.EffectiveTruth, value.TruthSource)
+	header := renderID(displayID(statement.ID, challenged), challenged) + statementHeadStyle.Render(fmt.Sprintf("  %s[%s]  ", statement.Role, statement.Kind)) + renderDetailStatus(status, challenged)
 	if value.Acceptance != "" {
 		header += statementHeadStyle.Render("  " + strings.ToUpper(string(value.Acceptance)))
 	}
@@ -175,11 +174,14 @@ func (m Model) renderedDetailBody() ([]string, int, int) {
 			marker = "> "
 		}
 		label := displayID(line.id, line.challenged)
-		truth := ""
+		status := ""
 		if value, ok := m.evaluation.Statement(line.id); ok {
-			truth = string(effectiveTruth(value.StoredTruth, value.EffectiveTruth))
+			if related, found := m.doc.Statement(line.id); found {
+				status = presentation.EffectiveStatementStatus(related.Role, value.EffectiveTruth)
+			}
 		}
-		prefixWidth := displayWidth(indent) + 2 + labelWidth + 2 + 1 + 2
+		statusWidth := presentation.StatementStatusWidth
+		prefixWidth := displayWidth(indent) + 2 + labelWidth + 2 + statusWidth + 2
 		textWidth := maxInt(1, width-prefixWidth)
 		wrapped := wrapWords(line.text, textWidth)
 		if selected {
@@ -188,7 +190,7 @@ func (m Model) renderedDetailBody() ([]string, int, int) {
 		for i, text := range wrapped {
 			prefix := strings.Repeat(" ", prefixWidth)
 			if i == 0 {
-				prefix = indent + marker + pad(renderSelectableID(label, line.challenged, selected), labelWidth) + "  " + truth + "  "
+				prefix = indent + marker + pad(renderSelectableID(label, line.challenged, selected), labelWidth) + "  " + center(renderRowStatus(status, line.challenged, selected), statusWidth) + "  "
 			}
 			value := prefix + text
 			if selected {
@@ -227,8 +229,8 @@ func renderLineViewport(lines []string, scroll, budget int) []string {
 
 func renderTopItem(item query.TopItem, width, labelWidth int, selected bool) []string {
 	label := topLabel(item, selected)
-	truth := string(effectiveTruth(item.Statement.Truth, item.EffectiveTruth))
-	truthWidth := len("TRUTH")
+	status := presentation.StatementStatus(item.Statement, item.EffectiveTruth, item.TruthSource)
+	statusWidth := presentation.StatementStatusWidth
 	depth := ""
 	if item.Depth > 0 {
 		depth = fmt.Sprintf("%d", item.Depth)
@@ -238,8 +240,8 @@ func renderTopItem(item query.TopItem, width, labelWidth int, selected bool) []s
 		marker = "> "
 	}
 	var lines []string
-	if width < 80 || 2+labelWidth+2+truthWidth+2+5+2+20 > width {
-		header := marker + label + "  " + truth
+	if width < 80 || 2+labelWidth+2+statusWidth+2+5+2+20 > width {
+		header := marker + label + "  " + renderRowStatus(status, item.Challenged, selected)
 		if depth != "" {
 			header += "  depth " + depth
 		}
@@ -248,13 +250,13 @@ func renderTopItem(item query.TopItem, width, labelWidth int, selected bool) []s
 			lines = append(lines, "    "+text)
 		}
 	} else {
-		textWidth := maxInt(20, width-2-labelWidth-2-truthWidth-2-5-2)
+		textWidth := maxInt(20, width-2-labelWidth-2-statusWidth-2-5-2)
 		wrapped := wrapWords(item.Statement.Text, textWidth)
 		for i, text := range wrapped {
 			if i == 0 {
-				lines = append(lines, marker+pad(label, labelWidth)+"  "+pad(truth, truthWidth)+"  "+pad(depth, 5)+"  "+text)
+				lines = append(lines, marker+pad(label, labelWidth)+"  "+center(renderRowStatus(status, item.Challenged, selected), statusWidth)+"  "+pad(depth, 5)+"  "+text)
 			} else {
-				lines = append(lines, strings.Repeat(" ", 2+labelWidth+2+truthWidth+2+5+2)+text)
+				lines = append(lines, strings.Repeat(" ", 2+labelWidth+2+statusWidth+2+5+2)+text)
 			}
 		}
 	}
@@ -268,16 +270,16 @@ func renderTopItem(item query.TopItem, width, labelWidth int, selected bool) []s
 
 func renderLedgerItem(row query.LedgerRow, width, labelWidth int, selected bool) []string {
 	label := ledgerLabel(row, selected)
-	truth := string(effectiveTruth(row.Statement.Truth, row.EffectiveTruth))
-	truthWidth := len("TRUTH")
+	status := presentation.StatementStatus(row.Statement, row.EffectiveTruth, row.TruthSource)
+	statusWidth := presentation.StatementStatusWidth
 	marker := "  "
 	if selected {
 		marker = "> "
 	}
 	derivations := ledgerNotation(row)
 	var lines []string
-	if width < 80 || 2+labelWidth+2+truthWidth+2+26+2+20 > width {
-		lines = append(lines, marker+label+"  "+truth)
+	if width < 80 || 2+labelWidth+2+statusWidth+2+26+2+20 > width {
+		lines = append(lines, marker+label+"  "+renderRowStatus(status, row.Challenged, selected))
 		for _, text := range wrapWords(row.Statement.Text, maxInt(1, width-4)) {
 			lines = append(lines, "    "+text)
 		}
@@ -286,7 +288,7 @@ func renderLedgerItem(row query.LedgerRow, width, labelWidth int, selected bool)
 		}
 	} else {
 		derivationWidth := minInt(34, maxInt(20, width/4))
-		textWidth := maxInt(26, width-2-labelWidth-2-truthWidth-2-derivationWidth-2)
+		textWidth := maxInt(26, width-2-labelWidth-2-statusWidth-2-derivationWidth-2)
 		statementLines := wrapWords(row.Statement.Text, textWidth)
 		derivationLines := make([]string, 0)
 		for _, derivation := range derivations {
@@ -305,11 +307,11 @@ func renderLedgerItem(row query.LedgerRow, width, labelWidth int, selected bool)
 			if i < len(derivationLines) {
 				derivationCell = derivationLines[i]
 			}
-			truthCell := ""
+			statusCell := ""
 			if i == 0 {
-				truthCell = truth
+				statusCell = status
 			}
-			lines = append(lines, lineMarker+pad(labelCell, labelWidth)+"  "+pad(truthCell, truthWidth)+"  "+pad(statementCell, textWidth)+"  "+derivationCell)
+			lines = append(lines, lineMarker+pad(labelCell, labelWidth)+"  "+center(renderRowStatus(statusCell, row.Challenged && i == 0, selected), statusWidth)+"  "+pad(statementCell, textWidth)+"  "+derivationCell)
 		}
 	}
 	if selected {
@@ -349,23 +351,6 @@ func ledgerLabel(row query.LedgerRow, selected bool) string {
 	return renderSelectableID(id, row.Challenged, selected)
 }
 
-func effectiveTruth(stored, effective argument.Truth) argument.Truth {
-	if effective == argument.TruthTrue || effective == argument.TruthFalse || effective == argument.TruthUnknown {
-		return effective
-	}
-	return stored
-}
-
-func truthStatus(stored, effective argument.Truth, source evaluation.TruthSource) string {
-	if effective != argument.TruthTrue && effective != argument.TruthFalse && effective != argument.TruthUnknown {
-		effective = stored
-	}
-	if source == evaluation.TruthAsserted && stored != effective {
-		return fmt.Sprintf("%s → %s", stored, effective)
-	}
-	return string(effective)
-}
-
 func renderID(value string, challenged bool) string {
 	if challenged {
 		return warningStyle.Render(value)
@@ -381,6 +366,20 @@ func renderSelectableID(value string, challenged, selected bool) string {
 		return value
 	}
 	return renderID(value, challenged)
+}
+
+func renderRowStatus(value string, challenged, selected bool) string {
+	if selected || !challenged || value == "" {
+		return value
+	}
+	return warningStyle.Render(value)
+}
+
+func renderDetailStatus(value string, challenged bool) string {
+	if challenged {
+		return warningStyle.Render(value)
+	}
+	return statementHeadStyle.Render(value)
 }
 
 func wrapWords(text string, width int) []string {
@@ -455,6 +454,15 @@ func pad(value string, width int) string {
 		return value + strings.Repeat(" ", missing)
 	}
 	return value
+}
+
+func center(value string, width int) string {
+	missing := width - displayWidth(value)
+	if missing <= 0 {
+		return value
+	}
+	left := missing / 2
+	return strings.Repeat(" ", left) + value + strings.Repeat(" ", missing-left)
 }
 
 func displayWidth(value string) int { return ansi.StringWidth(value) }

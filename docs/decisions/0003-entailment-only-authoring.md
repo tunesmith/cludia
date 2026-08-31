@@ -2,6 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-08-23
+- Amended: 2026-08-31 to distinguish evidence islands from hypotheses
 
 ## Context
 
@@ -23,6 +24,14 @@ Abduction may be used by the human or external LLM to invent a candidate
 conclusion. Before persistence, hidden bridge premises must be made explicit so
 the durable structure is an asserted entailment-style argument.
 
+Disconnected premises are accepted factual or value statements whose relevance
+is not yet known. They may remain unused or turn out to be red herrings without
+becoming hypotheses. Speculative hypotheses, rival explanations, and
+brainstorming remain in conversation or adjacent notes until explicit recorded
+premises are intended to establish them. Authored `U` remains available for a
+recorded proposition whose truth is genuinely uncertain; it is not the normal
+placeholder for a theory that may or may not be true.
+
 V1 preserves legacy direct supports and `OR` constructs found in Concludia
 files but does not create them through the focused workflow.
 
@@ -41,4 +50,3 @@ files but does not create them through the focused workflow.
 - Per-inference deductive/inductive/abductive mode: rejected as UX complexity
   and as a confusion between discovery and durable semantics.
 - Single-premise convergent support: not authored in v1.
-

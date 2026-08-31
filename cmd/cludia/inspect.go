@@ -12,6 +12,7 @@ import (
 
 	"github.com/tunesmith/cludia/internal/argument"
 	"github.com/tunesmith/cludia/internal/diagnostic"
+	"github.com/tunesmith/cludia/internal/presentation"
 	"github.com/tunesmith/cludia/internal/query"
 	"github.com/tunesmith/cludia/internal/validation"
 )
@@ -204,7 +205,7 @@ func writeHumanShow(w io.Writer, output showOutput) {
 		if statement.Slug != "" {
 			fmt.Fprintf(w, ":%s", statement.Slug)
 		}
-		fmt.Fprintf(w, "  truth %s\n%s\n", formatTruthStatus(statement.evaluatedStatement), statement.Text)
+		fmt.Fprintf(w, "  %s %s\n%s\n", presentation.StatusNoun(statement.Role), formatTruthStatus(statement.evaluatedStatement), statement.Text)
 		if statement.Acceptance != "" {
 			fmt.Fprintf(w, "acceptance: %s\n", statement.Acceptance)
 		}

@@ -3,6 +3,7 @@
 - Status: Accepted
 - Date: 2026-08-23
 - Amended: 2026-08-24 (retention of contested junctors)
+- Amended: 2026-08-31 (grounded, exact-scope authoring guidance)
 - Partial supersession: ADR 0014 adds calculated grounded acceptance and
   effective truth while retaining the prohibition on numerical strength.
 
@@ -29,6 +30,12 @@ support or defeat relations are rejected, and all traversal is cycle-safe.
 
 ADR 0014 adds deterministic grounded acceptance over these defeat forms. No
 numerical strength model is introduced.
+
+A focused counterpoint should identify a case-specific, record-grounded defect
+in the exact premise, inference, or earlier counterpoint it targets. Bare
+possibility, unsupported rival explanation, generic fallibility, absence of
+direct proof, and residual uncertainty do not by themselves justify a defeat.
+This is semantic authoring guidance rather than a lexical validator.
 
 An undercut does not retract or mutate its target junctor. A living workspace
 may retain the challenged junctor while it is evaluated, after it is presently

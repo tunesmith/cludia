@@ -11,7 +11,7 @@ body:
     attributes:
       label: Cludia version
       description: Output of `cludia version`, or the commit if built from source.
-      placeholder: cludia v1.0.0
+      placeholder: cludia v1.0.1
     validations:
       required: true
 

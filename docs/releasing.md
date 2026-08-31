@@ -4,22 +4,31 @@ Cludia uses semantic versions, annotated Git tags, source-only GitHub releases,
 and a source-building formula in
 [`tunesmith/homebrew-tap`](https://github.com/tunesmith/homebrew-tap).
 
-The v1.0.0 publication begins while `tunesmith/cludia` is private. The release
-candidate is reviewed and tagged privately; only after the tag, workflow, and
-source release agree is the repository made public.
+The application repository and Homebrew tap are released separately. Do not
+publish a tag until the application pull request is merged and all checks pass.
+The examples below use `v1.0.1`; substitute the intended version consistently.
 
-## 1. Prepare the private release candidate
+## 1. Prepare the release candidate
 
-Start from current private `main` and create `codex/release-v1.0.0`. Before the
-release commit, update the checked-in program version, changelog, specification,
-license, compatibility contract, and release tooling. The checked-in and
-linker-injected versions must both report `cludia v1.0.0`.
+Start from an up-to-date `main` and create a focused release branch:
+
+```sh
+release_version=v1.0.1
+release_branch=codex/release-v1.0.1
+git switch main
+git pull --ff-only origin main
+git switch -c "$release_branch"
+```
+
+Before committing, update the checked-in program version, dated changelog,
+README installation examples, and user-visible documentation. The checked-in
+and linker-injected builds must both report `cludia $release_version`.
 
 Commit the complete candidate, then run the non-publishing preflight from the
 clean commit:
 
 ```sh
-scripts/release-check v1.0.0
+scripts/release-check "$release_version"
 ```
 
 The check verifies the clean tree, changelog date, local and remote tag
@@ -28,15 +37,14 @@ vet, builds, version output, `.arg` compatibility fixtures, profile migration,
 truth evaluation, cycles, atomic failures, rooted export, and JSON/process
 contracts. It does not modify Git, GitHub, Homebrew, or the working tree.
 
-## 2. Review and merge privately
+## 2. Review and merge
 
-Push the release branch, open a ready pull request in the private repository,
-and wait for CI:
+Push the release branch, open a ready pull request, and wait for CI:
 
 ```sh
-git push -u origin codex/release-v1.0.0
-gh pr create --base main --head codex/release-v1.0.0 \
-  --title "Release Cludia v1.0.0" --fill
+git push -u origin "$release_branch"
+gh pr create --base main --head "$release_branch" \
+  --title "Release Cludia $release_version" --fill
 gh pr checks --watch
 ```
 
@@ -51,13 +59,13 @@ git status -sb
 test "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)"
 ```
 
-## 3. Tag and create the source release while private
+## 3. Tag and create the source release
 
 Create the annotated tag at verified `main` and push only that tag:
 
 ```sh
-git tag -a v1.0.0 -m "cludia v1.0.0"
-git push origin v1.0.0
+git tag -a "$release_version" -m "cludia $release_version"
+git push origin "$release_version"
 ```
 
 The tag-triggered workflow repeats tests, race tests, vet, command builds, and
@@ -66,61 +74,47 @@ source-only GitHub release; no binary attachments are uploaded.
 
 ```sh
 gh run list --workflow release.yml --limit 5
-gh run watch
-gh release view v1.0.0
-test "$(git rev-list -n 1 v1.0.0)" = "$(git rev-parse main)"
+gh run watch --exit-status
+gh release view "$release_version"
+test "$(git rev-list -n 1 "$release_version")" = "$(git rev-parse main)"
 ```
 
-## 4. Make the repository public
-
-After the private tag and release are verified, change visibility and confirm
-anonymous access:
-
-```sh
-gh repo edit tunesmith/cludia --visibility public \
-  --accept-visibility-change-consequences
-curl -fsSL https://api.github.com/repos/tunesmith/cludia >/dev/null
-```
-
-Verify the public main page, tag, release notes, and source archives before
-publishing a package that points at them.
-
-## 5. Publish the Homebrew formula
+## 4. Publish the Homebrew formula
 
 Download the public tagged archive and calculate its checksum from that exact
 artifact:
 
 ```sh
 curl -fL \
-  https://github.com/tunesmith/cludia/archive/refs/tags/v1.0.0.tar.gz \
-  -o /tmp/cludia-v1.0.0.tar.gz
-shasum -a 256 /tmp/cludia-v1.0.0.tar.gz
+  "https://github.com/tunesmith/cludia/archive/refs/tags/$release_version.tar.gz" \
+  -o "/tmp/cludia-$release_version.tar.gz"
+shasum -a 256 "/tmp/cludia-$release_version.tar.gz"
 ```
 
-In `tunesmith/homebrew-tap`, add `Formula/cludia.rb` with that URL and checksum,
-license `GPL-3.0-or-later`, a build dependency on Go, and `std_go_args` for
-`./cmd/cludia` with `main.version=v#{version}`. Its test must cover version
-output, workspace creation, JSON validation, an authored derivation, and
+In `tunesmith/homebrew-tap`, update `Formula/cludia.rb` with that URL and
+checksum. Keep license `GPL-3.0-or-later`, the build dependency on Go,
+`std_go_args` for `./cmd/cludia` with `main.version=v#{version}`, and formula
+tests for version output, workspace creation, JSON validation, derivation, and
 grounded evaluation.
 
-Update the tap README, run `brew style`, commit, and push the tap. Refresh the
-published tap before the online audit:
+Run `brew style`, commit, and push the tap. Refresh the published tap before
+the online audit:
 
 ```sh
 brew style Formula/cludia.rb
-git add Formula/cludia.rb README.md
-git commit -m "Add Cludia 1.0.0 formula"
+git add Formula/cludia.rb
+git commit -m "Update Cludia formula to ${release_version#v}"
 git push origin main
 brew update
 brew audit --strict --online tunesmith/tap/cludia
 ```
 
-## 6. Verify the installed formula
+## 5. Verify the installed formula
 
-Install and test through Homebrew:
+Upgrade and test through Homebrew:
 
 ```sh
-brew install tunesmith/tap/cludia
+brew upgrade tunesmith/tap/cludia
 brew test tunesmith/tap/cludia
 ```
 
@@ -136,4 +130,4 @@ cludia_brew_bin="$(brew --prefix cludia)/bin/cludia"
 
 Finish by recording and comparing the public `main` commit, annotated tag,
 GitHub release, archive SHA-256, tap commit, formula version, and installed
-binary output. Every release identifier must be `v1.0.0`.
+binary output. Every release identifier must match `release_version`.
