@@ -2,6 +2,8 @@
 
 - Status: Accepted
 - Date: 2026-08-28
+- Partial supersession: ADR 0011 permits monotonic role-driven reidentification
+  when a focused derivation promotes a premise to a lemma.
 
 ## Context
 
@@ -45,6 +47,8 @@ The connected argument supporting this decision is
   that same value and use the role-appropriate prefix.
 - Successful creation advances the affected value. Failed mutations and dry
   runs consume nothing.
+- Focused premise-to-lemma promotion allocates the exact next `L` ID, retires
+  the prior `P` ID, and reports the mapping under ADR 0011.
 - Deletion never lowers a next value, so gaps remain and deleted numbers cannot
   be requested individually.
 - Existing custom or noncanonical IDs remain readable and are preserved by
@@ -70,9 +74,10 @@ The connected argument supporting this decision is
 
 ### Identity and interoperability
 
-- IDs remain durable during every ordinary mutation. Renumbering is an
-  exceptional, explicit file-level identity migration rather than an ordinary
-  edit.
+- IDs remain durable during ordinary mutations that do not change statement
+  role. ADR 0011's monotonic premise-to-lemma reidentification is the focused
+  exception. Renumbering remains the exceptional, explicit whole-file numbering
+  reset.
 - Slugs remain mutable aliases and are not changed by renumbering.
 - Cludia does not add opaque per-statement identities to the shared `.arg`
   syntax in this slice.
@@ -87,7 +92,8 @@ The connected argument supporting this decision is
 ## Consequences
 
 - Conversations and adjacent artifacts can rely on ordinary IDs without
-  silent reuse after deletion.
+  silent reuse after deletion. Premise promotion is a visible exception with a
+  returned `P`-to-`L` mapping and external-reference warning.
 - Deleted or intentionally removed records leave visible gaps until a user
   explicitly reviews a complete renumber plan.
 - Scripted callers should consume successful generated IDs or atomic batch

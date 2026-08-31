@@ -1,5 +1,5 @@
 argument broken-window-workspace "The Broken Window Inquiry"
-meta profile="workspace", version="0.1.0", root="crossed-wall"
+meta profile="cludia", root="crossed-wall"
 
 premise[fact] P1:footprints-at-wall ::T "The footprints terminate at the garden wall."
 premise[fact] P2:no-returning-prints ::T "No footprints lead back from the garden wall."

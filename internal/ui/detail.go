@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package ui
 
 import (
@@ -71,6 +74,11 @@ func (m Model) detailLines() []detailLine {
 			lines = appendStatementDetailLine(lines, m.doc, target, 1)
 		}
 	}
+	for index := range lines {
+		if lines[index].id != "" {
+			lines[index].challenged = m.evaluation.TruthChangedByDefeat(lines[index].id)
+		}
+	}
 	return lines
 }
 
@@ -91,7 +99,6 @@ func appendStatementDetailLine(lines []detailLine, doc *argument.Document, id st
 	}
 	return append(lines, detailLine{
 		id: statement.ID, text: statement.Text, indent: indent, selectable: true,
-		challenged: query.StatementChallenged(doc, statement.ID),
 	})
 }
 

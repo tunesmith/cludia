@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package argument
 
 import (
@@ -66,7 +69,7 @@ func TestMoveStatementNoOpAndFailures(t *testing.T) {
 
 func orderDocument() *Document {
 	return &Document{
-		ID: "order", Title: "Order", Metadata: []Metadata{{Key: "profile", Value: "workspace"}},
+		ID: "order", Title: "Order", Metadata: []Metadata{{Key: "profile", Value: "cludia"}},
 		Statements: []Statement{
 			{ID: "P1", Slug: "first", Role: RolePremise, Kind: KindFact, Truth: TruthTrue, Text: "First"},
 			{ID: "P2", Slug: "second", Role: RolePremise, Kind: KindFact, Truth: TruthTrue, Text: "Second"},

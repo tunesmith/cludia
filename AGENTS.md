@@ -28,6 +28,9 @@ not silently redefine the format or semantics in implementation.
   remain until explicit repair or removal; this is valid living-workspace state
   and does not by itself block saving or rooted export.
 - Do not add confidence scores, weights, probabilities, or Bayesian machinery.
+- Persist authored truth only on leaf premises and leaf counterpoints. Calculate
+  versioned grounded effective truth from support and defeat structure; never
+  store propagated truth as cache state.
 - Do not embed LLM calls or credentials in v1. External agents use the CLI or
   MCP.
 - `.arg` scriptable JSON and file compatibility are public interfaces.
@@ -35,10 +38,16 @@ not silently redefine the format or semantics in implementation.
 - Statement IDs are durable proposition-record identities. Use text editing only
   when explicitly asserting the same proposition; materially different claims
   receive new IDs and relation-by-relation review.
+- Focused premise-to-lemma promotion is the role-consistent identity exception:
+  allocate the exact next `L` ID, retire the prior `P` ID, rewrite modeled
+  references atomically, and report the mapping plus external-reference warning.
 - Focused P/L/C/CP/J allocation is monotonic and deletion leaves gaps. Only the
   state-bound whole-document `renumber` operation may compact IDs.
 - Slugs are optional mutable aliases, not identity. Keep only the current slug
   and warn about external references outside the checked scope.
+- Resolve exact durable IDs before statement slugs. Preserve imported slug/ID
+  collisions with a warning, but do not create new collisions through focused
+  authoring.
 - Identity guidance must remain use-case neutral; do not assume users maintain
   any fixed number or arrangement of workspace files.
 - Rooted export must include every upstream justification and attached defeat
@@ -82,9 +91,13 @@ Format changes must also run compatibility and round-trip fixtures for:
 
 ## Change discipline
 
-- Exact command names may evolve before the first public release, but semantic
-  operations and compatibility behavior require tests and documentation.
+- Human command names and JSON schemas may evolve during 1.x, but semantic
+  operations and `.arg` compatibility behavior require tests, schema-version
+  discipline, release notes, and documentation.
 - Add or update an ADR for changes to profiles, topology, defeat semantics,
   LLM boundaries, or CLI/web parity.
 - Keep the domain core independent of CLI, MCP, and web presentation layers.
 - A visual UI must call the same durable operations as the CLI.
+- CLI, TUI, MCP, and web presentation layers must not edit document fields or
+  relation slices directly; durable semantics belong to shared clone-returning
+  operations and shared validate-before-persist orchestration.

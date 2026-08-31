@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package main
 
 import (
@@ -56,6 +59,12 @@ func TestInitAndAddCreateValidWorkspace(t *testing.T) {
 	parsed := argfile.ParseFile(path)
 	if diagnostic.HasErrors(parsed.Diagnostics) || len(parsed.Document.Statements) != 2 {
 		t.Fatalf("created workspace: %#v, diagnostics %#v", parsed.Document, parsed.Diagnostics)
+	}
+	if profile, ok := parsed.Document.MetadataValue("profile"); !ok || profile != "cludia" {
+		t.Fatalf("profile metadata = %q, %v", profile, ok)
+	}
+	if graphVersion, ok := parsed.Document.MetadataValue("version"); ok {
+		t.Fatalf("new workspace unexpectedly contains graph artifact version %q", graphVersion)
 	}
 	if value, _ := parsed.Document.MetadataValue(argument.NextIDsMetadataKey); value != "v1;P=3;L=1;C=1;CP=1;J=1" {
 		t.Fatalf("next-id metadata = %q", value)
@@ -130,7 +139,7 @@ func TestLegacyWorkspaceBootstrapsNextIDsOnFirstCreation(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "legacy.arg")
 	doc := &argument.Document{
 		ID: "legacy", Title: "Legacy",
-		Metadata: []argument.Metadata{{Key: "profile", Value: "workspace"}},
+		Metadata: []argument.Metadata{{Key: "profile", Value: "cludia"}},
 		Statements: []argument.Statement{
 			{ID: "P1", Role: argument.RolePremise, Kind: argument.KindFact, Truth: argument.TruthTrue, Text: "First"},
 			{ID: "P3", Role: argument.RolePremise, Kind: argument.KindFact, Truth: argument.TruthTrue, Text: "Third"},
@@ -162,7 +171,7 @@ func TestCreationRepairsStaleNextIDMetadataSafely(t *testing.T) {
 	doc := &argument.Document{
 		ID: "stale", Title: "Stale",
 		Metadata: []argument.Metadata{
-			{Key: "profile", Value: "workspace"},
+			{Key: "profile", Value: "cludia"},
 			{Key: argument.NextIDsMetadataKey, Value: "v1;P=2;L=1;C=1;CP=1;J=1"},
 		},
 		Statements: []argument.Statement{{ID: "P3", Role: argument.RolePremise, Kind: argument.KindFact, Truth: argument.TruthTrue, Text: "Third"}},
@@ -285,6 +294,69 @@ func TestInitSeparatesDigitLeadingDocumentIDAndStatementSlugFallbacks(t *testing
 	}
 }
 
+func TestFocusedAddRejectsSlugThatShadowsDurableID(t *testing.T) {
+	path := referenceCollisionWorkspace(t)
+	before, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var stdout, stderr bytes.Buffer
+	err = run([]string{"add", path, "--text", "Colliding alias", "--slug", "p1", "--json"}, &stdout, &stderr)
+	if !errors.Is(err, errValidationFailed) {
+		t.Fatalf("add error = %v", err)
+	}
+	var failure failureOutput
+	if err := json.Unmarshal(stdout.Bytes(), &failure); err != nil || len(failure.Diagnostics) != 1 || failure.Diagnostics[0].Code != "statement_slug_id_collision" {
+		t.Fatalf("failure = %#v, decode %v", failure, err)
+	}
+	after, readErr := os.ReadFile(path)
+	if readErr != nil || !bytes.Equal(before, after) {
+		t.Fatalf("collision changed workspace: %v", readErr)
+	}
+}
+
+func TestStatementInputDiagnosticsAggregateAndUseCanonicalIDs(t *testing.T) {
+	path := twoPremiseWorkspace(t)
+	before, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var stdout, stderr bytes.Buffer
+	err = run([]string{"add", path, "--text", "Invalid", "--truth", "bad-truth", "--kind", "bad-kind", "--json"}, &stdout, &stderr)
+	if !errors.Is(err, errValidationFailed) {
+		t.Fatalf("add error = %v", err)
+	}
+	var failure failureOutput
+	if err := json.Unmarshal(stdout.Bytes(), &failure); err != nil || len(failure.Diagnostics) != 2 {
+		t.Fatalf("add diagnostics = %#v, %v", failure.Diagnostics, err)
+	}
+	for _, item := range failure.Diagnostics {
+		if item.Element != "P3" {
+			t.Fatalf("add diagnostic element = %q, want P3", item.Element)
+		}
+	}
+	after, err := os.ReadFile(path)
+	if err != nil || !bytes.Equal(before, after) {
+		t.Fatalf("invalid add changed workspace: %v", err)
+	}
+
+	stdout.Reset()
+	stderr.Reset()
+	err = run([]string{"edit", path, "first", "--truth", "bad-truth", "--kind", "bad-kind", "--json"}, &stdout, &stderr)
+	if !errors.Is(err, errValidationFailed) {
+		t.Fatalf("edit error = %v", err)
+	}
+	failure = failureOutput{}
+	if err := json.Unmarshal(stdout.Bytes(), &failure); err != nil || len(failure.Diagnostics) != 2 {
+		t.Fatalf("edit diagnostics = %#v, %v", failure.Diagnostics, err)
+	}
+	for _, item := range failure.Diagnostics {
+		if item.Element != "P1" {
+			t.Fatalf("edit diagnostic element = %q, want P1", item.Element)
+		}
+	}
+}
+
 func TestEditChangesOnlyTextAndReportsPreviousStatement(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "workspace.arg")
 	var stdout, stderr bytes.Buffer
@@ -379,6 +451,19 @@ func TestEditRejectsExplicitTrueLemma(t *testing.T) {
 	err = run([]string{"edit", path, "L1", "--truth", "T", "--json"}, &stdout, &stderr)
 	if !errors.Is(err, errValidationFailed) {
 		t.Fatalf("edit lemma truth error = %v", err)
+	}
+	var failure failureOutput
+	if err := json.Unmarshal(stdout.Bytes(), &failure); err != nil || len(failure.Diagnostics) != 1 {
+		t.Fatalf("truth failure = %#v, %v", failure, err)
+	}
+	diagnostic := failure.Diagnostics[0]
+	if diagnostic.Code != "truth_assignment_nonleaf" || diagnostic.Element != "L1" {
+		t.Fatalf("truth diagnostic = %#v", diagnostic)
+	}
+	for _, want := range []string{"effective truth is calculated", "use evaluate", "challenging an upstream premise", "undercutting an incoming inference", "normalize-truth only repairs"} {
+		if !strings.Contains(diagnostic.Message, want) {
+			t.Fatalf("truth diagnostic missing %q: %s", want, diagnostic.Message)
+		}
 	}
 	after, readErr := os.ReadFile(path)
 	if readErr != nil || !bytes.Equal(before, after) {

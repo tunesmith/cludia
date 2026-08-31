@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package main
 
 import (
@@ -17,7 +20,7 @@ func TestSearchJSONContractAndDocumentOrder(t *testing.T) {
 	if err := json.Unmarshal(stdout.Bytes(), &raw); err != nil {
 		t.Fatalf("decode search JSON: %v", err)
 	}
-	assertExactKeys(t, raw, "schema_version", "profile", "query", "matches", "diagnostics")
+	assertExactKeys(t, raw, "schema_version", "profile", "evaluation", "query", "matches", "diagnostics")
 	var output searchOutput
 	if err := json.Unmarshal(stdout.Bytes(), &output); err != nil {
 		t.Fatalf("decode typed search JSON: %v", err)

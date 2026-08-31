@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package main
 
 import (
@@ -7,7 +10,6 @@ import (
 	"io"
 	"strings"
 
-	"github.com/tunesmith/cludia/internal/argfile"
 	"github.com/tunesmith/cludia/internal/argument"
 	"github.com/tunesmith/cludia/internal/diagnostic"
 	"github.com/tunesmith/cludia/internal/validation"
@@ -67,81 +69,65 @@ func runRenameSlug(args []string, stdout, stderr io.Writer) error {
 		}
 		return errValidationFailed
 	}
-	next := doc.Clone()
-	statement, ok := next.Statement(fs.Arg(1))
-	if !ok {
-		return writeMutationFailure(stdout, *jsonOutput, profile, "statement_not_found", fmt.Sprintf("statement %q not found", fs.Arg(1)), fs.Arg(1))
-	}
-	previous := statement.Slug
-	current := ""
+	options := argument.RenameSlugOptions{Reference: fs.Arg(1)}
 	switch {
 	case explicit.set:
-		current = strings.TrimSpace(explicit.value)
-		if current == "" {
+		options.Mode = argument.SlugExplicit
+		options.Slug = strings.TrimSpace(explicit.value)
+		if options.Slug == "" {
 			return fmt.Errorf("--slug must not be empty; use --clear to remove a slug")
 		}
 	case *fromText:
-		statement.Slug = ""
-		current = argument.UniqueSlug(next, statement.Text)
+		options.Mode = argument.SlugFromText
 	case *clearSlug:
-		current = ""
+		options.Mode = argument.SlugClear
 	}
-	statement.Slug = current
-	rootUpdated := false
-	if previous != "" && previous != current {
-		for i := range next.Metadata {
-			metadata := &next.Metadata[i]
-			if metadata.Key == "root" && metadata.Value == previous {
-				metadata.Value = current
-				if current == "" {
-					metadata.Value = statement.ID
-				}
-				rootUpdated = true
-			}
-		}
+	next, result, err := argument.RenameStatementSlug(doc, options)
+	if err != nil {
+		return writeArgumentMutationFailure(stdout, *jsonOutput, profile, err)
 	}
-	validated := validation.Validate(next, profile)
+	validated, err := validateAndPersistMutation(fs.Arg(0), next, profile, result.Changed)
+	if err != nil {
+		return err
+	}
 	if !validated.OK() {
 		if err := writeFailure(stdout, *jsonOutput, profile, validated.Diagnostics); err != nil {
 			return err
 		}
 		return errValidationFailed
 	}
-	changed := previous != current
-	if changed {
-		if err := argfile.SaveAtomic(fs.Arg(0), next); err != nil {
-			return err
-		}
-	}
 	diagnostics = validated.Diagnostics
 	if diagnostics == nil {
 		diagnostics = []diagnostic.Diagnostic{}
 	}
-	if changed {
+	if result.Changed {
 		diagnostics = append(diagnostics, diagnostic.Diagnostic{
 			Code:     "external_slug_references_unchecked",
 			Message:  "only the workspace file and recognized metadata were checked; unknown external slug references may require updates",
-			Severity: diagnostic.SeverityWarning, Element: statement.ID,
+			Severity: diagnostic.SeverityWarning, Element: result.Statement.ID,
 		})
 	}
 	changes := []changeOutput{}
-	if changed {
-		changes = append(changes, changeOutput{Operation: "updated", ElementType: "statement", ID: statement.ID})
+	if result.Changed {
+		changes = append(changes, changeOutput{Operation: "updated", ElementType: "statement", ID: result.Statement.ID})
 	}
-	if rootUpdated {
+	if result.RootMetadataUpdated {
 		changes = append(changes, changeOutput{Operation: "updated", ElementType: "metadata", ID: "root"})
+	}
+	if result.Changed {
+		changes = appendProfileMigrationChange(changes, doc)
 	}
 	output := slugMutationOutput{
 		SchemaVersion: outputSchemaVersion, Action: "rename-slug", Profile: profile,
-		Document: documentSummary(next), Statement: *statement,
-		PreviousSlug: previous, CurrentSlug: current, RootMetadataUpdated: rootUpdated,
+		Document: documentSummary(next), Statement: result.Statement,
+		PreviousSlug: result.PreviousSlug, CurrentSlug: result.CurrentSlug, RootMetadataUpdated: result.RootMetadataUpdated,
 		ScopeChecked: []string{"workspace_file"}, Changes: changes, Diagnostics: diagnostics,
 	}
 	if *jsonOutput {
 		return writeIndentedJSON(stdout, output)
 	}
-	fmt.Fprintf(stdout, "Renamed slug for %s: %q -> %q\n", statement.ID, previous, current)
-	if rootUpdated {
+	fmt.Fprintf(stdout, "Renamed slug for %s: %q -> %q\n", result.Statement.ID, result.PreviousSlug, result.CurrentSlug)
+	if result.RootMetadataUpdated {
 		fmt.Fprintln(stdout, "Updated root metadata reference")
 	}
 	for _, item := range diagnostics {

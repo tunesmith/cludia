@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package validation
 
 import (
@@ -14,7 +17,7 @@ func TestExamplesValidateUnderExpectedProfiles(t *testing.T) {
 	if diagnostic.HasErrors(workspace.Diagnostics) {
 		t.Fatalf("workspace parse: %#v", workspace.Diagnostics)
 	}
-	if result := Validate(workspace.Document, ProfileWorkspace); !result.OK() {
+	if result := Validate(workspace.Document, ProfileCludia); !result.OK() {
 		t.Fatalf("workspace validation: %#v", result.Diagnostics)
 	}
 	strictWorkspace := Validate(workspace.Document, ProfileConcludia)
@@ -48,18 +51,51 @@ func TestNextIDMetadataValidation(t *testing.T) {
 		Metadata:   []argument.Metadata{{Key: argument.NextIDsMetadataKey, Value: "v1;P=2;L=1;C=1;CP=1;J=1"}},
 		Statements: []argument.Statement{statement("P3", argument.RolePremise)},
 	}
-	result := Validate(doc, ProfileWorkspace)
+	result := Validate(doc, ProfileCludia)
 	if !result.OK() {
 		t.Fatalf("stale allocator metadata should warn rather than fail: %#v", result.Diagnostics)
 	}
 	assertCode(t, result.Diagnostics, "next_ids_stale")
 
 	doc.Metadata[0].Value = "v2;P=4;L=1;C=1;CP=1;J=1"
-	result = Validate(doc, ProfileWorkspace)
+	result = Validate(doc, ProfileCludia)
 	if result.OK() {
 		t.Fatal("unsupported next-id metadata version validated")
 	}
 	assertCode(t, result.Diagnostics, "next_ids_invalid")
+}
+
+func TestImportedSlugIDCollisionWarnsWithoutInvalidatingWorkspace(t *testing.T) {
+	doc := &argument.Document{
+		ID: "collision", Title: "Collision",
+		Statements: []argument.Statement{
+			{ID: "P1", Slug: "shared", Role: argument.RolePremise, Kind: argument.KindFact, Truth: argument.TruthTrue, Text: "One"},
+			statement("P2", argument.RolePremise),
+			statement("L1", argument.RoleLemma),
+		},
+		Junctors: []argument.Junctor{{ID: "shared", Connector: argument.ConnectorAND, Sources: []string{"P1", "P2"}, Target: "L1"}},
+	}
+	result := Validate(doc, ProfileCludia)
+	if !result.OK() {
+		t.Fatalf("compatibility collision should warn rather than fail: %#v", result.Diagnostics)
+	}
+	assertCode(t, result.Diagnostics, "statement_slug_shadows_id")
+}
+
+func TestSourcedAuthoredTruthWarnsWithoutInvalidatingImportedWorkspace(t *testing.T) {
+	doc := &argument.Document{
+		ID: "truth", Title: "Truth",
+		Statements: []argument.Statement{
+			statement("P1", argument.RolePremise), statement("P2", argument.RolePremise),
+			statement("CP1", argument.RoleCounterpoint),
+		},
+		Junctors: []argument.Junctor{{ID: "J1", Connector: argument.ConnectorAND, Sources: []string{"P1", "P2"}, Target: "CP1"}},
+	}
+	result := Validate(doc, ProfileCludia)
+	if !result.OK() {
+		t.Fatalf("legacy sourced truth should warn: %#v", result.Diagnostics)
+	}
+	assertCode(t, result.Diagnostics, "nonleaf_authored_truth_ignored")
 }
 
 func TestDirectedSupportCycleIsRejected(t *testing.T) {
@@ -75,7 +111,7 @@ func TestDirectedSupportCycleIsRejected(t *testing.T) {
 			{ID: "J2", Connector: argument.ConnectorAND, Sources: []string{"L1", "P2"}, Target: "P1"},
 		},
 	}
-	result := Validate(doc, ProfileWorkspace)
+	result := Validate(doc, ProfileCludia)
 	if result.OK() {
 		t.Fatal("cycle unexpectedly validated")
 	}
@@ -98,7 +134,7 @@ func TestSupportedRecursiveCounterpointIsWorkspaceValidButDiagnosedForConcludia(
 			{From: "CP2", Scope: argument.DefeatCounterpoint, To: "CP1"},
 		},
 	}
-	if result := Validate(doc, ProfileWorkspace); !result.OK() {
+	if result := Validate(doc, ProfileCludia); !result.OK() {
 		t.Fatalf("workspace rejected supported recursive counterpoint: %#v", result.Diagnostics)
 	}
 	strict := Validate(doc, ProfileConcludia)

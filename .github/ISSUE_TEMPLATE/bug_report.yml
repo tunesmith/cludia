@@ -1,0 +1,45 @@
+name: Bug report
+description: Report something broken or surprising in Cludia.
+title: "Bug: "
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for taking the time to report a bug. Issues are welcome; code pull requests are not currently accepted.
+
+  - type: input
+    id: version
+    attributes:
+      label: Cludia version
+      description: Output of `cludia version`, or the commit if built from source.
+      placeholder: cludia v1.0.0
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Operating system and terminal emulator.
+      placeholder: macOS 15, Terminal.app
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Include a minimal, non-confidential `.arg` file when it helps.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true

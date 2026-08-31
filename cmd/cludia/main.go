@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package main
 
 import (
@@ -14,12 +17,13 @@ import (
 	"github.com/tunesmith/cludia/internal/diagnostic"
 	"github.com/tunesmith/cludia/internal/ui"
 	"github.com/tunesmith/cludia/internal/validation"
+	"github.com/tunesmith/cludia/internal/workspace"
 )
 
-const outputSchemaVersion = 1
+const outputSchemaVersion = 2
 
 var (
-	version             = "dev"
+	version             = "v1.0.0"
 	errValidationFailed = errors.New("validation failed")
 	launchTUI           = ui.Run
 )
@@ -112,6 +116,8 @@ func run(args []string, stdout, stderr io.Writer) error {
 		return runReplace(args[1:], stdout, stderr)
 	case "renumber":
 		return runRenumber(args[1:], stdout, stderr)
+	case "normalize-truth":
+		return runNormalizeTruth(args[1:], stdout, stderr)
 	case "move-statement":
 		return runMoveStatement(args[1:], stdout, stderr)
 	case "root":
@@ -122,6 +128,8 @@ func run(args []string, stdout, stderr io.Writer) error {
 		return runRenameSlug(args[1:], stdout, stderr)
 	case "guidance":
 		return runGuidance(args[1:], stdout, stderr)
+	case "evaluate":
+		return runEvaluate(args[1:], stdout, stderr)
 	case "validate", "check":
 		return runValidate(args[1:], stdout, stderr)
 	case "help":
@@ -203,6 +211,8 @@ func writeCommandUsage(w io.Writer, command string) bool {
 		writeReplaceUsage(w)
 	case "renumber":
 		writeRenumberUsage(w)
+	case "normalize-truth":
+		writeNormalizeTruthUsage(w)
 	case "move-statement":
 		writeMoveStatementUsage(w)
 	case "root":
@@ -213,10 +223,12 @@ func writeCommandUsage(w io.Writer, command string) bool {
 		writeRenameSlugUsage(w)
 	case "guidance":
 		writeGuidanceUsage(w)
+	case "evaluate":
+		writeEvaluateUsage(w)
 	case "validate":
 		writeValidateUsage(w)
 	case "check":
-		fmt.Fprintln(w, "Usage: cludia check [--profile workspace|concludia] [--json] FILE")
+		fmt.Fprintln(w, "Usage: cludia check [--profile cludia|concludia] [--json] FILE")
 		fmt.Fprintln(w, "Parse and structurally validate an .arg file.")
 	case "version":
 		fmt.Fprintln(w, "Usage: cludia version")
@@ -233,7 +245,7 @@ func runValidate(args []string, stdout, stderr io.Writer) error {
 	fs := flag.NewFlagSet("validate", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 	jsonOutput := fs.Bool("json", false, "output versioned JSON")
-	profileName := fs.String("profile", "", "validation profile: workspace or concludia")
+	profileName := fs.String("profile", "", "validation profile: cludia or concludia")
 	fs.Usage = func() { writeValidateUsage(fs.Output()) }
 	if err := fs.Parse(flagsFirst(args, map[string]bool{"profile": true})); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
@@ -270,15 +282,7 @@ func runValidate(args []string, stdout, stderr io.Writer) error {
 }
 
 func selectedProfile(doc *argument.Document, override string) validation.Profile {
-	if override != "" {
-		return validation.Profile(strings.ToLower(override))
-	}
-	if doc != nil {
-		if profile, ok := doc.MetadataValue("profile"); ok && strings.EqualFold(profile, string(validation.ProfileWorkspace)) {
-			return validation.ProfileWorkspace
-		}
-	}
-	return validation.ProfileConcludia
+	return workspace.SelectedProfile(doc, override)
 }
 
 func makeValidateOutput(doc *argument.Document, profile validation.Profile, diagnostics []diagnostic.Diagnostic) validateOutput {
@@ -341,7 +345,7 @@ func writeTopLevelUsage(w io.Writer) {
 	fmt.Fprintln(w, "  cludia component [--json] FILE ELEMENT")
 	fmt.Fprintln(w, "  cludia search [--json] FILE QUERY")
 	fmt.Fprintln(w, "  cludia top [--challenged] [--limit N] [--offset N] [--json] FILE")
-	fmt.Fprintln(w, "  cludia ledger [--json] FILE STATEMENT")
+	fmt.Fprintln(w, "  cludia ledger [--inference JUNCTOR] [--json] FILE STATEMENT")
 	fmt.Fprintln(w, "  cludia add-source [--json] FILE JUNCTOR --source STATEMENT")
 	fmt.Fprintln(w, "  cludia remove-source [--dry-run] [--json] FILE JUNCTOR --source STATEMENT")
 	fmt.Fprintln(w, "  cludia replace-source [--dry-run] [--json] FILE JUNCTOR --from STATEMENT --to STATEMENT")
@@ -354,11 +358,13 @@ func writeTopLevelUsage(w io.Writer) {
 	fmt.Fprintln(w, "  cludia delete [--dry-run] [--json] FILE STATEMENT")
 	fmt.Fprintln(w, "  cludia replace [--json] FILE OLD --with NEW [choices] (--dry-run | --apply-token TOKEN)")
 	fmt.Fprintln(w, "  cludia renumber [--json] FILE (--dry-run | --apply-token TOKEN)")
+	fmt.Fprintln(w, "  cludia normalize-truth [--json] FILE (--dry-run | --apply-token TOKEN)")
 	fmt.Fprintln(w, "  cludia move-statement [--json] FILE STATEMENT (--before STATEMENT | --after STATEMENT)")
 	fmt.Fprintln(w, "  cludia root [--json] FILE STATEMENT")
 	fmt.Fprintln(w, "  cludia export [--json] FILE --root STATEMENT --output FILE")
 	fmt.Fprintln(w, "  cludia rename-slug [--json] FILE STATEMENT (--slug SLUG | --from-text | --clear)")
 	fmt.Fprintln(w, "  cludia guidance [--json]")
+	fmt.Fprintln(w, "  cludia evaluate [--json] FILE")
 	fmt.Fprintln(w, "  cludia validate [--profile PROFILE] [--json] FILE")
 	fmt.Fprintln(w, "  cludia check [--profile PROFILE] [--json] FILE")
 	fmt.Fprintln(w, "  cludia version")
@@ -367,7 +373,7 @@ func writeTopLevelUsage(w io.Writer) {
 }
 
 func writeValidateUsage(w io.Writer) {
-	fmt.Fprintln(w, "Usage: cludia validate [--profile workspace|concludia] [--json] FILE")
+	fmt.Fprintln(w, "Usage: cludia validate [--profile cludia|concludia] [--json] FILE")
 	fmt.Fprintln(w, "Parse and structurally validate an .arg file.")
 }
 

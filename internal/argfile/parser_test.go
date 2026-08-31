@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package argfile
 
 import (
@@ -131,6 +134,16 @@ func TestGeneratedJunctorIDDoesNotCollideWithStatementID(t *testing.T) {
 	}
 	if got := parsed.Document.Junctors[0].ID; got != "J2" {
 		t.Fatalf("generated junctor id = %q, want J2", got)
+	}
+}
+
+func TestStatementReferenceResolutionGivesExactIDPrecedenceOverSlug(t *testing.T) {
+	parsed := Parse("argument refs \"References\"\npremise first:claim ::T \"Slug owner\"\npremise claim:exact ::T \"ID owner\"\nlemma result \"Result\"\n  <- AND(claim, first)\n")
+	if diagnostic.HasErrors(parsed.Diagnostics) {
+		t.Fatalf("parse diagnostics: %#v", parsed.Diagnostics)
+	}
+	if got := parsed.Document.Junctors[0].Sources; !reflect.DeepEqual(got, []string{"claim", "first"}) {
+		t.Fatalf("resolved sources = %#v", got)
 	}
 }
 

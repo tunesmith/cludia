@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package argfile
 
 import (
@@ -84,7 +87,7 @@ func TestCreateAtomicRefusesToOverwrite(t *testing.T) {
 func minimalDocument() *argument.Document {
 	return &argument.Document{
 		ID: "case", Title: "Case",
-		Metadata: []argument.Metadata{{Key: "profile", Value: "workspace"}},
+		Metadata: []argument.Metadata{{Key: "profile", Value: "cludia"}},
 		Statements: []argument.Statement{{
 			ID: "P1", Slug: "first", Role: argument.RolePremise,
 			Kind: argument.KindFact, Truth: argument.TruthTrue, Text: "First",

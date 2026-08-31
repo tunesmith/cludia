@@ -1,15 +1,21 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package ui
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
+	"unicode/utf8"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/x/ansi"
 	"github.com/tunesmith/cludia/internal/argfile"
 	"github.com/tunesmith/cludia/internal/argument"
 	"github.com/tunesmith/cludia/internal/query"
@@ -20,12 +26,12 @@ func TestTopViewWrapsFullTextMarksChallengesAndNavigates(t *testing.T) {
 	m.width, m.height = 90, 24
 	view := m.View()
 	flat := strings.Join(strings.Fields(view), " ")
-	for _, want := range []string{"TOP · 1 of 2", "LABEL", "DEPTH", "STATEMENT", "L2!", "A deliberately long final statement whose complete text must wrap without being summarized or omitted", "P5!"} {
+	for _, want := range []string{"TOP · 1 of 2", "LABEL", "TRUTH", "DEPTH", "STATEMENT", "L2!", "A deliberately long final statement whose complete text must wrap without being summarized or omitted", "P5!"} {
 		if !strings.Contains(flat, want) {
 			t.Fatalf("top view missing %q:\n%s", want, view)
 		}
 	}
-	if strings.Contains(view, "ROLE") || strings.Contains(view, "...") {
+	if strings.Contains(view, "ROLE") || strings.Contains(view, "derived") || strings.Contains(view, "...") {
 		t.Fatalf("top view contains forbidden content:\n%s", view)
 	}
 	m = pressKey(m, "j")
@@ -75,15 +81,109 @@ func TestNarrowTopReflowsWithoutTruncating(t *testing.T) {
 	}
 }
 
+func TestUnicodeWrappingUsesDisplayCellsAndPreservesGraphemes(t *testing.T) {
+	text := "界界 e\u0301lan 👩‍💻 family👨‍👩‍👧‍👦"
+	lines := wrapWords(text, 4)
+	for _, line := range lines {
+		if width := displayWidth(line); width > 4 {
+			t.Fatalf("wrapped line width = %d: %q (%#v)", width, line, lines)
+		}
+		if !utf8.ValidString(line) {
+			t.Fatalf("invalid UTF-8 line: %q", line)
+		}
+	}
+	joined := strings.ReplaceAll(strings.Join(lines, ""), " ", "")
+	if want := strings.ReplaceAll(text, " ", ""); joined != want {
+		t.Fatalf("wrapped text changed content: got %q want %q (%#v)", joined, want, lines)
+	}
+	parts := splitDisplayCells("e\u0301👩‍💻界", 2)
+	if got, want := parts, []string{"e\u0301", "👩‍💻", "界"}; !reflect.DeepEqual(got, want) {
+		t.Fatalf("grapheme split = %#v, want %#v", got, want)
+	}
+}
+
+func TestViewNeverExceedsTerminalDimensions(t *testing.T) {
+	doc := testUIDocument().Clone()
+	doc.Title = "非常に長い題名 👩‍💻 e\u0301vidence"
+	doc.Statements[5].Text = "漢字 evidence e\u0301lan 👨‍👩‍👧‍👦 remains complete at usable widths"
+	for _, size := range []struct{ width, height int }{
+		{1, 1}, {8, 3}, {20, 5}, {56, 12}, {90, 30},
+	} {
+		base := newModel("", doc, diskVersion{})
+		for _, screen := range []struct {
+			name  string
+			model Model
+		}{
+			{name: "top", model: base},
+			{name: "detail", model: base.openDetail("L2")},
+			{name: "ledger", model: base.openLedger("L2")},
+		} {
+			m := screen.model
+			m.width, m.height = size.width, size.height
+			view := m.View()
+			lines := strings.Split(view, "\n")
+			if len(lines) > size.height {
+				t.Fatalf("%s %dx%d view has %d lines:\n%s", screen.name, size.width, size.height, len(lines), view)
+			}
+			for _, line := range lines {
+				if width := ansi.StringWidth(line); width > size.width {
+					t.Fatalf("%s %dx%d line width = %d: %q", screen.name, size.width, size.height, width, line)
+				}
+			}
+		}
+	}
+}
+
+func TestPageMovementUsesRenderedViewportAndKeepsSelectionVisible(t *testing.T) {
+	top := newModel("", pageTestDocument(), diskVersion{})
+	top.width, top.height = 100, 7 // four body rows including the header
+	top = top.ensureSelectionVisible()
+	top = pressKey(top, "pgdown")
+	if top.topCursor != 3 {
+		t.Fatalf("Top PgDown cursor = %d, want viewport-derived 3", top.topCursor)
+	}
+	_, start, end := top.renderedTopBody()
+	if start < top.topScroll || end > top.topScroll+top.viewportBudget() {
+		t.Fatalf("Top paged selection not visible: cursor=%d scroll=%d bounds=%d:%d", top.topCursor, top.topScroll, start, end)
+	}
+	top = pressKey(top, "pgup")
+	if top.topCursor != 0 {
+		t.Fatalf("Top PgUp cursor = %d", top.topCursor)
+	}
+
+	ledger := newModel("", testUIDocument(), diskVersion{})
+	ledger.width, ledger.height = 110, 7
+	ledger = ledger.openLedger("L2").ensureSelectionVisible()
+	ledger = pressKey(ledger, "pgdown")
+	if ledger.ledgerCursor != 3 {
+		t.Fatalf("Ledger PgDown cursor = %d, want viewport-derived 3", ledger.ledgerCursor)
+	}
+
+	detail := newModel("", testUIDocument(), diskVersion{})
+	detail.width, detail.height = 56, 8
+	detail = detail.openDetail("L2").ensureSelectionVisible()
+	detail = pressKey(detail, "pgdown")
+	if detail.detailCursor == 0 {
+		t.Fatal("Detail PgDown made no progress")
+	}
+	_, start, end = detail.renderedDetailBody()
+	if start < detail.detailScroll || end > detail.detailScroll+detail.viewportBudget() {
+		t.Fatalf("Detail paged selection not visible: cursor=%d scroll=%d bounds=%d:%d", detail.detailCursor, detail.detailScroll, start, end)
+	}
+}
+
 func TestDetailScopesChallengesAndSupportsNavigationStack(t *testing.T) {
 	m := newModel("", testUIDocument(), diskVersion{})
 	m.width, m.height = 100, 32
 	m = m.openDetail("L2")
 	view := m.View()
-	for _, want := range []string{"STATEMENT DETAIL", "L2!", "lemma[fact]", "JUSTIFICATIONS", "1 — AND", "UNDERCUTS", "CP3", "P2"} {
+	for _, want := range []string{"STATEMENT DETAIL", "L2!", "lemma[fact]  F", "JUSTIFICATIONS", "1 — AND", "L1   T", "P4   T", "UNDERCUTS", "CP3  T", "P2!  F"} {
 		if !strings.Contains(view, want) {
 			t.Fatalf("detail view missing %q:\n%s", want, view)
 		}
+	}
+	if strings.Contains(view, "derived") {
+		t.Fatalf("detail view exposes repetitive provenance:\n%s", view)
 	}
 	if got := m.detailSelectableIDs(); len(got) < 4 || got[0] != "L1" || got[2] != "CP3" {
 		t.Fatalf("detail selectable ids = %#v", got)
@@ -109,6 +209,13 @@ func TestDetailScopesChallengesAndSupportsNavigationStack(t *testing.T) {
 	}
 }
 
+func TestCounterpointDetailShowsGroundedAcceptance(t *testing.T) {
+	m := newModel("", testUIDocument(), diskVersion{}).openDetail("CP1")
+	if view := m.View(); !strings.Contains(view, "counterpoint[fact]  T  OUT") {
+		t.Fatalf("counterpoint acceptance missing:\n%s", view)
+	}
+}
+
 func TestLedgerViewUsesCompactDerivationAndEnterNavigation(t *testing.T) {
 	m := newModel("", testUIDocument(), diskVersion{})
 	m.width, m.height = 110, 40
@@ -118,12 +225,12 @@ func TestLedgerViewUsesCompactDerivationAndEnterNavigation(t *testing.T) {
 	}
 	view := m.View()
 	flat := strings.Join(strings.Fields(view), " ")
-	for _, want := range []string{"LABEL", "STATEMENT", "DERIVATION", "AND(P1, P2)", "OR(P3, P4)", "AND(P2) [direct]", "without being summarized or omitted"} {
+	for _, want := range []string{"LABEL", "TRUTH", "STATEMENT", "DERIVATION", "AND(P1, P2)", "OR(P3, P4)", "AND(P2) [direct]", "without being summarized or omitted"} {
 		if !strings.Contains(flat, want) {
 			t.Fatalf("ledger view missing %q:\n%s", want, view)
 		}
 	}
-	if strings.Contains(view, "J1") || strings.Contains(view, "justified by") || strings.Contains(view, "...") {
+	if strings.Contains(view, "J1") || strings.Contains(view, "derived") || strings.Contains(view, "justified by") || strings.Contains(view, "...") {
 		t.Fatalf("ledger view contains forbidden notation:\n%s", view)
 	}
 	m = pressKey(m, "enter")
@@ -593,7 +700,7 @@ func testUIDocument() *argument.Document {
 		return argument.Statement{ID: id, Slug: slug, Text: text, Role: role, Kind: argument.KindFact, Truth: truth}
 	}
 	return &argument.Document{
-		ID: "tui", Title: "TUI Test", Metadata: []argument.Metadata{{Key: "profile", Value: "workspace"}},
+		ID: "tui", Title: "TUI Test", Metadata: []argument.Metadata{{Key: "profile", Value: "cludia"}},
 		Statements: []argument.Statement{
 			statement("P1", "one", "First source statement", argument.RolePremise),
 			statement("P2", "two", "Second source statement", argument.RolePremise),
@@ -605,6 +712,8 @@ func testUIDocument() *argument.Document {
 			statement("CP1", "challenge", "Challenge to isolated statement", argument.RoleCounterpoint),
 			statement("CP2", "answer", "Counterpoint to the challenge", argument.RoleCounterpoint),
 			statement("CP3", "undercut", "Challenge to final inference", argument.RoleCounterpoint),
+			statement("CP4", "source-challenge", "Challenge to the direct-support source", argument.RoleCounterpoint),
+			statement("CP5", "active-isolated-challenge", "Active challenge to the isolated statement", argument.RoleCounterpoint),
 		},
 		Junctors: []argument.Junctor{
 			{ID: "J1", Connector: argument.ConnectorAND, Sources: []string{"P1", "P2"}, Target: "L1"},
@@ -616,6 +725,19 @@ func testUIDocument() *argument.Document {
 			{From: "CP1", Scope: argument.DefeatPremise, To: "P5"},
 			{From: "CP2", Scope: argument.DefeatCounterpoint, To: "CP1"},
 			{From: "CP3", Scope: argument.DefeatInference, JunctorID: "J3", AtTarget: "L2"},
+			{From: "CP4", Scope: argument.DefeatPremise, To: "P2"},
+			{From: "CP5", Scope: argument.DefeatPremise, To: "P5"},
 		},
 	}
+}
+
+func pageTestDocument() *argument.Document {
+	doc := &argument.Document{ID: "pages", Title: "Pages", Metadata: []argument.Metadata{{Key: "profile", Value: "cludia"}}}
+	for index := 1; index <= 12; index++ {
+		doc.Statements = append(doc.Statements, argument.Statement{
+			ID: fmt.Sprintf("P%d", index), Role: argument.RolePremise, Kind: argument.KindFact,
+			Truth: argument.TruthTrue, Text: fmt.Sprintf("Statement %d", index),
+		})
+	}
+	return doc
 }

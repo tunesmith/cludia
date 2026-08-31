@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package ui
 
 import (
@@ -5,6 +8,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/tunesmith/cludia/internal/argument"
+	"github.com/tunesmith/cludia/internal/evaluation"
 	"github.com/tunesmith/cludia/internal/query"
 )
 
@@ -38,8 +42,9 @@ type screenState struct {
 
 // Model is the Bubble Tea navigator with focused durable Top reordering.
 type Model struct {
-	path string
-	doc  *argument.Document
+	path       string
+	doc        *argument.Document
+	evaluation evaluation.Result
 
 	mode         mode
 	current      string
@@ -76,8 +81,9 @@ func Run(path string) error {
 }
 
 func newModel(path string, doc *argument.Document, version diskVersion) Model {
+	evaluated, _ := evaluation.Evaluate(doc)
 	m := Model{
-		path: path, doc: doc, mode: modeTop, width: 100, height: 30,
+		path: path, doc: doc, evaluation: evaluated, mode: modeTop, width: 100, height: 30,
 		diskVersion: version, seenDiskVersion: version, diskVersionKnown: true,
 	}
 	m.refreshQueries("")
@@ -134,9 +140,9 @@ func (m Model) updateTop(key string) (Model, tea.Cmd) {
 	case "K":
 		return m.beginTopMove(-1)
 	case "pgdown":
-		m.topCursor = moveCursor(m.topCursor, len(m.topItems), 5)
+		m.topCursor = m.pageTop(1)
 	case "pgup":
-		m.topCursor = moveCursor(m.topCursor, len(m.topItems), -5)
+		m.topCursor = m.pageTop(-1)
 	case "home":
 		m.topCursor = moveCursor(0, len(m.topItems), 0)
 	case "end":
@@ -161,9 +167,9 @@ func (m Model) updateDetail(key string) Model {
 	case "k", "up":
 		m.detailCursor = moveCursor(m.detailCursor, len(ids), -1)
 	case "pgdown":
-		m.detailCursor = moveCursor(m.detailCursor, len(ids), 5)
+		m.detailCursor = m.pageDetail(1)
 	case "pgup":
-		m.detailCursor = moveCursor(m.detailCursor, len(ids), -5)
+		m.detailCursor = m.pageDetail(-1)
 	case "home":
 		m.detailCursor = moveCursor(0, len(ids), 0)
 	case "end":
@@ -191,9 +197,9 @@ func (m Model) updateLedger(key string) Model {
 	case "k", "up":
 		m.ledgerCursor = moveCursor(m.ledgerCursor, len(m.ledgerRows), -1)
 	case "pgdown":
-		m.ledgerCursor = moveCursor(m.ledgerCursor, len(m.ledgerRows), 5)
+		m.ledgerCursor = m.pageLedger(1)
 	case "pgup":
-		m.ledgerCursor = moveCursor(m.ledgerCursor, len(m.ledgerRows), -5)
+		m.ledgerCursor = m.pageLedger(-1)
 	case "home":
 		m.ledgerCursor = moveCursor(0, len(m.ledgerRows), 0)
 	case "end":
@@ -228,7 +234,7 @@ func (m Model) openDetail(id string) Model {
 }
 
 func (m Model) openLedger(id string) Model {
-	root, rows, err := query.Ledger(m.doc, id)
+	root, rows, err := query.LedgerEvaluated(m.doc, id, m.evaluation)
 	if err != nil {
 		m.setMessage(err.Error(), messageError)
 		return m
@@ -251,7 +257,7 @@ func (m Model) back() Model {
 	m.ledgerRoot = state.ledgerRoot
 	m.topScroll, m.detailScroll, m.ledgerScroll = state.topScroll, state.detailScroll, state.ledgerScroll
 	if m.mode == modeLedger {
-		root, rows, err := query.Ledger(m.doc, m.ledgerRoot)
+		root, rows, err := query.LedgerEvaluated(m.doc, m.ledgerRoot, m.evaluation)
 		if err != nil {
 			m.mode, m.current, m.history = modeTop, "", nil
 			m.setMessage("prior ledger root was removed; returned to Top", messageError)
@@ -281,7 +287,7 @@ func (m Model) snapshot() screenState {
 }
 
 func (m *Model) refreshQueries(preferredTopID string) {
-	m.topItems = query.Top(m.doc)
+	m.topItems = query.TopEvaluated(m.doc, m.evaluation)
 	if preferredTopID != "" {
 		for i, item := range m.topItems {
 			if item.Statement.ID == preferredTopID {
@@ -356,6 +362,71 @@ func (m Model) selectedTopID() string {
 		return ""
 	}
 	return m.topItems[clampCursor(m.topCursor, len(m.topItems))].Statement.ID
+}
+
+func (m Model) pageTop(direction int) int {
+	return pageCursorByRenderedLines(m.topCursor, len(m.topItems), direction, m.viewportBudget(), func(cursor int) (int, int) {
+		candidate := m
+		candidate.topCursor = cursor
+		_, start, end := candidate.renderedTopBody()
+		return start, end
+	})
+}
+
+func (m Model) pageDetail(direction int) int {
+	return pageCursorByRenderedLines(m.detailCursor, len(m.detailSelectableIDs()), direction, m.viewportBudget(), func(cursor int) (int, int) {
+		candidate := m
+		candidate.detailCursor = cursor
+		_, start, end := candidate.renderedDetailBody()
+		return start, end
+	})
+}
+
+func (m Model) pageLedger(direction int) int {
+	return pageCursorByRenderedLines(m.ledgerCursor, len(m.ledgerRows), direction, m.viewportBudget(), func(cursor int) (int, int) {
+		candidate := m
+		candidate.ledgerCursor = cursor
+		_, start, end := candidate.renderedLedgerBody()
+		return start, end
+	})
+}
+
+func pageCursorByRenderedLines(cursor, count, direction, budget int, bounds func(int) (int, int)) int {
+	cursor = clampCursor(cursor, count)
+	if count <= 1 || direction == 0 {
+		return cursor
+	}
+	budget = maxInt(1, budget)
+	currentStart, _ := bounds(cursor)
+	if direction > 0 {
+		targetLine := currentStart + budget
+		result := cursor
+		for candidate := cursor + 1; candidate < count; candidate++ {
+			start, _ := bounds(candidate)
+			if start >= targetLine {
+				break
+			}
+			result = candidate
+		}
+		if result == cursor {
+			result = cursor + 1
+		}
+		return clampCursor(result, count)
+	}
+
+	targetLine := currentStart - budget
+	result := cursor
+	for candidate := cursor - 1; candidate >= 0; candidate-- {
+		start, _ := bounds(candidate)
+		result = candidate
+		if start <= targetLine {
+			break
+		}
+	}
+	if result == cursor {
+		result = cursor - 1
+	}
+	return clampCursor(result, count)
 }
 
 func moveCursor(cursor, length, delta int) int {

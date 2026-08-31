@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package main
 
 import (
@@ -14,16 +17,17 @@ import (
 )
 
 type statementOutput struct {
-	argument.Statement
+	evaluatedStatement
 	Isolated bool `json:"isolated"`
 }
 
 type listOutput struct {
 	SchemaVersion  int                      `json:"schema_version"`
 	Profile        validation.Profile       `json:"profile"`
+	Evaluation     evaluationMetadata       `json:"evaluation"`
 	State          string                   `json:"state"`
 	Statements     []statementOutput        `json:"statements"`
-	Junctors       []argument.Junctor       `json:"junctors"`
+	Junctors       []evaluatedJunctor       `json:"junctors"`
 	DirectSupports []argument.DirectSupport `json:"direct_supports"`
 	Defeats        []argument.Defeat        `json:"defeats"`
 	Diagnostics    []diagnostic.Diagnostic  `json:"diagnostics"`
@@ -32,9 +36,10 @@ type listOutput struct {
 type showOutput struct {
 	SchemaVersion int                     `json:"schema_version"`
 	Profile       validation.Profile      `json:"profile"`
+	Evaluation    evaluationMetadata      `json:"evaluation"`
 	ElementType   string                  `json:"element_type"`
 	Statement     *statementOutput        `json:"statement,omitempty"`
-	Junctor       *argument.Junctor       `json:"junctor,omitempty"`
+	Junctor       *evaluatedJunctor       `json:"junctor,omitempty"`
 	Relations     *query.Relations        `json:"relations,omitempty"`
 	Diagnostics   []diagnostic.Diagnostic `json:"diagnostics"`
 }
@@ -66,21 +71,30 @@ func runList(args []string, stdout, stderr io.Writer) error {
 		}
 		return errValidationFailed
 	}
+	evaluated, evaluationDiagnostics := evaluateDocument(doc)
+	if diagnostic.HasErrors(evaluationDiagnostics) {
+		if err := writeFailure(stdout, *jsonOutput, profile, evaluationDiagnostics); err != nil {
+			return err
+		}
+		return errValidationFailed
+	}
 
 	isolated := query.IsolatedStatementIDs(doc)
 	output := listOutput{
-		SchemaVersion: outputSchemaVersion, Profile: profile, State: filter,
-		Statements: []statementOutput{}, Junctors: []argument.Junctor{},
+		SchemaVersion: outputSchemaVersion, Profile: profile, Evaluation: evaluationMeta(evaluated), State: filter,
+		Statements: []statementOutput{}, Junctors: []evaluatedJunctor{},
 		DirectSupports: []argument.DirectSupport{}, Defeats: []argument.Defeat{}, Diagnostics: diagnostics,
 	}
 	for _, statement := range doc.Statements {
 		if filter == "isolated" && !isolated[statement.ID] {
 			continue
 		}
-		output.Statements = append(output.Statements, statementOutput{Statement: statement, Isolated: isolated[statement.ID]})
+		output.Statements = append(output.Statements, statementOutput{evaluatedStatement: evaluatedStatementFor(statement, evaluated), Isolated: isolated[statement.ID]})
 	}
 	if filter == "all" {
-		output.Junctors = append(output.Junctors, doc.Junctors...)
+		for _, junctor := range doc.Junctors {
+			output.Junctors = append(output.Junctors, evaluatedJunctorFor(junctor, evaluated))
+		}
 		output.DirectSupports = append(output.DirectSupports, doc.DirectSupports...)
 		output.Defeats = append(output.Defeats, doc.Defeats...)
 	}
@@ -114,21 +128,30 @@ func runShow(args []string, stdout, stderr io.Writer) error {
 		}
 		return errValidationFailed
 	}
+	evaluated, evaluationDiagnostics := evaluateDocument(doc)
+	if diagnostic.HasErrors(evaluationDiagnostics) {
+		if err := writeFailure(stdout, *jsonOutput, profile, evaluationDiagnostics); err != nil {
+			return err
+		}
+		return errValidationFailed
+	}
 	reference := fs.Arg(1)
 	isolated := query.IsolatedStatementIDs(doc)
-	output := showOutput{SchemaVersion: outputSchemaVersion, Profile: profile, Diagnostics: diagnostics}
-	if statement, ok := doc.Statement(reference); ok {
+	output := showOutput{SchemaVersion: outputSchemaVersion, Profile: profile, Evaluation: evaluationMeta(evaluated), Diagnostics: diagnostics}
+	resolved, found := doc.ResolveElement(reference)
+	if found && resolved.Type == argument.ElementStatement {
+		statement, _ := doc.Statement(resolved.ID)
 		output.ElementType = "statement"
-		view := statementOutput{Statement: *statement, Isolated: isolated[statement.ID]}
+		view := statementOutput{evaluatedStatement: evaluatedStatementFor(*statement, evaluated), Isolated: isolated[statement.ID]}
 		output.Statement = &view
 		if *withRelations {
 			relations := query.StatementRelations(doc, statement.ID)
 			output.Relations = &relations
 		}
-	} else if junctor, ok := doc.Junctor(reference); ok {
+	} else if found && resolved.Type == argument.ElementJunctor {
+		junctor, _ := doc.Junctor(resolved.ID)
 		output.ElementType = "junctor"
-		copy := *junctor
-		copy.Sources = append([]string(nil), junctor.Sources...)
+		copy := evaluatedJunctorFor(*junctor, evaluated)
 		output.Junctor = &copy
 		if *withRelations {
 			relations := query.JunctorRelations(doc, junctor.ID)
@@ -158,10 +181,10 @@ func writeHumanList(w io.Writer, output listOutput) {
 		if statement.Slug != "" {
 			fmt.Fprintf(w, ":%s", statement.Slug)
 		}
-		fmt.Fprintf(w, "\t::%s\t%s%s\n", statement.Truth, statement.Text, marker)
+		fmt.Fprintf(w, "\t%s\t%s%s\n", formatTruthStatus(statement.evaluatedStatement), statement.Text, marker)
 	}
 	for _, junctor := range output.Junctors {
-		fmt.Fprintf(w, "%s#%s(%s) -> %s\n", junctor.Connector, junctor.ID, strings.Join(junctor.Sources, ", "), junctor.Target)
+		fmt.Fprintf(w, "%s#%s(%s) -> %s\t%s\n", junctor.Connector, junctor.ID, strings.Join(junctor.Sources, ", "), junctor.Target, junctor.EffectiveTruth)
 	}
 	for _, support := range output.DirectSupports {
 		fmt.Fprintf(w, "%s(%s) -> %s\tdirect\n", support.Connector, support.Source, support.Target)
@@ -181,11 +204,14 @@ func writeHumanShow(w io.Writer, output showOutput) {
 		if statement.Slug != "" {
 			fmt.Fprintf(w, ":%s", statement.Slug)
 		}
-		fmt.Fprintf(w, " ::%s\n%s\n", statement.Truth, statement.Text)
+		fmt.Fprintf(w, "  truth %s\n%s\n", formatTruthStatus(statement.evaluatedStatement), statement.Text)
+		if statement.Acceptance != "" {
+			fmt.Fprintf(w, "acceptance: %s\n", statement.Acceptance)
+		}
 		fmt.Fprintf(w, "isolated: %t\n", statement.Isolated)
 	} else if output.Junctor != nil {
 		junctor := output.Junctor
-		fmt.Fprintf(w, "%s#%s(%s) -> %s\n", junctor.Connector, junctor.ID, strings.Join(junctor.Sources, ", "), junctor.Target)
+		fmt.Fprintf(w, "%s#%s(%s) -> %s\teffective %s\n", junctor.Connector, junctor.ID, strings.Join(junctor.Sources, ", "), junctor.Target, junctor.EffectiveTruth)
 	}
 	if output.Relations != nil {
 		writeHumanRelations(w, *output.Relations)

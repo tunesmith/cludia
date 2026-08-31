@@ -1,14 +1,10 @@
-# `.arg` Workspace Profile
+# `.arg` Cludia Profile
 
 ## Status
 
-This document defines the relaxed validation profile implemented over
-Concludia's existing text `.arg` syntax.
-
-The literal metadata value `profile="workspace"` is provisional. It describes
-format validation behavior and is not intended to name the product. It may be
-renamed before the first public release without implying a change to the tool
-name.
+This document defines Cludia's stable relaxed validation profile over
+Concludia's existing text `.arg` syntax. Its metadata and CLI name is `cludia`.
+The shared syntax is unchanged.
 
 ## Design
 
@@ -28,21 +24,30 @@ Concludia applies publication-oriented validation: the graph is connected,
 isolated statements are errors, premises are support leaves, and a root can be
 chosen.
 
-The workspace profile relaxes topology during discovery while retaining
+The Cludia profile relaxes topology during discovery while retaining
 referential integrity and cycle safety.
 
 ## Header and metadata
 
-An initial workspace uses the existing header:
+A new Cludia workspace uses the existing header and profile metadata:
 
 ```text
 argument case-id "Case title"
-meta profile="workspace", version="0.1.0"
+meta profile="cludia"
 ```
 
-`version` in current `.arg` practice describes the content artifact. It MUST
-NOT silently become the syntax version. A future language-level format version
-is an open design decision.
+Cludia does not add `meta version` to a new workspace. When imported or
+explicitly authored, that optional value describes a Concludia graph/artifact
+revision. It is not the Cludia software version and MUST NOT silently become a
+syntax version. A future language-level format version is an open design
+decision.
+
+Legacy `profile="workspace"` remains an input alias for this profile. Reads do
+not modify the file. Dry-run mutation receipts report an `updated` change for
+profile metadata, and the next successful durable save rewrites the value to
+`profile="cludia"` atomically. Failed operations leave the legacy marker
+unchanged. The `--profile` flag accepts the canonical names `cludia` and
+`concludia`, not the legacy file alias.
 
 If `profile` is absent, the document retains ordinary Concludia semantics. The
 new tool may still open it in workspace mode without rewriting the file.
@@ -50,7 +55,7 @@ new tool may still open it in workspace mode without rewriting the file.
 Focused Cludia authoring records exact next numeric IDs in one metadata value:
 
 ```text
-meta profile="workspace", version="0.1.0", cludia-next-ids="v1;P=2;L=1;C=1;CP=1;J=1"
+meta profile="cludia", cludia-next-ids="v1;P=2;L=1;C=1;CP=1;J=1"
 ```
 
 The five namespaces advance independently. Deletion leaves gaps and does not
@@ -74,10 +79,20 @@ conclusion[fact] C1:final-finding "The apparent burglary was staged."
 Focused capture defaults to `premise[fact] ... ::T`. Truth tokens remain the
 existing `T`, `F`, and `U`; no numerical confidence field is introduced.
 
+Only unsourced premises and unsourced counterpoints carry authored truth.
+Sourced statements store `U` and receive calculated effective truth under ADR
+0014. Imported sourced `T`/`F` tokens are preserved and warned about until the
+explicit state-bound `normalize-truth` repair is applied.
+
 The statement ID is required durable identity. The slug remains optional and is
 a mutable human-readable alias with one current value; durable relations are
 resolved and canonically written by ID. Text edits that preserve an ID require
 explicit same-proposition intent under ADR 0007.
+
+Unqualified references follow ADR 0012: exact durable IDs take precedence over
+statement slugs. Imported slug/ID collisions are preserved and warned about so
+ordinary Concludia files remain readable. Focused slug generation and mutation
+do not create new collisions with statement or junctor IDs.
 
 Statement declaration sequence is the durable general order. Reordering moves
 the complete statement block, including support clauses attached to that target,
@@ -87,12 +102,24 @@ use it only as a preference. No separate Top or Ledger order is stored.
 
 Focused creation authors only canonical role-appropriate IDs (`P`, `L`, `C`,
 or `CP` plus a positive decimal suffix) and accepts an explicit ID only when it
-is the exact recorded next value. Ordinary reads and round trips continue to
-preserve broader valid IDs from existing `.arg` files. ADR 0009's explicit
-whole-document renumber is the only operation that compacts these labels.
+is the exact recorded next value. Focused premise-to-lemma promotion assigns
+the exact next `L` ID, retires the former `P` ID, and rewrites all modeled
+references under ADR 0011. Ordinary reads and round trips continue to preserve
+broader valid IDs and legacy role-mismatched IDs from existing `.arg` files.
+ADR 0009's explicit whole-document renumber remains the only operation that
+compacts these labels.
 
 The workspace allows a premise to be isolated. Once it becomes the target of a
-support relation, focused mutations promote it to a lemma.
+support relation, focused mutations promote it to a lemma with the exact next
+monotonic `L` ID.
+
+Atomic batch input schema version 2 declares its complete new topology before
+allocation. A new statement targeted by a batch derivation is therefore written
+directly as a lemma with the next `L` ID rather than receiving and immediately
+retiring a temporary `P` ID. References to new batch elements use caller keys;
+references to existing workspace elements use exact durable IDs. The final
+transaction must still satisfy this profile and serialize through the unchanged
+`.arg` syntax.
 
 ## Multi-premise support
 
@@ -171,7 +198,7 @@ validity.
 
 ## Validation profiles
 
-| Rule | Workspace | Concludia |
+| Rule | Cludia | Concludia |
 |---|---:|---:|
 | Valid references and unique IDs | required | required |
 | Cycle-free directed relations | required | required |
@@ -182,6 +209,23 @@ validity.
 | Targetless lemmas | allowed | warning or mutation restriction |
 | Premise targeted by support | focused mutation promotes role | rejected unless promoted |
 | Defeat chains | allowed | allowed |
+| Authored T/F on sourced statement | compatibility warning; ignored by evaluation | compatibility warning; ignored by evaluation |
+
+## Effective truth
+
+Effective truth is a calculated overlay rather than serialized cache state.
+Cludia evaluates strong three-valued `AND`/`OR`, disjunction across alternative
+justifications and direct supports, and grounded counterpoint acceptance.
+Accepted undermines force premise targets false; accepted undercuts disable the
+identified inference edge. Evaluation outputs declare schema version 1 and mode
+`grounded`.
+
+On Top and Ledger reads, `!` (and JSON `challenged`) means that this grounded
+overlay changed the statement's truth from the value obtained by propagating
+support without defeats. The effect can originate anywhere upstream. Merely
+having a direct counterpoint is insufficient when it is rebutted, inactive, or
+does not change the result; direct defeat relations remain separately
+inspectable.
 
 A valid Concludia document should be a valid workspace. A valid workspace is
 not necessarily a valid Concludia argument.
@@ -208,9 +252,12 @@ Opening and saving without an explicit transforming operation must preserve:
 - ordinary Concludia documents that use constructs the focused workspace UX
   does not create.
 
-If exact trivia preservation such as comments or whitespace is not supported,
-the first implementation must state that canonical rewrite behavior clearly
-and test semantic round-trip equivalence.
+Round trips without explicit normalization preserve legacy sourced truth tokens
+even though evaluation ignores them.
+
+Because exact trivia preservation such as comments or whitespace is not
+supported, Cludia states its canonical rewrite behavior clearly and tests
+semantic round-trip equivalence.
 
 The initial Go implementation uses canonical rewrite behavior. It preserves all
 modeled statements, metadata entries, source order, `AND` and `OR` junctors,

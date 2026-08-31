@@ -1,16 +1,14 @@
-# Cludia v1 Specification
+# Cludia 1.0 Specification
 
-> `Cludia` is the permanent project and repository name, and `cludia` is the
-> command-line binary. The `profile="workspace"` identifier remains
-> provisional.
+> `Cludia` is the project and repository name, `cludia` is the command-line
+> binary, and `profile="cludia"` is the stable permissive inquiry profile.
 
 ## 1. Status and normative language
 
-This document specifies the intended first implementation. `MUST`, `SHOULD`,
-and `MAY` are normative.
+This document specifies Cludia 1.0. `MUST`, `SHOULD`, and `MAY` are normative.
 
-The first implementation is a Go CLI over a local `.arg` file. After CLI
-dogfooding, v1 also includes a terminal navigator over the same query and
+Cludia 1.0 is a Go CLI over a local `.arg` file. It also includes a terminal
+navigator over the same query and
 persistence layers, with focused durable Top reordering. A later local web UI
 MUST have operation and information parity with the CLI.
 
@@ -28,7 +26,7 @@ MUST have operation and information parity with the CLI.
   structure, and all attached defeat chains.
 - **Concludia profile:** the validation rules required for importing a rooted,
   connected argument into Concludia.
-- **Workspace profile:** the relaxed validation rules used during inquiry.
+- **Cludia profile:** the relaxed validation rules used during inquiry.
 
 ## 3. Durable model
 
@@ -46,9 +44,16 @@ queries, rooted export, and deterministic mutation plans MUST observe it.
 Interfaces MAY apply hard dependency constraints over that preference, as the
 support Ledger does, but MUST NOT persist a competing view-specific order.
 
-The workspace-profile metadata value is provisional. Format profile and
-content version MUST remain conceptually distinct even if the initial syntax
-stores both in `meta`.
+New workspaces MUST declare `profile="cludia"`. Legacy
+`profile="workspace"` is an input alias: reads MUST NOT rewrite it, dry runs
+MUST report the proposed metadata migration, and the next successful durable
+save MUST atomically rewrite it to `profile="cludia"`. Failed operations MUST
+leave the legacy marker unchanged.
+
+New workspaces MUST NOT add graph artifact `meta version`. An imported or
+explicitly authored version MUST be preserved. That optional value is a
+Concludia graph/artifact revision, not Cludia's software version or a version
+of the `.arg` syntax.
 
 New Cludia workspaces MUST record the exact next numeric identifier for every
 focused namespace in versioned `cludia-next-ids` metadata. A legacy document
@@ -80,6 +85,12 @@ validation. A caller-supplied invalid slug MUST still be rejected.
 The CLI MUST provide explicit ways to capture unknown, false, and value
 statements. It MUST NOT assign numerical confidence, credibility, or weight.
 
+Authored truth MAY be assigned only to an unsourced premise or unsourced
+counterpoint. Statements with incoming junctor or direct support derive their
+effective truth and MUST store `U`. Imported sourced statements carrying `T` or
+`F` remain readable with a compatibility warning until explicit state-bound
+normalization under ADR 0014.
+
 Statement text SHOULD be atomic and SHOULD avoid embedding multiple premises
 that need separate examination.
 
@@ -88,6 +99,9 @@ Statement identity, wording, and slug semantics follow ADR 0007:
 - the ID is the durable identity of one proposition record;
 - a text edit preserves that ID only when the caller explicitly asserts that
   the new wording expresses the same proposition;
+- focused premise-to-lemma promotion assigns the exact next monotonic `L` ID,
+  retires the previous `P` ID, rewrites modeled references atomically, and
+  reports the mapping under ADR 0011;
 - materially different propositions receive new IDs;
 - the slug is an optional mutable human-readable alias with at most one current
   value and no retained alias history in v1;
@@ -128,6 +142,14 @@ and an undercut MUST NOT silently retract or modify the junctor.
 The tool MUST read, preserve, inspect, remove, and export ordinary Concludia
 `OR` junctors. Creating or editing `OR` junctors MAY be deferred.
 
+An `AND` junctor with more than three sources remains structurally valid, but
+focused authoring SHOULD prefer intermediate lemmas for clarity. `derive` and
+batch authoring MUST emit the stable `concludia_junctor_sources_many` warning
+when they create such a junctor. `add-source` MUST emit it when an ordinary
+workspace junctor crosses from three to four sources. The advisory MUST NOT
+block or roll back an otherwise valid mutation and SHOULD NOT be repeated by
+ordinary workspace reads.
+
 ### 3.4 Legacy direct support
 
 The current Concludia `.arg` syntax permits one-source support clauses and
@@ -158,9 +180,10 @@ An undercut MUST identify the junctor and its target. An undermine MUST identify
 the target statement. A counterpoint-scope defeat MUST identify the prior
 counterpoint.
 
-Defeats MUST NOT be represented as scores or probabilities. V1 is required to
-store and traverse them but is not required to implement a new acceptance or
-truth-propagation calculus.
+Defeats MUST NOT be represented as scores or probabilities. Cludia MUST
+calculate versioned grounded acceptance and effective truth under ADR 0014.
+Accepted undermines force their premise target false; accepted undercuts disable
+only their exact junctor-to-target justification.
 
 When an undercut exposes a missing premise or an obsolete inference, adding the
 missing source, replacing the junctor, or removing it is preferred hygiene. A
@@ -171,10 +194,11 @@ than silently adjudicating it.
 
 ## 4. Structural invariants
 
-The workspace profile MUST enforce:
+The Cludia profile MUST enforce:
 
 - all referenced statement and junctor IDs exist;
 - IDs are unique within the document;
+- statement slugs are unique within their namespace;
 - junctors have exactly one target;
 - newly authored junctors have two or more distinct sources;
 - no self-support or self-defeat relation;
@@ -184,7 +208,7 @@ The workspace profile MUST enforce:
   selected profile;
 - saves are atomic.
 
-The workspace profile MUST allow:
+The Cludia profile MUST allow:
 
 - isolated statements;
 - multiple disconnected components;
@@ -202,23 +226,58 @@ defeat relations.
 On capture, a statement defaults to `premise`.
 
 When an existing premise first becomes the target of a support structure, the
-CLI SHOULD automatically promote it to `lemma`. A selected export root MUST be
-emitted as `conclusion`. Other included targets MUST be emitted as `lemma`, and
-unsupported non-counterpoint leaves MUST be emitted as `premise`.
+CLI MUST automatically promote it to `lemma` and assign the exact next
+monotonic `L` ID. The former `P` ID MUST be retired, every modeled internal
+reference and recognized root-metadata reference MUST be rewritten atomically,
+and the mapping MUST be reported. A selected export root MUST be emitted as
+`conclusion`. Other included targets MUST be emitted as `lemma`, and unsupported
+non-counterpoint leaves MUST be emitted as `premise`.
 
 Counterpoint roles MUST remain counterpoints during role reconciliation.
 
-Automatic role changes MUST be reported in mutation results and MUST preserve
-stable statement identity.
+Automatic role changes MUST be reported in mutation results. Premise-to-lemma
+promotion is the role-consistent reidentification exception defined by ADR
+0011; other ordinary same-role mutations preserve the stable statement ID.
 
 When promotion to `lemma` makes an explicit premise truth token unavailable in
 the shared syntax, the durable truth value MUST normalize to `U` and the
 statement update MUST be reported with the role change.
 
+When a counterpoint first gains incoming support, its role remains
+`counterpoint` but its durable truth MUST normalize to `U`. Removing that
+support does not restore an earlier authored truth.
+
+## 5.1 Effective truth evaluation
+
+Every valid read surface MUST calculate effective truth without modifying the
+workspace file:
+
+- `AND`: any false source yields `F`; otherwise any unknown source yields `U`;
+  otherwise `T`.
+- `OR`: any true source yields `T`; otherwise any unknown source yields `U`;
+  otherwise `F`.
+- Alternative incoming justifications and legacy direct supports combine with
+  `OR`.
+- Unsourced lemmas and conclusions evaluate `U`.
+- A sourced statement with every incoming inference disabled evaluates `F`.
+- Base-effective `T` counterpoints participate in grounded acceptance;
+  counterpoint defeats produce `in`, `out`, or `undecided` labels.
+
+The compact `!` marker and the `challenged` field on Top and Ledger entries MUST
+mean that grounded defeats changed the statement's truth from its base
+support-propagated value. This effect propagates to downstream targets. A
+direct defeat that is rebutted, inactive, or outcome-neutral MUST NOT produce
+the marker. Directly attached defeats remain inspectable as typed relations in
+Statement Detail and structured relation output.
+
+Evaluation results MUST declare evaluation schema version and mode. Stored truth
+and calculated effective truth remain distinct public facts.
+
 ## 6. Required capabilities
 
-Exact command spelling is provisional, but v1 MUST provide the following
-capabilities.
+Cludia 1.0 MUST provide the following capabilities. Human CLI spelling, flags,
+and JSON schemas may evolve during 1.x under the compatibility policy in
+section 9.
 
 ### 6.1 Read and query
 
@@ -234,18 +293,25 @@ capabilities.
 - Read a complete, stable, topologically ordered support ledger for a selected
   non-counterpoint statement, delaying premises toward their first use while
   using general document order to resolve equivalent choices.
+- Optionally restrict that ledger at its root to one explicitly selected
+  incoming junctor while retaining the complete upstream closure of the
+  junctor's sources. The selected junctor MUST target the ledger root; selection
+  is a read-only view and MUST NOT persist a preferred derivation.
 - List defeats targeting or originating from an element.
-- Validate under the workspace or Concludia profile.
+- Validate under the Cludia or Concludia profile.
 - Read versioned machine guidance for statement identity and revision behavior.
 
 ### 6.2 Capture and edit
 
 - Add a statement.
-- Atomically add a non-empty batch of statements from versioned structured
-  input and return an ordered caller-key-to-statement mapping.
+- Atomically add statements from versioned structured input and return an
+  ordered caller-key-to-statement mapping; batch schema version 2 may also
+  create focused `AND` derivations and typed defeats with final mappings.
 - Edit statement text without changing its stable identity only with an
   explicit same-proposition assertion.
 - Change truth and kind where valid.
+- Calculate complete effective truth and grounded counterpoint acceptance.
+- Plan and atomically normalize legacy authored truth on sourced statements.
 - Rename, regenerate, or clear an optional statement slug without changing the
   statement ID or durable relations.
 - Delete a statement with a dry-run plan showing incident relations and
@@ -288,6 +354,10 @@ capabilities.
 
 ## 7. CLI and JSON contract
 
+The process-level exit-status, stream, failure, collection, and mutation-timing
+contract is specified in [docs/cli-json.md](docs/cli-json.md) and MUST be tested
+against the compiled `main` entrypoint.
+
 Human-readable output MUST be the default. Every scriptable read and mutation
 MUST support `--json`.
 
@@ -302,9 +372,31 @@ JSON is a public interface and MUST:
 - report all durable changes made by a mutation;
 - avoid silently dropping constructs unknown to a focused command.
 
+During 1.x, incompatible JSON changes MUST increment the applicable schema
+version and be disclosed in release notes. Cludia does not promise to retain
+implementations of older request or response schemas. Version 1.0.0 uses CLI
+response schema 2, batch input schema 2, and evaluation schema 1.
+
+CLI response schema version 2 adds calculated effective truth to read surfaces.
+`statement.truth` remains the persisted value. Evaluation results use their own
+schema version 1 and mode `grounded`. Batch input has independent schema version
+2.
+
+Reference resolution follows ADR 0012. In statement contexts, exact statement
+IDs precede slugs. In statement-or-junctor contexts, every exact durable ID
+precedes every slug. Imported slug/ID collisions remain readable with a stable
+warning, while focused mutations MUST reject creating a new collision without
+writing.
+
 Flags SHOULD be accepted consistently before or after positional arguments.
 Mutation commands that can remove or cascade through relations SHOULD support
 `--dry-run`.
+
+Successful derive output for premise-to-lemma promotion MUST report
+`role_changes` entries containing `previous_id`, `current_id`, `from`, and `to`.
+Its `changes` collection MUST report the statement reidentification, all
+recognized metadata updates, the new junctor, and allocator metadata changes.
+Diagnostics MUST warn that references outside the workspace were not rewritten.
 
 Top-level `--help` and `-h` MUST print usage successfully. Command-specific
 usage MUST be reachable through `help COMMAND` as well as the command's normal
@@ -318,34 +410,74 @@ Guidance MUST also state that attached counterpoints are removed explicitly
 before deleting their target or an incident inference. It MUST state that
 focused capture accepts truth-apt propositions rather than questions, that
 unresolved hypotheses and disputed propositions use truth `U`, and that Cludia
-does not author confidence scores or probabilities.
+does not author confidence scores or probabilities. Guidance MUST explain that
+a defeat has grounded truth consequences and is appropriate only when accepting
+the counterpoint would make a premise false or materially out of scope, make a
+particular inference insufficient, or defeat an earlier counterpoint. Absence of
+direct proof, a request for caution, or residual uncertainty MUST NOT be
+presented as automatically defeating a claim.
 
-The version 1 batch-capture input contract is:
+Batch input version 2 is the atomic authoring transaction over statements,
+focused `AND` derivations, and typed defeats. Its shape is:
 
 ```json
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "statements": [
+    {"key": "source-a", "text": "Source A is true."},
+    {"key": "source-b", "text": "Source B is true."},
+    {"key": "finding", "text": "The finding follows."},
+    {"key": "objection", "role": "counterpoint", "text": "The sources leave another possibility open."}
+  ],
+  "derivations": [
     {
-      "key": "caller-owned-correlation-key",
-      "text": "Required statement text.",
-      "id": "optional-explicit-id",
-      "slug": "optional-explicit-slug",
-      "truth": "T",
-      "kind": "fact"
+      "key": "finding-inference",
+      "sources": [{"key": "source-a"}, {"key": "source-b"}],
+      "target": {"key": "finding"}
+    }
+  ],
+  "defeats": [
+    {
+      "from": {"key": "objection"},
+      "scope": "inference",
+      "target": {"key": "finding-inference"}
     }
   ]
 }
 ```
 
-Within a batch, `key` MUST be non-empty and unique but is not durable workspace
-identity. `text` MUST be non-empty. Omitted `id` and `slug` values are generated
-in batch order; omitted `truth` and `kind` values default to `T` and `fact`.
-Unknown fields, unsupported schema versions, duplicate keys, or any invalid
-resulting statement MUST reject the whole batch without writing. Successful and
-dry-run output MUST preserve input order and return each key with its complete
-assigned statement. A dry-run mapping is tentative; only the result of the
-applied mutation is authoritative for later references.
+Every new statement and derivation MUST have a non-empty caller key that is
+unique across both collections. A reference MUST contain exactly one of:
+
+- `key`, naming a new statement or derivation in the same transaction; or
+- `id`, naming a durable statement or junctor that existed before the
+  transaction.
+
+Batch relation references MUST NOT resolve slugs or tentative generated IDs.
+New statements MAY explicitly request a role; otherwise a statement targeted
+by a batch derivation is created directly as a lemma and any other statement
+defaults to premise. Counterpoints MUST request the counterpoint role. Newly
+sourced statements store `U`; a newly derived target MUST NOT consume and
+retire a transient `P` ID.
+
+Derivations author only focused `AND` junctors with at least two sources.
+Defeats explicitly declare premise, inference, or counterpoint scope. The
+`from` reference must resolve to a counterpoint; an inference target resolves
+to a derivation/junctor, while premise and counterpoint targets resolve to
+statements. Version 2 does not add direct-support authoring or allow one
+counterpoint to acquire multiple `.arg` defeat targets.
+
+The `derivations` and `defeats` collections MAY be empty when the transaction
+only captures statements. At least one statement, derivation, or defeat is
+required.
+
+The complete transaction MUST be planned on a clone, validated once as a
+whole, and saved atomically only when every statement and relation is valid.
+Any parse, reference, allocation, relation, cycle, or profile failure leaves
+the workspace and allocator unchanged. Dry-run mappings are tentative. Applied
+output MUST return final caller-key mappings for statements and junctors,
+including role-consistent final IDs, plus every created defeat and any role or
+truth normalization affecting pre-existing statements.
 
 Material replacement MUST be a two-phase operation. A dry run MUST report the
 old and replacement records, every incident support and defeat, each explicitly
@@ -414,15 +546,23 @@ change.
 
 ## 9. File compatibility
 
-V1 MUST use the existing Concludia `.arg` syntax as its common syntax. A
-provisional metadata field identifies the relaxed workspace profile:
+V1 MUST use the existing Concludia `.arg` syntax as its common syntax. Stable
+metadata identifies the relaxed Cludia profile:
 
 ```text
-meta profile="workspace"
+meta profile="cludia"
 ```
 
-The literal profile value remains renameable before the first public release.
-It denotes validation semantics, not the product name.
+The legacy value `profile="workspace"` MUST be accepted as an input alias and
+migrated only on a successful durable save as specified in section 3.1. The
+profile denotes validation semantics; it is not a distinct syntax.
+
+Cludia 1.x guarantees that prior Cludia `.arg` files and supported ordinary
+Concludia `.arg` files remain readable without silent loss. This file
+compatibility promise does not freeze human CLI text, command flags, or JSON
+schemas. The `.arg` syntax remains unversioned. Optional `meta version` is a
+Concludia graph/artifact revision and MUST NOT be interpreted as Cludia's
+software version or a DSL version.
 
 A valid ordinary Concludia `.arg` document MUST be readable as a workspace.
 Round-tripping it without an explicit transforming operation MUST preserve:
@@ -460,6 +600,13 @@ The TUI and a future web UI MUST use the same domain operations as the CLI.
 They MUST NOT interpret or write the `.arg` file through independent
 implementations.
 
+Every durable mutation MUST be a clone-returning shared semantic operation with
+typed result facts and stable failures as specified by ADR 0013. CLI command
+files MUST NOT directly edit document fields or relation slices. Shared
+workspace orchestration MUST validate the complete proposed document before any
+atomic create or save. Dry-run and apply paths for a given operation MUST derive
+their effects from the same shared planner.
+
 Parity means:
 
 - every durable mutation exposed in the UI is available through the CLI;
@@ -472,7 +619,11 @@ automatically reload valid external file changes without replacing its last
 valid in-memory document with invalid contents. Capital `J` and `K` in Top MAY
 move the highlighted statement through the shared durable statement-order
 operation. The TUI MUST refuse a stale move when external changes invalidate
-the displayed Top adjacency. Other durable TUI authoring remains deferred.
+the displayed Top adjacency. Text wrapping MUST measure grapheme-aware terminal
+display cells, and the final rendered view MUST fit the current terminal width
+and height even at extreme dimensions. PgUp and PgDn MUST move by the rendered
+viewport rather than a fixed logical-item count while keeping the new selection
+visible. Other durable TUI authoring remains deferred.
 
 Pixel layout, graph rendering, keyboard navigation, and batch ergonomics need
 not be identical.
@@ -490,7 +641,6 @@ not be identical.
   queries beyond focused statement ordering.
 - A universal format shared with Dagim.
 - New `OR` or direct-support authoring UX.
-- A new truth-propagation or defeat-adjudication engine.
 
 ## 13. Acceptance scenarios
 
@@ -500,8 +650,9 @@ V1 is complete when automated tests demonstrate at least:
    validates, and round-trips.
 2. Two captured statements can be combined through a new `AND` junctor and
    target without manual file editing.
-3. An existing premise promoted to a target becomes a lemma without changing
-   ID.
+3. An existing premise promoted to a target receives the exact next `L` ID,
+   retires its `P` ID, and atomically rewrites every modeled reference while
+   reporting the mapping and external-reference warning.
 4. Undermines, undercuts, and counterpoints of counterpoints round-trip and are
    discoverable through JSON.
 5. Directed relation cycles are rejected and malformed cyclic input can still
@@ -540,7 +691,25 @@ V1 is complete when automated tests demonstrate at least:
 21. Top challenged-only filtering and offset/limit pagination preserve document
     order and do not alter the complete rooted query contract.
 22. Human and versioned machine guidance distinguish truth-apt unknown
-    propositions from unsupported questions and confidence scores.
+    propositions from unsupported questions and confidence scores, and
+    distinguish semantic defeats from caution, lack of direct proof, and
+    residual uncertainty.
+23. True, false, and unknown leaves propagate through AND, OR, alternative
+    justifications, and direct support with versioned grounded defeat effects.
+24. Manual truth edits reject sourced statements, supported counterpoints
+    normalize to `U`, and legacy sourced truth is repaired only through a
+    reviewed state-bound normalization operation.
+25. Batch schema version 2 can atomically create statements, role-correct
+    derivation targets, generated junctors, undercuts or undermines, and
+    counterpoints of counterpoints through caller keys; any invalid relation or
+    final graph writes nothing and consumes no identifier.
+26. Creating an `AND` junctor with more than three sources through `derive` or
+    batch, or crossing that threshold through `add-source`, succeeds with one
+    actionable warning while ordinary workspace reads remain quiet.
+27. `ledger --inference` includes only the selected incoming junctor at the
+    root, retains complete support below its sources, rejects mismatched
+    junctors, marks accepted undercuts, and identifies when omitted root
+    justifications change overall root truth without misaligning human columns.
 
 ## 14. Open decisions
 

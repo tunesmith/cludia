@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package main
 
 import (
@@ -6,10 +9,11 @@ import (
 	"io"
 	"strings"
 
-	"github.com/tunesmith/cludia/internal/argfile"
 	"github.com/tunesmith/cludia/internal/argument"
 	"github.com/tunesmith/cludia/internal/diagnostic"
+	"github.com/tunesmith/cludia/internal/evaluation"
 	"github.com/tunesmith/cludia/internal/validation"
+	"github.com/tunesmith/cludia/internal/workspace"
 )
 
 type optionalStringFlag struct {
@@ -30,6 +34,60 @@ type changeOutput struct {
 	Operation   string `json:"operation"`
 	ElementType string `json:"element_type"`
 	ID          string `json:"id"`
+}
+
+type evaluationMetadata struct {
+	SchemaVersion int             `json:"schema_version"`
+	Mode          evaluation.Mode `json:"mode"`
+}
+
+type evaluatedStatement struct {
+	argument.Statement
+	EffectiveTruth argument.Truth         `json:"effective_truth"`
+	TruthSource    evaluation.TruthSource `json:"truth_source"`
+	Acceptance     evaluation.Acceptance  `json:"acceptance,omitempty"`
+}
+
+type evaluatedJunctor struct {
+	argument.Junctor
+	EffectiveTruth argument.Truth `json:"effective_truth"`
+}
+
+func evaluationMeta(result evaluation.Result) evaluationMetadata {
+	return evaluationMetadata{SchemaVersion: result.SchemaVersion, Mode: result.Mode}
+}
+
+func evaluatedStatementFor(statement argument.Statement, result evaluation.Result) evaluatedStatement {
+	value, _ := result.Statement(statement.ID)
+	return evaluatedStatement{
+		Statement: statement, EffectiveTruth: value.EffectiveTruth,
+		TruthSource: value.TruthSource, Acceptance: value.Acceptance,
+	}
+}
+
+func evaluatedJunctorFor(junctor argument.Junctor, result evaluation.Result) evaluatedJunctor {
+	value, _ := result.Junctor(junctor.ID)
+	copy := junctor
+	copy.Sources = append([]string(nil), junctor.Sources...)
+	return evaluatedJunctor{Junctor: copy, EffectiveTruth: value.EffectiveTruth}
+}
+
+func formatTruthStatus(statement evaluatedStatement) string {
+	if statement.TruthSource == evaluation.TruthAsserted && statement.Truth != statement.EffectiveTruth {
+		return fmt.Sprintf("%s → %s", statement.Truth, statement.EffectiveTruth)
+	}
+	return string(statement.EffectiveTruth)
+}
+
+func evaluateDocument(doc *argument.Document) (evaluation.Result, []diagnostic.Diagnostic) {
+	result, err := evaluation.Evaluate(doc)
+	if err == nil {
+		return result, []diagnostic.Diagnostic{}
+	}
+	if evaluationErr, ok := err.(*evaluation.Error); ok {
+		return evaluation.Result{}, diagnosticError(evaluationErr.Code, evaluationErr.Message, evaluationErr.Element)
+	}
+	return evaluation.Result{}, diagnosticError("evaluation_failed", err.Error(), doc.ID)
 }
 
 type mutationOutput struct {
@@ -53,17 +111,7 @@ type failureOutput struct {
 }
 
 func loadValidated(path string) (*argument.Document, validation.Profile, []diagnostic.Diagnostic) {
-	parsed := argfile.Load(path)
-	profile := selectedProfile(parsed.Document, "")
-	diagnostics := append([]diagnostic.Diagnostic(nil), parsed.Diagnostics...)
-	if !diagnostic.HasErrors(diagnostics) {
-		validated := validation.Validate(parsed.Document, profile)
-		diagnostics = append(diagnostics, validated.Diagnostics...)
-	}
-	if diagnostics == nil {
-		diagnostics = []diagnostic.Diagnostic{}
-	}
-	return parsed.Document, profile, diagnostics
+	return workspace.LoadValidated(path, "")
 }
 
 func writeFailure(stdout io.Writer, jsonOutput bool, profile validation.Profile, diagnostics []diagnostic.Diagnostic) error {
@@ -104,11 +152,77 @@ func diagnosticError(code, message, element string) []diagnostic.Diagnostic {
 	return []diagnostic.Diagnostic{{Code: code, Message: message, Severity: diagnostic.SeverityError, Element: element}}
 }
 
+const preferredJunctorSourceLimit = 3
+
+func appendJunctorSizeAdvisory(diagnostics []diagnostic.Diagnostic, junctor argument.Junctor) []diagnostic.Diagnostic {
+	if len(junctor.Sources) <= preferredJunctorSourceLimit {
+		return diagnostics
+	}
+	for _, item := range diagnostics {
+		if item.Code == "concludia_junctor_sources_many" && item.Element == junctor.ID {
+			return diagnostics
+		}
+	}
+	return append(diagnostics, diagnostic.Diagnostic{
+		Code:     "concludia_junctor_sources_many",
+		Message:  fmt.Sprintf("junctor has %d sources; prefer at most 3 and introduce lemmas for clarity", len(junctor.Sources)),
+		Severity: diagnostic.SeverityWarning,
+		Element:  junctor.ID,
+	})
+}
+
+func slugIDCollisionDiagnostic(doc *argument.Document, slug, ownerID string) []diagnostic.Diagnostic {
+	elementType, id, collides := argument.SlugIDCollision(doc, slug, ownerID)
+	if !collides {
+		return nil
+	}
+	return diagnosticError(
+		"statement_slug_id_collision",
+		fmt.Sprintf("slug %q would be shadowed by %s id %s; choose a different slug", slug, elementType, id),
+		ownerID,
+	)
+}
+
 func writeIDAllocationFailure(stdout io.Writer, jsonOutput bool, profile validation.Profile, err error) error {
 	if allocationErr, ok := err.(*argument.IDAllocationError); ok {
 		return writeMutationFailure(stdout, jsonOutput, profile, allocationErr.Code, allocationErr.Message, allocationErr.Element)
 	}
 	return err
+}
+
+func writeArgumentMutationFailure(stdout io.Writer, jsonOutput bool, profile validation.Profile, err error) error {
+	if _, ok := err.(*argument.IDAllocationError); ok {
+		return writeIDAllocationFailure(stdout, jsonOutput, profile, err)
+	}
+	if mutationErr, ok := err.(*argument.MutationError); ok {
+		return writeMutationFailure(stdout, jsonOutput, profile, mutationErr.Code, mutationErr.Message, mutationErr.Element)
+	}
+	if mutationErrs, ok := err.(*argument.MutationErrors); ok {
+		diagnostics := make([]diagnostic.Diagnostic, 0, len(mutationErrs.Failures))
+		for _, failure := range mutationErrs.Failures {
+			diagnostics = append(diagnostics, diagnostic.Diagnostic{
+				Code: failure.Code, Message: failure.Message, Severity: diagnostic.SeverityError, Element: failure.Element,
+			})
+		}
+		if writeErr := writeFailure(stdout, jsonOutput, profile, diagnostics); writeErr != nil {
+			return writeErr
+		}
+		return errValidationFailed
+	}
+	return err
+}
+
+func nextIDsMetadataChange(before, after *argument.Document) *changeOutput {
+	previous, existed := before.MetadataValue(argument.NextIDsMetadataKey)
+	current, _ := after.MetadataValue(argument.NextIDsMetadataKey)
+	if existed && previous == current {
+		return nil
+	}
+	operation := "added"
+	if existed {
+		operation = "updated"
+	}
+	return &changeOutput{Operation: operation, ElementType: "metadata", ID: argument.NextIDsMetadataKey}
 }
 
 func persistIDAllocator(doc *argument.Document, allocator *argument.IDAllocator) *changeOutput {
@@ -138,4 +252,24 @@ func appendMetadataChange(changes []changeOutput, change *changeOutput) []change
 		return append(changes, *change)
 	}
 	return changes
+}
+
+func appendProfileMigrationChange(changes []changeOutput, before *argument.Document) []changeOutput {
+	if before == nil || !before.LegacyWorkspaceProfile {
+		return changes
+	}
+	for _, change := range changes {
+		if change.ElementType == "metadata" && change.ID == "profile" {
+			return changes
+		}
+	}
+	return append(changes, changeOutput{Operation: "updated", ElementType: "metadata", ID: "profile"})
+}
+
+func validateAndPersistMutation(path string, next *argument.Document, profile validation.Profile, persist bool) (validation.Result, error) {
+	return workspace.ValidateAndPersist(path, next, profile, persist)
+}
+
+func validateAndCreateMutation(path string, next *argument.Document, profile validation.Profile) (validation.Result, error) {
+	return workspace.ValidateAndCreate(path, next, profile)
 }

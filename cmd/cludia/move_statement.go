@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package main
 
 import (
@@ -6,7 +9,6 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/tunesmith/cludia/internal/argfile"
 	"github.com/tunesmith/cludia/internal/argument"
 	"github.com/tunesmith/cludia/internal/diagnostic"
 	"github.com/tunesmith/cludia/internal/validation"
@@ -69,21 +71,20 @@ func runMoveStatement(args []string, stdout, stderr io.Writer) error {
 		}
 		return err
 	}
-	validated := validation.Validate(next, profile)
+	validated, err := validateAndPersistMutation(fs.Arg(0), next, profile, move.Changed)
+	if err != nil {
+		return err
+	}
 	if !validated.OK() {
 		if err := writeFailure(stdout, *jsonOutput, profile, validated.Diagnostics); err != nil {
 			return err
 		}
 		return errValidationFailed
 	}
-	if move.Changed {
-		if err := argfile.SaveAtomic(fs.Arg(0), next); err != nil {
-			return err
-		}
-	}
 	changes := []changeOutput{}
 	if move.Changed {
 		changes = append(changes, changeOutput{Operation: "reordered", ElementType: "statement", ID: move.Statement.ID})
+		changes = appendProfileMigrationChange(changes, doc)
 	}
 	diagnostics = validated.Diagnostics
 	if diagnostics == nil {

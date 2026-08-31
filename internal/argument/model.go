@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package argument
 
 type Role string
@@ -45,13 +48,14 @@ type Metadata struct {
 }
 
 type Document struct {
-	ID             string          `json:"id"`
-	Title          string          `json:"title"`
-	Metadata       []Metadata      `json:"metadata"`
-	Statements     []Statement     `json:"statements"`
-	Junctors       []Junctor       `json:"junctors"`
-	DirectSupports []DirectSupport `json:"direct_supports"`
-	Defeats        []Defeat        `json:"defeats"`
+	ID                     string          `json:"id"`
+	Title                  string          `json:"title"`
+	Metadata               []Metadata      `json:"metadata"`
+	Statements             []Statement     `json:"statements"`
+	Junctors               []Junctor       `json:"junctors"`
+	DirectSupports         []DirectSupport `json:"direct_supports"`
+	Defeats                []Defeat        `json:"defeats"`
+	LegacyWorkspaceProfile bool            `json:"-"`
 }
 
 type Statement struct {
@@ -86,6 +90,20 @@ type Defeat struct {
 	AtTarget  string      `json:"at_target,omitempty"`
 }
 
+type ElementType string
+
+const (
+	ElementStatement ElementType = "statement"
+	ElementJunctor   ElementType = "junctor"
+)
+
+// ElementReference is the canonical result of resolving a command argument
+// that may name either a statement or a junctor.
+type ElementReference struct {
+	Type ElementType
+	ID   string
+}
+
 func (d *Document) MetadataValue(key string) (string, bool) {
 	for i := len(d.Metadata) - 1; i >= 0; i-- {
 		if d.Metadata[i].Key == key {
@@ -96,12 +114,55 @@ func (d *Document) MetadataValue(key string) (string, bool) {
 }
 
 func (d *Document) Statement(idOrSlug string) (*Statement, bool) {
+	// Durable IDs always take precedence over mutable slugs, independent of
+	// declaration order.
 	for i := range d.Statements {
-		if d.Statements[i].ID == idOrSlug || d.Statements[i].Slug == idOrSlug {
+		if d.Statements[i].ID == idOrSlug {
+			return &d.Statements[i], true
+		}
+	}
+	for i := range d.Statements {
+		if d.Statements[i].Slug == idOrSlug {
 			return &d.Statements[i], true
 		}
 	}
 	return nil, false
+}
+
+// ResolveElement resolves an unqualified statement-or-junctor reference. Any
+// exact durable ID wins over every statement slug. Validation guarantees that
+// durable IDs and statement slugs are unique within their own namespaces.
+func (d *Document) ResolveElement(idOrSlug string) (ElementReference, bool) {
+	for i := range d.Statements {
+		if d.Statements[i].ID == idOrSlug {
+			return ElementReference{Type: ElementStatement, ID: d.Statements[i].ID}, true
+		}
+	}
+	for i := range d.Junctors {
+		if d.Junctors[i].ID == idOrSlug {
+			return ElementReference{Type: ElementJunctor, ID: d.Junctors[i].ID}, true
+		}
+	}
+	for i := range d.Statements {
+		if d.Statements[i].Slug == idOrSlug {
+			return ElementReference{Type: ElementStatement, ID: d.Statements[i].ID}, true
+		}
+	}
+	return ElementReference{}, false
+}
+
+func (d *Document) HasIncomingSupport(statementID string) bool {
+	for _, junctor := range d.Junctors {
+		if junctor.Target == statementID {
+			return true
+		}
+	}
+	for _, support := range d.DirectSupports {
+		if support.Target == statementID {
+			return true
+		}
+	}
+	return false
 }
 
 func (d *Document) Junctor(id string) (*Junctor, bool) {

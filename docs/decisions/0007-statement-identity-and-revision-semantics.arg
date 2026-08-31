@@ -1,5 +1,5 @@
 argument how-cludia-distinguishes-statement-identity-wording-slugs "How Cludia distinguishes statement identity, wording, and slugs"
-meta profile="workspace", version="0.1.0"
+meta profile="cludia"
 
 premise[fact] P1:statement-ids-are-required-durable-identities-support-defeat ::T "Statement IDs are required durable identities and support and defeat relations reference those IDs."
 

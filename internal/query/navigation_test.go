@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package query
 
 import (
@@ -5,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/tunesmith/cludia/internal/argument"
+	"github.com/tunesmith/cludia/internal/evaluation"
 )
 
 func TestTopUsesDocumentOrderLongestDepthAndChallengeState(t *testing.T) {
@@ -16,7 +20,7 @@ func TestTopUsesDocumentOrderLongestDepthAndChallengeState(t *testing.T) {
 	if items[0].Statement.ID != "L2" || items[0].Depth != 2 || !items[0].Challenged {
 		t.Fatalf("first top item = %#v", items[0])
 	}
-	if items[1].Statement.ID != "P5" || items[1].Depth != 0 || !items[1].Challenged {
+	if items[1].Statement.ID != "P5" || items[1].Depth != 0 || items[1].Challenged {
 		t.Fatalf("second top item = %#v", items[1])
 	}
 	for _, item := range items {
@@ -66,10 +70,17 @@ func TestLedgerAcceptsSlugAndRejectsCounterpointRoot(t *testing.T) {
 	}
 }
 
-func TestCounterpointOfCounterpointDoesNotClearChallenge(t *testing.T) {
+func TestDirectChallengeRemainsInspectableWhenGroundedEffectIsRebutted(t *testing.T) {
 	doc := navigationDocument()
-	if !StatementChallenged(doc, "P5") {
-		t.Fatal("counter-counterpoint cleared challenge state")
+	if !StatementDirectlyChallenged(doc, "P5") {
+		t.Fatal("direct challenge was not discoverable")
+	}
+	evaluated, err := evaluation.Evaluate(doc)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if evaluated.TruthChangedByDefeat("P5") {
+		t.Fatal("rebutted direct challenge changed the displayed contestation state")
 	}
 }
 
@@ -156,12 +167,111 @@ func TestLedgerUsesDocumentOrderForEquivalentBranchesAndSharedSources(t *testing
 	}
 }
 
+func TestLedgerInferenceSelectsOnlyOneRootBranchAndKeepsFullSourceClosure(t *testing.T) {
+	doc := selectedLedgerDocument()
+	// Make P1 derived. Selecting J1 at L1 must narrow only L1; it must retain
+	// P1's own complete justification.
+	doc.Statements[0].Role = argument.RoleLemma
+	doc.Statements[0].Truth = argument.TruthUnknown
+	doc.Statements = append(doc.Statements,
+		argument.Statement{ID: "P5", Role: argument.RolePremise, Kind: argument.KindFact, Truth: argument.TruthTrue, Text: "Fifth"},
+		argument.Statement{ID: "P6", Role: argument.RolePremise, Kind: argument.KindFact, Truth: argument.TruthTrue, Text: "Sixth"},
+	)
+	doc.Junctors = append([]argument.Junctor{
+		{ID: "J0", Connector: argument.ConnectorAND, Sources: []string{"P5", "P6"}, Target: "P1"},
+	}, doc.Junctors...)
+	evaluated, err := evaluation.Evaluate(doc)
+	if err != nil {
+		t.Fatal(err)
+	}
+	root, rows, selected, err := LedgerInferenceEvaluated(doc, "L1", "J1", evaluated)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if root != "L1" || !reflect.DeepEqual(ledgerIDs(rows), []string{"P5", "P6", "P1", "P2", "L1"}) {
+		t.Fatalf("selected rows = %s %#v", root, ledgerIDs(rows))
+	}
+	if len(rows[len(rows)-1].Derivations) != 1 || rows[len(rows)-1].Derivations[0].ID != "J1" {
+		t.Fatalf("root derivations = %#v", rows[len(rows)-1].Derivations)
+	}
+	if selected.Junctor.ID != "J1" || selected.EffectiveTruth != argument.TruthFalse || selected.DisabledByUndercut || !selected.OtherJustificationsOmitted || !selected.OtherRoutesAffectTruth {
+		t.Fatalf("selection = %#v", selected)
+	}
+}
+
+func TestLedgerInferenceDistinguishesUndercutAndOtherRouteEffect(t *testing.T) {
+	doc := selectedLedgerDocument()
+	doc.Statements[1].Truth = argument.TruthTrue
+	doc.Statements = append(doc.Statements, argument.Statement{ID: "CP1", Role: argument.RoleCounterpoint, Kind: argument.KindFact, Truth: argument.TruthTrue, Text: "J1 is undercut"})
+	doc.Defeats = append(doc.Defeats, argument.Defeat{From: "CP1", Scope: argument.DefeatInference, JunctorID: "J1", AtTarget: "L1"})
+	evaluated, err := evaluation.Evaluate(doc)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, _, selected, err := LedgerInferenceEvaluated(doc, "L1", "J1", evaluated)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if selected.EffectiveTruth != argument.TruthTrue || !selected.DisabledByUndercut || !selected.OtherRoutesAffectTruth {
+		t.Fatalf("selection with alternative = %#v", selected)
+	}
+	doc.Junctors = doc.Junctors[:1]
+	evaluated, err = evaluation.Evaluate(doc)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, _, selected, err = LedgerInferenceEvaluated(doc, "L1", "J1", evaluated)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !selected.DisabledByUndercut || selected.OtherJustificationsOmitted || selected.OtherRoutesAffectTruth {
+		t.Fatalf("selection without alternative = %#v", selected)
+	}
+}
+
+func TestLedgerInferenceRejectsMissingAndMismatchedJunctors(t *testing.T) {
+	doc := selectedLedgerDocument()
+	doc.Statements = append(doc.Statements, argument.Statement{ID: "L2", Role: argument.RoleLemma, Kind: argument.KindFact, Truth: argument.TruthUnknown, Text: "Other target"})
+	doc.Junctors = append(doc.Junctors, argument.Junctor{ID: "J3", Connector: argument.ConnectorAND, Sources: []string{"P1", "P3"}, Target: "L2"})
+	evaluated, err := evaluation.Evaluate(doc)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, test := range []struct {
+		id, code string
+	}{{"missing", "ledger_inference_not_found"}, {"J3", "ledger_inference_target_mismatch"}} {
+		_, _, _, err := LedgerInferenceEvaluated(doc, "L1", test.id, evaluated)
+		selectionErr, ok := err.(*LedgerInferenceError)
+		if !ok || selectionErr.Code != test.code {
+			t.Fatalf("%s error = %#v", test.id, err)
+		}
+	}
+}
+
 func ledgerIDs(rows []LedgerRow) []string {
 	ids := make([]string, 0, len(rows))
 	for _, row := range rows {
 		ids = append(ids, row.Statement.ID)
 	}
 	return ids
+}
+
+func selectedLedgerDocument() *argument.Document {
+	return &argument.Document{
+		ID: "selected-ledger", Title: "Selected Ledger",
+		Statements: []argument.Statement{
+			{ID: "P1", Role: argument.RolePremise, Kind: argument.KindFact, Truth: argument.TruthTrue, Text: "First"},
+			{ID: "P2", Role: argument.RolePremise, Kind: argument.KindFact, Truth: argument.TruthFalse, Text: "Second"},
+			{ID: "P3", Role: argument.RolePremise, Kind: argument.KindFact, Truth: argument.TruthTrue, Text: "Third"},
+			{ID: "P4", Role: argument.RolePremise, Kind: argument.KindFact, Truth: argument.TruthTrue, Text: "Fourth"},
+			{ID: "L1", Role: argument.RoleLemma, Kind: argument.KindFact, Truth: argument.TruthUnknown, Text: "Target"},
+		},
+		Junctors: []argument.Junctor{
+			{ID: "J1", Connector: argument.ConnectorAND, Sources: []string{"P1", "P2"}, Target: "L1"},
+			{ID: "J2", Connector: argument.ConnectorAND, Sources: []string{"P3", "P4"}, Target: "L1"},
+		},
+		DirectSupports: []argument.DirectSupport{}, Defeats: []argument.Defeat{},
+	}
 }
 
 func navigationDocument() *argument.Document {
@@ -180,6 +290,7 @@ func navigationDocument() *argument.Document {
 			statement("L1", "middle", argument.RoleLemma), statement("L2", "final", argument.RoleLemma),
 			statement("P5", "isolated", argument.RolePremise), statement("CP1", "challenge", argument.RoleCounterpoint),
 			statement("CP2", "answer", argument.RoleCounterpoint), statement("CP3", "undercut", argument.RoleCounterpoint),
+			statement("CP4", "source-challenge", argument.RoleCounterpoint),
 		},
 		Junctors: []argument.Junctor{
 			{ID: "J1", Connector: argument.ConnectorAND, Sources: []string{"P1", "P2"}, Target: "L1"},
@@ -191,6 +302,7 @@ func navigationDocument() *argument.Document {
 			{From: "CP1", Scope: argument.DefeatPremise, To: "P5"},
 			{From: "CP2", Scope: argument.DefeatCounterpoint, To: "CP1"},
 			{From: "CP3", Scope: argument.DefeatInference, JunctorID: "J3", AtTarget: "L2"},
+			{From: "CP4", Scope: argument.DefeatPremise, To: "P2"},
 		},
 	}
 }

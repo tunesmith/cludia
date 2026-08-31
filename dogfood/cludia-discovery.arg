@@ -1,95 +1,27 @@
 argument cludia-discovery "Cludia Discovery"
-meta profile="workspace", version="0.1.0", cludia-next-ids="v1;P=81;L=42;C=1;CP=1;J=41"
+meta profile="cludia", cludia-next-ids="v1;P=12;L=5;C=1;CP=1;J=5"
 
-premise[fact] P47:external-claude-agent-dogfooded-cludia-work-investigation ::T "An external Claude agent dogfooded Cludia during a multi-session work investigation and reported that dependency inspection made affected conclusions easier to find than rereading a growing prose summary."
+premise[fact] P1:current-cludia-reads-expose-grounded-statement-truth-junctor ::T "Current Cludia reads expose grounded statement truth, junctor truth, accepted counterpoint effects, complete rooted structure, and selectable Ledger branches."
 
-premise[fact] P48:identity-defeat-model-improved-agent-reasoning-precision ::T "The external agent reported that Cludia's identity guard prevented a material proposition change from being hidden as an edit and that undermine, undercut, and counterpoint scopes improved reasoning precision."
+premise[fact] P2:current-dogfooding-has-not-yet-produced-grounded-truth ::T "Current dogfooding has not yet produced a grounded truth result that Statement Detail, evaluate, rooted reads, and selected Ledger cannot explain adequately."
 
-lemma[value] L19:cross-model-dogfood-validates-core-reasoning-model "Cross-model dogfooding provides concrete evidence that Cludia's explicit dependency, identity, and defeat model improves multi-session agent reasoning over an accumulating prose summary."
-  <- AND#J16(P47, P48)
+premise[value] P3:new-explanation-surface-should-be-justified-concrete-failure ::T "A new explanation surface should be justified by a concrete failure of existing reads rather than by an abstract desire for a shorter proof."
 
-premise[fact] P59:adjacent-artifacts-already-preserve-implementation-state ::T "Git, Dagim, the roadmap, CLI help, and accepted ADRs already preserve implementation chronology, task state, current capabilities, and durable decisions outside the tracked Cludia dogfood workspace."
+lemma[value] L1:defeat-inclusive-explanation-should-remain-design-investigation-until "Defeat-inclusive explanation should remain a design investigation until dogfooding captures a concrete unexplained result."
+  <- AND#J1(P1, P2, P3)
 
-premise[fact] P60:support-sink-review-exposed-obsolete-development-history ::T "Reviewing the dogfood workspace's support sinks exposed completed next-step lemmas, dated capability checkpoints, and statements whose applicability had expired."
+premise[fact] P4:concludia-internal-defeat-registry-can-represent-multiple-explicit ::T "Concludia's internal defeat registry can represent multiple explicit defeat edges originating from one counterpoint."
 
-lemma[value] L28:dogfood-workspace-should-focus-current-product-discovery "The tracked Cludia dogfood workspace should retain current product-discovery reasoning that may inform future features rather than duplicate implementation chronology, task history, or general capability documentation."
-  <- AND#J27(P59, P60)
+premise[fact] P5:portable-arg-syntax-gives-each-counterpoint-one-explicit ::T "Portable .arg syntax gives each counterpoint one explicit target, and Cludia must preserve that syntax losslessly."
 
-premise[fact] P61:deleted-id-reuse-remains-undecided ::T "Cludia has not decided whether statement and junctor IDs may be reused after deletion within one document lineage."
+lemma[value] L2:shared-counterpoint-reuse-requires-coordinated-arg-concludia-format "Shared counterpoint reuse requires a coordinated .arg and Concludia format decision before Cludia implementation."
+  <- AND#J2(P4, P5)
 
-premise[fact] P62:textual-ledger-sink-table-communicated-graph-without-routing ::T "A full-text derivation ledger and support-sink table communicated graph contents without relying on graphical edge routing."
+premise[fact] P6:top-reorder-tui-only-focused-durable-mutation ::T "Top reorder is the TUI's only focused durable mutation."
 
-premise[fact] P63:textual-views-required-agent-reconstruction-general-json ::T "Producing those textual views required the agent to reconstruct topological ordering, outgoing-target status, and longest justification depth from general Cludia JSON output."
+premise[fact] P7:top-reorder-already-validates-current-adjacency-saves-atomically ::T "Top reorder already validates current adjacency, saves atomically, and refuses incompatible external changes."
 
-lemma[value] L29:deterministic-textual-inspection-next-feature-candidate "A deterministic textual inspection command for derivation ledgers and support sinks is a warranted candidate for the next Cludia feature dogfood slice."
-  <- AND#J28(L28, P62, P63)
+premise[fact] P8:current-dogfooding-has-not-demonstrated-that-bounded-undo ::T "Current dogfooding has not demonstrated that bounded undo is necessary for Top reorder."
 
-premise[fact] P64:cleanup-rehearsal-reused-deleted-junctor-ids ::T "During the rehearsed dogfood cleanup, automatic derivation reused J1 and J2 after those junctor IDs had been deleted from the tracked document lineage."
-
-lemma[value] L30:tracked-lineages-need-deleted-id-policy "Cludia should decide whether tracked document lineages require retired-ID protection before relying on automatic allocation after deletion."
-  <- AND#J29(P61, P64)
-
-premise[fact] P65:dogfooding-found-top-ledger-navigation-useful ::T "Dogfooding found that full-text top-statement lists and rooted derivation ledgers communicated Cludia graph structure reliably without graphical edge routing."
-
-premise[value] P66:read-only-terminal-navigation-can-preserve-exact-semantics ::T "A read-only terminal navigator can preserve exact statement text, typed justifications, challenge scope, and downstream uses through progressive disclosure."
-
-premise[value] P67:initial-tui-should-share-query-models-remain-read-only ::T "The initial Cludia TUI should reuse deterministic query models exposed to agents and remain read-only."
-
-premise[fact] P68:dagim-demonstrates-list-detail-navigation-live-reload ::T "Dagim demonstrates that terminal list and detail navigation with live reload remains useful while an external agent edits the underlying file."
-
-lemma[value] L31:dogfood-warrants-read-only-terminal-navigator "Dogfood evidence warrants a read-only Cludia terminal navigator built on deterministic Top and Ledger views."
-  <- AND#J30(L29, P65, P68)
-
-lemma[value] L32:first-tui-slice-top-detail-ledger-read-only "The first terminal UI slice should contain Top, Statement Detail, and Derivation Ledger navigation with no mutation controls."
-  <- AND#J31(P66, P67)
-
-lemma[value] L33:next-interface-slice-read-only-tui "The next Cludia interface slice should implement deterministic Top and Ledger commands and the accepted read-only TUI described by ADR 0008."
-  <- AND#J32(L31, L32)
-
-premise[fact] P69:top-ledger-query-review-checkpoint ::T "At the deterministic text-view review checkpoint, Cludia could list top statements with depth and challenge state and render a full-text rooted ledger with compact derivation notation in human and versioned JSON output."
-
-lemma[value] L34:top-ledger-query-slice-ready-for-tui "The deterministic Top and Ledger query slice is implemented and ready to support read-only terminal navigation."
-  <- AND#J33(L33, P69)
-
-premise[fact] P70:read-only-tui-review-checkpoint ::T "At the read-only TUI review checkpoint, the cludia FILE invocation opened Top in document order with full wrapped statements, depth, and accessible challenge markers, while Enter and f navigated Statement Detail and Derivation Ledger without writing."
-
-premise[fact] P71:tui-live-reload-review-checkpoint ::T "A live-reload dogfood check preserved the selected L30 statement while an external CLI addition appeared, and automated invalid and missing-file tests retained the last valid in-memory workspace."
-
-lemma[value] L35:read-only-tui-slice-ready-installation "The accepted read-only Cludia TUI slice is implemented, validated, and ready for installation."
-  <- AND#J34(L34, P70, P71)
-
-premise[fact] P72:read-only-tui-final-validation-checkpoint ::T "At the final read-only TUI checkpoint, normal and race-enabled tests, vet, build, strict ADR validation, tracked workspace validation, PTY navigation, live reload, and installation to the configured Go bin all succeeded."
-
-lemma[value] L36:read-only-tui-complete-installed "The accepted read-only Cludia TUI and deterministic Top and Ledger surfaces are complete and installed."
-  <- AND#J35(L35, P72)
-
-premise[fact] P73:monotonic-id-policy-accepted ::T "The accepted identifier policy requires canonical P, L, C, CP, and J numbers to increase monotonically during ordinary focused authoring."
-
-premise[value] P74:deletion-gaps-preferable-to-reuse ::T "Deletion gaps are preferable to silent reuse because cross-revision conversations and adjacent artifacts may retain old numeric references."
-
-premise[value] P75:reviewed-renumber-sole-reset ::T "A state-bound whole-document renumber can compact identifiers explicitly and report every old-to-new mapping."
-
-premise[fact] P76:concludia-dsl-label-layer ::T "Concludia's portable .arg DSL uses labels as local identifiers while opaque identities remain server-side."
-
-premise[fact] P77:opaque-id-deferred-until-sync ::T "No current Cludia use case requires bidirectional synchronization that would make an opaque cross-system identity necessary."
-
-lemma[value] L37:monotonic-allocation-policy-accepted "Cludia should prevent ordinary deleted-ID reuse through compact exact-next metadata and monotonic canonical allocation."
-  <- AND#J36(L30, P73, P74)
-
-lemma[value] L38:explicit-renumber-compatible-with-portable-arg "Explicit whole-document renumbering is compatible with Cludia's portable .arg role without requiring opaque identities now."
-  <- AND#J37(P75, P76, P77)
-
-lemma[value] L39:adr-0009-monotonic-ids-explicit-renumber "ADR 0009 should adopt monotonic canonical IDs and make reviewed whole-document renumbering the sole numbering reset."
-  <- AND#J38(L37, L38)
-
-premise[fact] P78:monotonic-allocator-checkpoint-passed ::T "At the monotonic allocator checkpoint, focused creation used exact-next canonical IDs, failed and dry-run mutations consumed nothing, deletion preserved gaps, and legacy files bootstrapped compact next-ID metadata."
-
-lemma[value] L40:monotonic-allocator-ready-for-renumber "The accepted monotonic allocator and next-ID metadata are implemented and ready to support explicit whole-document renumbering."
-  <- AND#J39(L39, P78)
-
-premise[fact] P79:renumber-dogfood-copy-succeeded ::T "A dry-run and state-bound apply renumbered a copy of the tracked discovery graph, preserved its Top and Ledger structure, and produced a rooted export accepted by Concludia's own DSL compiler and validator."
-
-premise[fact] P80:renumber-test-matrix-passed ::T "The renumber implementation passed normal and race-enabled tests, vet, builds, mapping, stale-token, no-op, reference-rewrite, allocator, and compatibility checks."
-
-lemma[value] L41:monotonic-ids-renumber-complete "Monotonic allocation and explicit whole-document renumbering are implemented, interoperable, and ready for installation."
-  <- AND#J40(L40, P79, P80)
+lemma[value] L3:bounded-tui-reorder-undo-should-remain-deferred-until "Bounded TUI reorder undo should remain deferred until dogfooding demonstrates a concrete need."
+  <- AND#J3(P6, P7, P8)

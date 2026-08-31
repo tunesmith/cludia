@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package main
 
 import (
@@ -25,7 +28,7 @@ func TestRootJSONReturnsCompleteExportableClosure(t *testing.T) {
 	if err := json.Unmarshal(stdout.Bytes(), &raw); err != nil {
 		t.Fatalf("decode root JSON: %v", err)
 	}
-	assertExactKeys(t, raw, "schema_version", "profile", "root", "exportable", "document", "stats", "diagnostics")
+	assertExactKeys(t, raw, "schema_version", "profile", "root", "exportable", "document", "stats", "evaluation", "diagnostics")
 	var output rootedOutput
 	if err := json.Unmarshal(stdout.Bytes(), &output); err != nil {
 		t.Fatalf("decode typed root JSON: %v", err)
@@ -106,6 +109,16 @@ func TestExportOverridesIdentityForCuratedArtifact(t *testing.T) {
 	if diagnostic.HasErrors(actual.Diagnostics) || diagnostic.HasErrors(expected.Diagnostics) {
 		t.Fatalf("parse diagnostics: actual %#v expected %#v", actual.Diagnostics, expected.Diagnostics)
 	}
+	// The rooted fixture carries an authored Concludia graph revision. Cludia's
+	// source workspace intentionally omits graph-version metadata, so export
+	// neither invents nor copies that independently authored value.
+	metadata := expected.Document.Metadata[:0]
+	for _, item := range expected.Document.Metadata {
+		if item.Key != "version" {
+			metadata = append(metadata, item)
+		}
+	}
+	expected.Document.Metadata = metadata
 	if !reflect.DeepEqual(actual.Document, expected.Document) {
 		t.Fatalf("curated export differs: actual %#v expected %#v", actual.Document, expected.Document)
 	}

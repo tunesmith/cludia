@@ -4,6 +4,10 @@
 - Date: 2026-08-26
 - Partial supersession: ADR 0010 later adds focused durable Top reordering while
   retaining this ADR's navigation model and deferral of general TUI authoring.
+- Challenge-marker supersession: ADR 0014's grounded evaluation replaces this
+  ADR's direct-attachment marker with propagated counterpoint impact.
+- Layout refinement: 2026-08-30 (display-cell wrapping, dimension safety, and
+  viewport-sized page movement)
 
 ## Context
 
@@ -30,13 +34,21 @@ The connected argument supporting this decision is
   views.
 - Top lists non-counterpoint statements with no outgoing support in document
   order, with longest support depth and a compact challenge marker.
-- Statement text is always complete and wraps; list and ledger views do not
-  summarize or truncate it.
+- Statement text is complete at usable widths and wraps by grapheme-aware
+  terminal display cells; list and ledger views do not summarize it.
+- A final render boundary prevents any output line or view from exceeding the
+  terminal dimensions. At dimensions too small to display a grapheme or normal
+  chrome, fitting takes precedence over completeness.
+- PgUp and PgDn move according to rendered viewport rows rather than a fixed
+  logical-item count and retain the edge-only selection-reveal behavior.
 - Statement Detail exposes distinct justifications, their undercuts, direct
   statement challenges, recursive counterpoints, and downstream uses.
 - The ledger is rooted at one statement and displays stable topological order
   with label, full statement text, and compact `AND(...)`, `OR(...)`, or direct
   derivation notation. Human output omits junctor IDs.
+- CLI ledger reads may explicitly select one incoming root junctor by ID. This
+  narrows only the root branch, retains complete support below its sources, and
+  does not alter the default complete Ledger or the TUI.
 - `cludia top` and `cludia ledger` expose the same deterministic read models in
   human and versioned JSON form for agent and interface parity.
 - The TUI automatically follows valid external file changes, preserves
@@ -53,9 +65,10 @@ The connected argument supporting this decision is
   CLI or JSON integration surface.
 - Top and ledger semantics live in the domain query layer rather than Bubble
   Tea presentation code.
-- Full challenge adjudication remains out of scope: any attached undermine or
-  incoming-inference undercut marks a statement as challenged even when a
-  counterpoint itself has been countered.
+- The original direct-attachment challenge marker is superseded by ADR 0014.
+  `!` now means grounded counterpoints changed the statement's propagated truth,
+  possibly through a challenge elsewhere in its upstream derivation. Direct
+  challenges remain explicit in Statement Detail and typed relation output.
 - Search, isolated-only browsing, challenge-only browsing, copy/export, and all
   TUI mutations remain deferred until the three-view navigator is dogfooded.
 

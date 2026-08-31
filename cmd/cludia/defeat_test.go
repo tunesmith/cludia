@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package main
 
 import (
@@ -93,6 +96,21 @@ func TestChallengeRoutesPremiseDerivedStatementCounterpointAndJunctor(t *testing
 	}
 }
 
+func TestChallengeGivesJunctorIDPrecedenceOverStatementSlug(t *testing.T) {
+	path := referenceCollisionWorkspace(t)
+	var stdout, stderr bytes.Buffer
+	if err := run([]string{"challenge", path, "shared", "--text", "Challenge the inference", "--json"}, &stdout, &stderr); err != nil {
+		t.Fatalf("challenge collision: %v\n%s", err, stderr.String())
+	}
+	var output defeatMutationOutput
+	if err := json.Unmarshal(stdout.Bytes(), &output); err != nil {
+		t.Fatal(err)
+	}
+	if output.Defeat.Scope != argument.DefeatInference || output.Defeat.JunctorID != "shared" || output.Defeat.AtTarget != "L1" {
+		t.Fatalf("challenge output = %#v", output)
+	}
+}
+
 func TestChallengeDerivedStatementRequiresExplicitAmbiguousInference(t *testing.T) {
 	path := repairWorkspace(t)
 	var stdout, stderr bytes.Buffer
@@ -165,6 +183,24 @@ func TestDefeatTargetRolesAreEnforcedWithoutWriting(t *testing.T) {
 	after, readErr := os.ReadFile(path)
 	if readErr != nil || !bytes.Equal(before, after) {
 		t.Fatalf("workspace changed after role failure: %v", readErr)
+	}
+}
+
+func TestDefeatFieldDiagnosticsAggregateUnderTentativeCanonicalID(t *testing.T) {
+	path := repairWorkspace(t)
+	var stdout, stderr bytes.Buffer
+	err := run([]string{"undermine", path, "P1", "--text", "Invalid", "--truth", "bad-truth", "--kind", "bad-kind", "--json"}, &stdout, &stderr)
+	if !errors.Is(err, errValidationFailed) {
+		t.Fatalf("error = %v", err)
+	}
+	var failure failureOutput
+	if err := json.Unmarshal(stdout.Bytes(), &failure); err != nil || len(failure.Diagnostics) != 2 {
+		t.Fatalf("diagnostics = %#v, %v", failure.Diagnostics, err)
+	}
+	for _, item := range failure.Diagnostics {
+		if item.Element != "CP1" {
+			t.Fatalf("diagnostic element = %q, want CP1", item.Element)
+		}
 	}
 }
 

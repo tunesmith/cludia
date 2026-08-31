@@ -32,6 +32,12 @@ operation does not change logical relations.
 Focused editing may be narrower than the representable format. Unsupported
 focused creation does not authorize dropping or rewriting existing constructs.
 
+The stable permissive marker is `profile="cludia"`. Pre-1.0
+`profile="workspace"` is accepted as an input alias and migrates only on a
+successful Cludia save. Rooted export removes the permissive profile marker.
+Optional `meta version` remains graph/artifact metadata: Cludia preserves an
+authored value but does not invent one for new workspaces or exports.
+
 Concludia's JSON model distinguishes opaque server step identities from
 display labels. Its human-oriented `.arg` DSL substitutes labels into the
 declaration and relation positions, so those labels act as portable file-local
@@ -73,8 +79,9 @@ Given selected root statement `R`:
 11. Reconcile statement roles.
 12. Set the selected root in export metadata.
 13. Remove Cludia-owned allocator metadata such as `cludia-next-ids`.
-14. Validate under the Concludia profile.
-15. Write the output atomically only if validation succeeds.
+14. Remove Cludia-profile metadata.
+15. Validate under the Concludia profile.
+16. Write the output atomically only if validation succeeds.
 
 This is the **entire rooted structure**: all available upstream justifications
 and their attached contestation, rather than one selected path.
@@ -99,6 +106,11 @@ Any label normalization must be deterministic and reported.
 Truth handling follows the shared `.arg` rules. Export must not invent a
 confidence value or silently assert unknown ground statements as true.
 
+Propagated effective truth is not serialized into rooted exports. Export keeps
+authored leaf tokens and support/defeat structure; Cludia and Concludia can
+recalculate the grounded overlay. Legacy sourced truth remains preserved unless
+the user explicitly applies Cludia's normalization repair before export.
+
 ## Defeats and semantic validity
 
 Defeats are part of the exported argument, not reasons to omit the challenged
@@ -114,6 +126,9 @@ Structural export success means:
 
 It does not mean every premise is true or every junctor semantically entails
 its target. Those remain subject to Concludia's semantic validation process.
+Calculated effective truth describes the structural three-valued consequence of
+the current authored leaves and grounded defeat overlay; it is not a semantic
+proof of the natural-language claims.
 
 ## Diagnostics
 

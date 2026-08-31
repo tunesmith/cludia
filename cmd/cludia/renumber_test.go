@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package main
 
 import (
@@ -76,7 +79,7 @@ func TestRenumberDryRunAndApplyRewriteCompleteWorkspace(t *testing.T) {
 		t.Fatalf("applied output = %#v, decode %v", applied, err)
 	}
 	parsed := argfile.ParseFile(path)
-	if result := validation.Validate(parsed.Document, validation.ProfileWorkspace); !result.OK() {
+	if result := validation.Validate(parsed.Document, validation.ProfileCludia); !result.OK() {
 		t.Fatalf("renumbered workspace invalid: %#v", result.Diagnostics)
 	}
 	if result := validation.Validate(parsed.Document, validation.ProfileConcludia); !result.OK() {
@@ -190,7 +193,7 @@ func complexRenumberWorkspace(t *testing.T) string {
 	doc := &argument.Document{
 		ID: "renumber", Title: "Renumber",
 		Metadata: []argument.Metadata{
-			{Key: "profile", Value: "workspace"},
+			{Key: "profile", Value: "cludia"},
 			{Key: "root", Value: "conclusion-x"},
 			{Key: "note", Value: "External text still says P9"},
 		},
@@ -214,7 +217,7 @@ func complexRenumberWorkspace(t *testing.T) string {
 			{From: "inference-objection", Scope: argument.DefeatInference, JunctorID: "J9", AtTarget: "conclusion-x"},
 		},
 	}
-	if result := validation.Validate(doc, validation.ProfileWorkspace); !result.OK() {
+	if result := validation.Validate(doc, validation.ProfileCludia); !result.OK() {
 		t.Fatalf("test fixture invalid: %#v", result.Diagnostics)
 	}
 	path := filepath.Join(t.TempDir(), "renumber.arg")

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package main
 
 import (
@@ -11,6 +14,8 @@ type guidanceOutput struct {
 	SchemaVersion       int                         `json:"schema_version"`
 	UseCaseNeutral      bool                        `json:"use_case_neutral"`
 	StatementAuthoring  statementAuthoringGuidance  `json:"statement_authoring"`
+	TruthEvaluation     truthEvaluationGuidance     `json:"truth_evaluation"`
+	DefeatAuthoring     defeatAuthoringGuidance     `json:"defeat_authoring"`
 	StatementIdentity   statementIdentityGuidance   `json:"statement_identity"`
 	TextEdits           textEditGuidance            `json:"text_edits"`
 	Slugs               slugGuidance                `json:"slugs"`
@@ -18,6 +23,18 @@ type guidanceOutput struct {
 	Deletion            deletionGuidance            `json:"deletion"`
 	MaterialReplacement materialReplacementGuidance `json:"material_replacement"`
 	Renumbering         renumberingGuidance         `json:"renumbering"`
+}
+
+type truthEvaluationGuidance struct {
+	AuthoredTruthLeafOnly bool     `json:"authored_truth_leaf_only"`
+	ManualRoles           []string `json:"manual_roles"`
+	EffectiveCalculated   bool     `json:"effective_truth_calculated"`
+	EffectivePersisted    bool     `json:"effective_truth_persisted"`
+	EvaluationVersion     int      `json:"evaluation_version"`
+	Mode                  string   `json:"mode"`
+	DefeatsIncluded       bool     `json:"defeats_included"`
+	EvaluateCommand       string   `json:"evaluate_command"`
+	NormalizeCommand      string   `json:"normalize_command"`
 }
 
 type statementAuthoringGuidance struct {
@@ -30,11 +47,27 @@ type statementAuthoringGuidance struct {
 	ConfidenceSupported             bool   `json:"confidence_supported"`
 }
 
+type defeatAuthoringGuidance struct {
+	ChangesEffectiveTruth      bool     `json:"changes_effective_truth"`
+	GroundedAcceptanceApplies  bool     `json:"grounded_acceptance_applies"`
+	UndermineWhen              string   `json:"undermine_when"`
+	UndercutWhen               string   `json:"undercut_when"`
+	CounterpointWhen           string   `json:"counterpoint_when"`
+	CaveatAutomaticallyDefeats bool     `json:"caveat_automatically_defeats"`
+	NonDefeatExamples          []string `json:"non_defeat_examples"`
+	NonDefeatAlternatives      []string `json:"non_defeat_alternatives"`
+	InspectionCommand          string   `json:"inspection_command"`
+}
+
 type statementIdentityGuidance struct {
-	IDRequired                    bool   `json:"id_required"`
-	IDMeaning                     string `json:"id_meaning"`
-	MateriallyDifferentGetsNewID  bool   `json:"materially_different_gets_new_id"`
-	SemanticEquivalenceMechanical bool   `json:"semantic_equivalence_mechanical"`
+	IDRequired                      bool     `json:"id_required"`
+	IDMeaning                       string   `json:"id_meaning"`
+	MateriallyDifferentGetsNewID    bool     `json:"materially_different_gets_new_id"`
+	SemanticEquivalenceMechanical   bool     `json:"semantic_equivalence_mechanical"`
+	RolePrefixesCurrent             bool     `json:"role_prefixes_current"`
+	PremisePromotionChangesID       bool     `json:"premise_promotion_changes_id"`
+	PremisePromotionMappingFields   []string `json:"premise_promotion_mapping_fields"`
+	PremisePromotionExternalWarning bool     `json:"premise_promotion_external_warning"`
 }
 
 type textEditGuidance struct {
@@ -121,6 +154,18 @@ func runGuidance(args []string, stdout, stderr io.Writer) error {
 	fmt.Fprintln(stdout, "- Keep questions in conversation or adjacent notes until they can be stated as propositions.")
 	fmt.Fprintln(stdout, "- Add hypotheses, disputed claims, and other unresolved propositions with --truth U; capture defaults to --truth T.")
 	fmt.Fprintln(stdout, "- Cludia does not author confidence scores or probabilities.")
+	fmt.Fprintln(stdout, "- Only leaf premises and leaf counterpoints carry authored truth; sourced statements store U.")
+	fmt.Fprintln(stdout, "- Effective truth is calculated with grounded three-valued support and defeat semantics and is never persisted as cache state.")
+	fmt.Fprintln(stdout, "- Use evaluate to inspect the complete overlay and normalize-truth to repair legacy sourced T/F tokens.")
+	fmt.Fprintln(stdout)
+	fmt.Fprintln(stdout, "Defeat authoring contract:")
+	fmt.Fprintln(stdout, "- A defeat is a semantic relation with grounded truth consequences, not a caution label or annotation.")
+	fmt.Fprintln(stdout, "- Undermine a premise only when accepting the counterpoint would make that premise false or materially out of scope.")
+	fmt.Fprintln(stdout, "- Undercut an inference only when accepting the counterpoint means those sources do not suffice for that target.")
+	fmt.Fprintln(stdout, "- Counterpoint a counterpoint only when the new statement defeats the earlier objection.")
+	fmt.Fprintln(stdout, "- Absence of direct proof, a request for caution, or residual uncertainty is not automatically a defeat.")
+	fmt.Fprintln(stdout, "- Keep a mere qualification in conversation or an adjacent note, or capture it as an unattached truth-apt statement.")
+	fmt.Fprintln(stdout, "- Use evaluate to inspect which counterpoints are IN, OUT, or UNDECIDED and which truths they change.")
 	fmt.Fprintln(stdout)
 	fmt.Fprintln(stdout, "Statement identity contract:")
 	fmt.Fprintln(stdout, "- IDs are required durable proposition-record identities.")
@@ -128,9 +173,12 @@ func runGuidance(args []string, stdout, stderr io.Writer) error {
 	fmt.Fprintln(stdout, "- Truth- and kind-only edits do not require --same-proposition.")
 	fmt.Fprintln(stdout, "- Slugs are optional mutable aliases with one current value and no retained alias history.")
 	fmt.Fprintln(stdout, "- Focused authoring uses monotonic canonical P/L/C/CP/J IDs; deleted numbers are not reused during ordinary mutation.")
+	fmt.Fprintln(stdout, "- Promoting an existing premise to a lemma retires its P ID, assigns the next L ID, rewrites modeled references, and reports previous_id/current_id plus an external-reference warning.")
 	fmt.Fprintln(stdout, "- Scripted capture must not predict generated IDs across mutations; omit --id and read statement.id from each successful add --json result.")
 	fmt.Fprintln(stdout, "- An explicit ID is accepted only when it is the role-appropriate exact next ID recorded by cludia-next-ids.")
-	fmt.Fprintln(stdout, "- Use add-batch with versioned JSON input for all-or-nothing multi-statement capture and caller-key-to-statement mappings.")
+	fmt.Fprintln(stdout, "- Use add-batch schema 2 for all-or-nothing statement, AND-derivation, and typed-defeat authoring with caller-key mappings.")
+	fmt.Fprintln(stdout, "- In schema 2 relations, {\"key\":\"...\"} names a new batch element and {\"id\":\"P1\"} names a pre-existing durable element; slugs and tentative generated IDs are not references.")
+	fmt.Fprintln(stdout, "- New schema 2 derivation targets receive their final L IDs directly; leave derivations and defeats empty for statement-only capture.")
 	fmt.Fprintln(stdout, "- A batch dry-run mapping is tentative; use IDs from the applied mutation result for later references.")
 	fmt.Fprintln(stdout, "- Before deleting a challenged element, remove attached counterpoints with remove-counterpoint; use delete --dry-run to inspect structural effects.")
 	fmt.Fprintln(stdout, "- Materially different propositions receive new IDs; audit each relation before retargeting.")
@@ -150,9 +198,28 @@ func identityGuidance() guidanceOutput {
 			HypothesesAsUnknownPropositions: true, UnknownTruthFlag: "--truth U",
 			DefaultTruth: "T", ConfidenceSupported: false,
 		},
+		TruthEvaluation: truthEvaluationGuidance{
+			AuthoredTruthLeafOnly: true, ManualRoles: []string{"premise", "counterpoint"},
+			EffectiveCalculated: true, EffectivePersisted: false,
+			EvaluationVersion: 1, Mode: "grounded", DefeatsIncluded: true,
+			EvaluateCommand: "evaluate", NormalizeCommand: "normalize-truth",
+		},
+		DefeatAuthoring: defeatAuthoringGuidance{
+			ChangesEffectiveTruth: true, GroundedAcceptanceApplies: true,
+			UndermineWhen:              "accepting the counterpoint would make the premise false or materially out of scope",
+			UndercutWhen:               "accepting the counterpoint means the stated sources do not suffice for that target",
+			CounterpointWhen:           "the new counterpoint defeats the earlier counterpoint",
+			CaveatAutomaticallyDefeats: false,
+			NonDefeatExamples:          []string{"absence of direct proof", "request for caution", "residual uncertainty"},
+			NonDefeatAlternatives:      []string{"conversation", "adjacent note", "unattached truth-apt statement"},
+			InspectionCommand:          "evaluate",
+		},
 		StatementIdentity: statementIdentityGuidance{
 			IDRequired: true, IDMeaning: "durable proposition record identity",
 			MateriallyDifferentGetsNewID: true, SemanticEquivalenceMechanical: false,
+			RolePrefixesCurrent: true, PremisePromotionChangesID: true,
+			PremisePromotionMappingFields:   []string{"previous_id", "current_id"},
+			PremisePromotionExternalWarning: true,
 		},
 		TextEdits: textEditGuidance{
 			SamePropositionRequired: true, Flag: "--same-proposition", TruthKindRequireFlag: false,
@@ -165,7 +232,7 @@ func identityGuidance() guidanceOutput {
 			PredictGeneratedIDs: false, ExplicitIDFlag: "--id", ExplicitIDMustEqualNext: true,
 			CustomIDsAuthored: false, NextIDsMetadata: "cludia-next-ids", AddResultIDField: "statement.id",
 			SuccessfulMutationResultAuthoritative: true, AtomicBatchCommand: "add-batch",
-			BatchInputSchemaVersion: 1, BatchResultMappingField: "statements", BatchDryRunMappingTentative: true,
+			BatchInputSchemaVersion: 2, BatchResultMappingField: "statements, derivations, and defeats", BatchDryRunMappingTentative: true,
 		},
 		Deletion: deletionGuidance{
 			DryRunAvailable: true, DryRunFlag: "--dry-run", RemoveAttachedCounterpointsFirst: true,
@@ -187,5 +254,5 @@ func identityGuidance() guidanceOutput {
 
 func writeGuidanceUsage(w io.Writer) {
 	fmt.Fprintln(w, "Usage: cludia guidance [--json]")
-	fmt.Fprintln(w, "Explain truth-apt authoring plus the use-case-neutral identity, allocation, edit, replacement, and renumbering contract.")
+	fmt.Fprintln(w, "Explain leaf truth, grounded evaluation, defeat authoring, and the use-case-neutral identity, allocation, edit, replacement, and renumbering contract.")
 }

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package argument
 
 import "testing"
@@ -98,7 +101,7 @@ func TestGeneratedIDsAndSlugsAreStableAndUnique(t *testing.T) {
 
 func TestCloneDoesNotShareSlices(t *testing.T) {
 	doc := &Document{
-		Metadata:   []Metadata{{Key: "profile", Value: "workspace"}},
+		Metadata:   []Metadata{{Key: "profile", Value: "cludia"}},
 		Statements: []Statement{{ID: "P1"}},
 		Junctors:   []Junctor{{ID: "J1", Sources: []string{"P1", "P2"}}},
 	}
@@ -107,7 +110,7 @@ func TestCloneDoesNotShareSlices(t *testing.T) {
 	clone.Statements[0].ID = "changed"
 	clone.Junctors[0].Sources[0] = "changed"
 
-	if doc.Metadata[0].Value != "workspace" || doc.Statements[0].ID != "P1" || doc.Junctors[0].Sources[0] != "P1" {
+	if doc.Metadata[0].Value != "cludia" || doc.Statements[0].ID != "P1" || doc.Junctors[0].Sources[0] != "P1" {
 		t.Fatal("Clone shares mutable slices with original")
 	}
 }
@@ -135,5 +138,41 @@ func TestUniqueSlugPrefixesDigitLeadingText(t *testing.T) {
 	}
 	if len(got) > maxSlugLength {
 		t.Fatalf("slug length = %d, max %d", len(got), maxSlugLength)
+	}
+}
+
+func TestStatementAndElementResolutionGiveDurableIDsPrecedence(t *testing.T) {
+	doc := &Document{
+		Statements: []Statement{
+			{ID: "P1", Slug: "junctor-shadow"},
+			{ID: "shared", Slug: "second"},
+			{ID: "P2", Slug: "shared"},
+		},
+		Junctors: []Junctor{{ID: "junctor-shadow"}},
+	}
+
+	statement, ok := doc.Statement("shared")
+	if !ok || statement.ID != "shared" {
+		t.Fatalf("statement resolution = %#v, %t", statement, ok)
+	}
+	resolved, ok := doc.ResolveElement("junctor-shadow")
+	if !ok || resolved.Type != ElementJunctor || resolved.ID != "junctor-shadow" {
+		t.Fatalf("element resolution = %#v, %t", resolved, ok)
+	}
+}
+
+func TestUniqueSlugAndCollisionDetectionReserveDurableIDs(t *testing.T) {
+	doc := &Document{
+		Statements: []Statement{{ID: "reserved", Slug: "other"}},
+		Junctors:   []Junctor{{ID: "derived-claim"}},
+	}
+	if got := UniqueSlug(doc, "Reserved"); got != "reserved-2" {
+		t.Fatalf("statement-ID-aware slug = %q", got)
+	}
+	if got := UniqueSlug(doc, "Derived claim"); got != "derived-claim-2" {
+		t.Fatalf("junctor-ID-aware slug = %q", got)
+	}
+	if elementType, id, ok := SlugIDCollision(doc, "derived-claim", "P1"); !ok || elementType != ElementJunctor || id != "derived-claim" {
+		t.Fatalf("collision = %q %q %t", elementType, id, ok)
 	}
 }

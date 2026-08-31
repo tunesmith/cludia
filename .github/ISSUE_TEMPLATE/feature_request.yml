@@ -1,0 +1,29 @@
+name: Feature request
+description: Suggest an improvement or discuss a product direction.
+title: "Idea: "
+body:
+  - type: markdown
+    attributes:
+      value: Design discussion is welcome. Code pull requests are not currently accepted.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+      description: What reasoning or authoring situation would this improve?
+    validations:
+      required: true
+
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome
+      description: Describe the behavior you would find useful without assuming a particular implementation.
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Include examples or related `.arg` structures if useful. Do not include confidential material.

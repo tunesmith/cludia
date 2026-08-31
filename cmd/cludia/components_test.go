@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package main
 
 import (
@@ -16,7 +19,7 @@ func TestComponentsListsDeterministicSummaries(t *testing.T) {
 	if err := json.Unmarshal(stdout.Bytes(), &raw); err != nil {
 		t.Fatalf("decode components JSON: %v", err)
 	}
-	assertExactKeys(t, raw, "schema_version", "profile", "components", "diagnostics")
+	assertExactKeys(t, raw, "schema_version", "profile", "evaluation", "components", "diagnostics")
 	var output componentsOutput
 	if err := json.Unmarshal(stdout.Bytes(), &output); err != nil {
 		t.Fatalf("decode typed components JSON: %v", err)
@@ -42,13 +45,28 @@ func TestComponentShowsCompleteIslandByJunctor(t *testing.T) {
 	if err := json.Unmarshal(stdout.Bytes(), &raw); err != nil {
 		t.Fatalf("decode component JSON: %v", err)
 	}
-	assertExactKeys(t, raw, "schema_version", "profile", "anchor", "isolated", "statements", "junctors", "direct_supports", "defeats", "diagnostics")
+	assertExactKeys(t, raw, "schema_version", "profile", "evaluation", "anchor", "isolated", "statements", "junctors", "direct_supports", "defeats", "diagnostics")
 	var output componentOutput
 	if err := json.Unmarshal(stdout.Bytes(), &output); err != nil {
 		t.Fatalf("decode typed component JSON: %v", err)
 	}
 	if output.Anchor != "P1" || output.Isolated || len(output.Statements) != 3 || len(output.Junctors) != 1 {
 		t.Fatalf("component output = %#v", output)
+	}
+}
+
+func TestComponentGivesJunctorIDPrecedenceOverStatementSlug(t *testing.T) {
+	path := referenceCollisionWorkspace(t)
+	var stdout, stderr bytes.Buffer
+	if err := run([]string{"component", path, "shared", "--json"}, &stdout, &stderr); err != nil {
+		t.Fatal(err)
+	}
+	var output componentOutput
+	if err := json.Unmarshal(stdout.Bytes(), &output); err != nil {
+		t.Fatal(err)
+	}
+	if output.Anchor != "P2" || len(output.Junctors) != 1 || output.Junctors[0].ID != "shared" {
+		t.Fatalf("component = %#v", output)
 	}
 }
 

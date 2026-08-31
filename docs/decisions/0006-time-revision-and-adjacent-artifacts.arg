@@ -1,5 +1,5 @@
 argument where-temporal-revision-history-belongs-cludia-v1 "Where temporal and revision history belongs in Cludia v1"
-meta profile="workspace", version="0.1.0"
+meta profile="cludia"
 
 premise[fact] P1:git-records-revisions ::T "Git records successive committed revisions of tracked Cludia files."
 

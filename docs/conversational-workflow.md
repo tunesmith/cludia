@@ -76,8 +76,14 @@ cludia add case.arg \
 ```
 
 Cludia does not assign confidence scores or probabilities. The human supplies
-truth state, and typed challenges preserve reasons to doubt statements or
-inferences.
+truth state only for leaf premises and leaf counterpoints. Cludia calculates
+grounded effective truth for sourced statements and typed challenges without
+persisting propagated values.
+
+Use `cludia evaluate case.arg --json` for the complete versioned overlay.
+Existing imported sourced statements with stored `T` or `F` are evaluated from
+their sources and diagnosed until reviewed through `normalize-truth --dry-run`
+and `--apply-token`.
 
 For scripted or agent-driven capture, a generated ID becomes authoritative
 only in the successful mutation result. An agent must not predict a sequence of
@@ -87,31 +93,47 @@ candidate ID. Omit `--id` and read `statement.id` from each successful
 provided, focused authoring accepts it only when it is the role-appropriate
 exact next canonical ID.
 
-When several statements are already known, prefer one atomic batch over a
-sequence whose later references depend on predicted allocations. For example,
-`statements.json` may contain:
+When several statements and their relationships are already known, prefer one
+atomic schema 2 transaction over a sequence whose later references depend on
+predicted allocations. For example, `installment.json` may contain:
 
 ```json
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "statements": [
     {"key": "phase-status", "text": "The migration phase is complete."},
-    {"key": "ticket-42061", "text": "42061 blocks the next phase."}
-  ]
+    {"key": "ticket-42061", "text": "42061 blocks the next phase."},
+    {"key": "next-phase", "text": "The next migration phase cannot begin."}
+  ],
+  "derivations": [
+    {
+      "key": "phase-block",
+      "sources": [{"key": "phase-status"}, {"key": "ticket-42061"}],
+      "target": {"key": "next-phase"}
+    }
+  ],
+  "defeats": []
 }
 ```
 
 Then preview or apply it with:
 
 ```bash
-cludia add-batch case.arg --input statements.json --dry-run --json
-cludia add-batch case.arg --input statements.json --json
+cludia add-batch case.arg --input installment.json --dry-run --json
+cludia add-batch case.arg --input installment.json --json
 ```
 
-The result returns each caller key beside its complete assigned statement. If
-any entry is invalid, no statement is written and no generated ID is consumed.
-Treat IDs in a dry-run mapping as tentative and use the applied mutation's
-mapping for later derives or other references.
+The result returns final statement mappings, generated junctor mappings, and
+defeats. `{"key":"..."}` references a new element in this transaction;
+`{"id":"P17"}` references a durable element already in the workspace. Slugs
+are intentionally not accepted as transaction references. If any entry or the
+complete resulting graph is invalid, nothing is written and no generated ID is
+consumed. Treat dry-run mappings as tentative and use the applied result later.
+
+Because schema 2 sees the complete topology before allocating IDs, a new
+derivation target is created directly as a lemma with an `L` ID. A
+statement-only transaction uses the same schema with empty `derivations` and
+`defeats` arrays.
 
 Ordinary deletion leaves numeric gaps because Cludia does not reuse retired IDs
 during focused authoring. When a user explicitly wants compact labels, first
@@ -127,7 +149,13 @@ cludia list case.arg --state isolated --json
 cludia show case.arg footprints-at-wall --relations --json
 cludia component case.arg footprints-at-wall --json
 cludia top case.arg --challenged --limit 20 --offset 0 --json
+cludia ledger case.arg finding --inference J12 --json
 ```
+
+The default ledger includes every incoming justification at its root. When the
+agent is auditing one exact sufficiency claim, `--inference` selects that root
+junctor while preserving the complete support closure beneath its sources. It
+does not rank, prefer, or persist the branch.
 
 ### 3. Propose
 
@@ -166,11 +194,24 @@ cludia derive case.arg \
 ```
 
 The mutation result reports the new target, junctor, role changes, and component
-changes.
+changes. More than three sources remains valid but produces
+`concludia_junctor_sources_many`, recommending intermediate lemmas while the
+reasoning is still easy to factor. Batch derivations give the same warning, and
+`add-source` emits it when crossing from three to four sources.
 
 ### 6. Challenge or repair
 
-If a real objection remains:
+Defeats are semantic, not annotations. Before attaching one, ask what accepting
+the counterpoint would do:
+
+- use an undermine only if it makes a premise false or materially out of scope;
+- use an undercut only if the stated sources no longer suffice for that target;
+- use a counterpoint of a counterpoint only if it defeats the earlier objection.
+
+No direct eyewitness, a request for caution, or residual uncertainty may be an
+important qualification without defeating the argument. Keep such a caveat in
+conversation or an adjacent note, or capture it as an unattached truth-apt
+statement. If a real objection remains:
 
 ```bash
 cludia undercut case.arg J1 \

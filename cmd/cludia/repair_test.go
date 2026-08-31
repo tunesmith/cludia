@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package main
 
 import (
@@ -32,6 +35,41 @@ func TestAddSourceUpdatesANDJunctor(t *testing.T) {
 	parsed := argfile.ParseFile(path)
 	if len(parsed.Document.Junctors[0].Sources) != 3 {
 		t.Fatalf("saved junctor = %#v", parsed.Document.Junctors[0])
+	}
+}
+
+func TestAddSourceWarnsOnlyWhenCrossingPreferredSourceCount(t *testing.T) {
+	path := repairWorkspace(t)
+	var stdout, stderr bytes.Buffer
+	if err := run([]string{"add-source", path, "J1", "--source", "P3", "--json"}, &stdout, &stderr); err != nil {
+		t.Fatal(err)
+	}
+	var output junctorMutationOutput
+	if err := json.Unmarshal(stdout.Bytes(), &output); err != nil || len(output.Diagnostics) != 0 {
+		t.Fatalf("three-source output = %#v, err %v", output, err)
+	}
+	for _, text := range []string{"Fourth", "Fifth"} {
+		stdout.Reset()
+		stderr.Reset()
+		if err := run([]string{"add", path, "--text", text}, &stdout, &stderr); err != nil {
+			t.Fatal(err)
+		}
+	}
+	stdout.Reset()
+	stderr.Reset()
+	if err := run([]string{"add-source", path, "J1", "--source", "P4", "--json"}, &stdout, &stderr); err != nil {
+		t.Fatal(err)
+	}
+	if err := json.Unmarshal(stdout.Bytes(), &output); err != nil || len(output.Diagnostics) != 1 || output.Diagnostics[0].Code != "concludia_junctor_sources_many" || output.Diagnostics[0].Element != "J1" {
+		t.Fatalf("threshold output = %#v, err %v", output, err)
+	}
+	stdout.Reset()
+	stderr.Reset()
+	if err := run([]string{"add-source", path, "J1", "--source", "P5", "--json"}, &stdout, &stderr); err != nil {
+		t.Fatal(err)
+	}
+	if err := json.Unmarshal(stdout.Bytes(), &output); err != nil || len(output.Diagnostics) != 0 {
+		t.Fatalf("post-threshold output = %#v, err %v", output, err)
 	}
 }
 

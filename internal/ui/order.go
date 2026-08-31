@@ -1,13 +1,17 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package ui
 
 import (
 	"fmt"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/tunesmith/cludia/internal/argfile"
 	"github.com/tunesmith/cludia/internal/argument"
+	"github.com/tunesmith/cludia/internal/evaluation"
 	"github.com/tunesmith/cludia/internal/query"
 	"github.com/tunesmith/cludia/internal/validation"
+	"github.com/tunesmith/cludia/internal/workspace"
 )
 
 type topMoveResultMsg struct {
@@ -60,14 +64,12 @@ func moveTopStatement(path, statementID, anchorID string, placement argument.Mov
 		if err != nil {
 			return topMoveResultMsg{doc: doc, version: check.version, err: err}
 		}
-		validated := validation.Validate(next, validation.ProfileWorkspace)
+		validated, err := workspace.ValidateAndPersist(path, next, validation.ProfileCludia, move.Changed)
+		if err != nil {
+			return topMoveResultMsg{doc: doc, version: check.version, err: err}
+		}
 		if !validated.OK() {
 			return topMoveResultMsg{doc: doc, version: check.version, err: fmt.Errorf("reordered workspace is invalid: %v", validated.Diagnostics)}
-		}
-		if move.Changed {
-			if err := argfile.SaveAtomic(path, next); err != nil {
-				return topMoveResultMsg{doc: doc, version: check.version, err: err}
-			}
 		}
 		saved := readDisk(path)
 		if saved.err != nil || !saved.version.exists {
@@ -114,6 +116,7 @@ func (m Model) applyTopMoveResult(result topMoveResultMsg) Model {
 	}
 	if result.doc != nil {
 		m.doc = result.doc
+		m.evaluation, _ = evaluation.Evaluate(result.doc)
 		m.diskVersion, m.seenDiskVersion, m.diskVersionKnown = result.version, result.version, true
 		m.refreshQueries(preferredTop)
 		m = m.refreshOpenViewAfterMove()
@@ -134,7 +137,7 @@ func (m Model) refreshOpenViewAfterMove() Model {
 		}
 	}
 	if m.mode == modeLedger {
-		root, rows, err := query.Ledger(m.doc, m.ledgerRoot)
+		root, rows, err := query.LedgerEvaluated(m.doc, m.ledgerRoot, m.evaluation)
 		if err != nil {
 			m.mode, m.current, m.history = modeTop, "", nil
 			return m

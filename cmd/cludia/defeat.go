@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package main
 
 import (
@@ -7,7 +10,6 @@ import (
 	"io"
 	"strings"
 
-	"github.com/tunesmith/cludia/internal/argfile"
 	"github.com/tunesmith/cludia/internal/argument"
 	"github.com/tunesmith/cludia/internal/diagnostic"
 	"github.com/tunesmith/cludia/internal/query"
@@ -128,17 +130,19 @@ func runChallenge(args []string, stdout, stderr io.Writer) error {
 		return errValidationFailed
 	}
 	selectedInference := strings.TrimSpace(*inferenceRef)
-	if junctor, ok := doc.Junctor(targetRef); ok {
+	resolved, found := doc.ResolveElement(targetRef)
+	if found && resolved.Type == argument.ElementJunctor {
+		junctor, _ := doc.Junctor(resolved.ID)
 		if selectedInference != "" {
 			return writeMutationFailure(stdout, *flags.jsonOutput, profile, "challenge_inference_redundant", "--inference is not used when the challenged element is already a junctor", junctor.ID)
 		}
 		return createDefeatWithDocument(path, doc, profile, diagnostics, "challenge", argument.DefeatInference, junctor.ID, flags, stdout)
 	}
 
-	statement, ok := doc.Statement(targetRef)
-	if !ok {
+	if !found || resolved.Type != argument.ElementStatement {
 		return writeMutationFailure(stdout, *flags.jsonOutput, profile, "challenge_target_not_found", fmt.Sprintf("statement or junctor %q not found", targetRef), targetRef)
 	}
+	statement, _ := doc.Statement(resolved.ID)
 	switch statement.Role {
 	case argument.RolePremise:
 		if selectedInference != "" {
@@ -235,92 +239,62 @@ func createDefeatWithDocument(path string, doc *argument.Document, profile valid
 		}
 		return errValidationFailed
 	}
-	next := doc.Clone()
-	allocator, err := argument.NewIDAllocator(next)
+	truth, _ := parseTruth(*flags.truth)
+	kind, _ := parseKind(*flags.kind)
+
+	next, result, err := argument.AddDefeat(doc, argument.AddDefeatOptions{
+		Scope: scope, TargetRef: targetRef, Text: *flags.text,
+		RequestedID: strings.TrimSpace(*flags.id), Slug: strings.TrimSpace(*flags.slug),
+		Truth: truth, Kind: kind,
+	})
+	if err != nil {
+		if _, ok := err.(*argument.IDAllocationError); ok {
+			return writeIDAllocationFailure(stdout, *flags.jsonOutput, profile, err)
+		}
+		if addErr, ok := err.(*argument.AddDefeatError); ok {
+			return writeMutationFailure(stdout, *flags.jsonOutput, profile, addErr.Failure.Code, addErr.Failure.Message, addErr.Failure.Element)
+		}
+		return writeArgumentMutationFailure(stdout, *flags.jsonOutput, profile, err)
+	}
+	validated, err := validateAndPersistMutation(path, next, profile, true)
 	if err != nil {
 		return err
 	}
-	defeat := argument.Defeat{Scope: scope}
-	switch scope {
-	case argument.DefeatPremise:
-		target, ok := next.Statement(targetRef)
-		if !ok {
-			return writeMutationFailure(stdout, *flags.jsonOutput, profile, "target_not_found", fmt.Sprintf("premise %q not found", targetRef), targetRef)
-		}
-		if target.Role != argument.RolePremise {
-			return writeMutationFailure(stdout, *flags.jsonOutput, profile, "undermine_target_role", fmt.Sprintf("undermine target %s has role %s, expected premise", target.ID, target.Role), target.ID)
-		}
-		defeat.To = target.ID
-	case argument.DefeatInference:
-		junctor, ok := next.Junctor(targetRef)
-		if !ok {
-			return writeMutationFailure(stdout, *flags.jsonOutput, profile, "junctor_not_found", fmt.Sprintf("junctor %q not found", targetRef), targetRef)
-		}
-		defeat.JunctorID, defeat.AtTarget = junctor.ID, junctor.Target
-	case argument.DefeatCounterpoint:
-		target, ok := next.Statement(targetRef)
-		if !ok {
-			return writeMutationFailure(stdout, *flags.jsonOutput, profile, "target_not_found", fmt.Sprintf("counterpoint %q not found", targetRef), targetRef)
-		}
-		if target.Role != argument.RoleCounterpoint {
-			return writeMutationFailure(stdout, *flags.jsonOutput, profile, "counterpoint_target_role", fmt.Sprintf("counterpoint target %s has role %s, expected counterpoint", target.ID, target.Role), target.ID)
-		}
-		defeat.To = target.ID
-	}
-	truth, truthOK := parseTruth(*flags.truth)
-	kind, kindOK := parseKind(*flags.kind)
-	id, allocationErr := allocator.Statement(argument.RoleCounterpoint, strings.TrimSpace(*flags.id))
-	if allocationErr != nil {
-		return writeIDAllocationFailure(stdout, *flags.jsonOutput, profile, allocationErr)
-	}
-	slug := strings.TrimSpace(*flags.slug)
-	if slug == "" {
-		slug = argument.UniqueSlug(next, *flags.text)
-	}
-	statement := argument.Statement{
-		ID: id, Slug: slug, Role: argument.RoleCounterpoint, Kind: kind,
-		Truth: truth, Text: strings.TrimSpace(*flags.text),
-	}
-	defeat.From = id
-	next.Statements = append(next.Statements, statement)
-	next.Defeats = append(next.Defeats, defeat)
-	metadataChange := persistIDAllocator(next, allocator)
-	if !truthOK {
-		diagnostics = append(diagnostics, diagnostic.Diagnostic{Code: "truth_invalid", Message: fmt.Sprintf("invalid truth %q; expected T, F, or U", *flags.truth), Severity: diagnostic.SeverityError, Element: id})
-	}
-	if !kindOK {
-		diagnostics = append(diagnostics, diagnostic.Diagnostic{Code: "kind_invalid", Message: fmt.Sprintf("invalid kind %q; expected fact or value", *flags.kind), Severity: diagnostic.SeverityError, Element: id})
-	}
-	if !diagnostic.HasErrors(diagnostics) {
-		validated := validation.Validate(next, profile)
-		diagnostics = validated.Diagnostics
-	}
-	if diagnostic.HasErrors(diagnostics) {
+	diagnostics = validated.Diagnostics
+	if !validated.OK() {
 		if err := writeFailure(stdout, *flags.jsonOutput, profile, diagnostics); err != nil {
 			return err
 		}
 		return errValidationFailed
 	}
-	if err := argfile.SaveAtomic(path, next); err != nil {
-		return err
-	}
 	if diagnostics == nil {
 		diagnostics = []diagnostic.Diagnostic{}
 	}
+	previousNextIDs, nextIDsExisted := doc.MetadataValue(argument.NextIDsMetadataKey)
+	currentNextIDs, _ := next.MetadataValue(argument.NextIDsMetadataKey)
+	var metadataChange *changeOutput
+	if !nextIDsExisted || previousNextIDs != currentNextIDs {
+		operation := "added"
+		if nextIDsExisted {
+			operation = "updated"
+		}
+		change := changeOutput{Operation: operation, ElementType: "metadata", ID: argument.NextIDsMetadataKey}
+		metadataChange = &change
+	}
 	output := defeatMutationOutput{
 		SchemaVersion: outputSchemaVersion, Action: action, DryRun: false,
-		Profile: profile, Document: documentSummary(next), Counterpoint: statement, Defeat: defeat,
-		Changes: appendMetadataChange([]changeOutput{
-			{Operation: "added", ElementType: "statement", ID: statement.ID},
-			{Operation: "added", ElementType: "defeat", ID: statement.ID},
-		}, metadataChange),
+		Profile: profile, Document: documentSummary(next), Counterpoint: result.Counterpoint, Defeat: result.Defeat,
+		Changes: appendProfileMigrationChange(appendMetadataChange([]changeOutput{
+			{Operation: "added", ElementType: "statement", ID: result.Counterpoint.ID},
+			{Operation: "added", ElementType: "defeat", ID: result.Counterpoint.ID},
+		}, metadataChange), doc),
 		Diagnostics: diagnostics,
 	}
 	if *flags.jsonOutput {
 		return writeIndentedJSON(stdout, output)
 	}
-	fmt.Fprintf(stdout, "Added %s %s:%s\n%s\n", action, statement.ID, statement.Slug, statement.Text)
-	fmt.Fprintf(stdout, "%s\n", formatDefeat(defeat))
+	fmt.Fprintf(stdout, "Added %s %s:%s\n%s\n", action, result.Counterpoint.ID, result.Counterpoint.Slug, result.Counterpoint.Text)
+	fmt.Fprintf(stdout, "%s\n", formatDefeat(result.Defeat))
 	for _, item := range output.Diagnostics {
 		writeDiagnostic(stdout, item)
 	}
@@ -350,54 +324,16 @@ func runRemoveCounterpoint(args []string, stdout, stderr io.Writer) error {
 		}
 		return errValidationFailed
 	}
-	next := doc.Clone()
-	metadataChange, err := ensureNextIDs(next)
+	beforeComponents := len(query.Components(doc))
+	beforeIsolated := query.IsolatedStatementIDs(doc)
+	next, result, err := argument.RemoveCounterpoint(doc, fs.Arg(1))
+	if err != nil {
+		return writeArgumentMutationFailure(stdout, *jsonOutput, profile, err)
+	}
+	validated, err := validateAndPersistMutation(fs.Arg(0), next, profile, !*dryRun)
 	if err != nil {
 		return err
 	}
-	statement, ok := next.Statement(fs.Arg(1))
-	if !ok {
-		return writeMutationFailure(stdout, *jsonOutput, profile, "counterpoint_not_found", fmt.Sprintf("counterpoint %q not found", fs.Arg(1)), fs.Arg(1))
-	}
-	if statement.Role != argument.RoleCounterpoint {
-		return writeMutationFailure(stdout, *jsonOutput, profile, "counterpoint_role_required", fmt.Sprintf("statement %s has role %s, expected counterpoint", statement.ID, statement.Role), statement.ID)
-	}
-	for _, defeat := range next.Defeats {
-		if defeat.Scope == argument.DefeatCounterpoint && defeat.To == statement.ID {
-			return writeMutationFailure(stdout, *jsonOutput, profile, "counterpoint_has_dependents", fmt.Sprintf("counterpoint %s is targeted by %s; remove dependent counterpoints first", statement.ID, defeat.From), statement.ID)
-		}
-	}
-	for _, junctor := range next.Junctors {
-		if junctor.Target == statement.ID || containsString(junctor.Sources, statement.ID) {
-			return writeMutationFailure(stdout, *jsonOutput, profile, "counterpoint_has_support", fmt.Sprintf("counterpoint %s participates in junctor %s; remove its support relation first", statement.ID, junctor.ID), statement.ID)
-		}
-	}
-	for _, support := range next.DirectSupports {
-		if support.Source == statement.ID || support.Target == statement.ID {
-			return writeMutationFailure(stdout, *jsonOutput, profile, "counterpoint_has_support", fmt.Sprintf("counterpoint %s participates in direct support", statement.ID), statement.ID)
-		}
-	}
-	beforeComponents := len(query.Components(next))
-	beforeIsolated := query.IsolatedStatementIDs(next)
-	removed := *statement
-	removedDefeats := []argument.Defeat{}
-	statements := make([]argument.Statement, 0, len(next.Statements)-1)
-	for _, candidate := range next.Statements {
-		if candidate.ID != statement.ID {
-			statements = append(statements, candidate)
-		}
-	}
-	next.Statements = statements
-	defeats := make([]argument.Defeat, 0, len(next.Defeats))
-	for _, defeat := range next.Defeats {
-		if defeat.From == statement.ID {
-			removedDefeats = append(removedDefeats, defeat)
-		} else {
-			defeats = append(defeats, defeat)
-		}
-	}
-	next.Defeats = defeats
-	validated := validation.Validate(next, profile)
 	if !validated.OK() {
 		if err := writeFailure(stdout, *jsonOutput, profile, validated.Diagnostics); err != nil {
 			return err
@@ -411,32 +347,28 @@ func runRemoveCounterpoint(args []string, stdout, stderr io.Writer) error {
 			newlyIsolated = append(newlyIsolated, candidate.ID)
 		}
 	}
-	if !*dryRun {
-		if err := argfile.SaveAtomic(fs.Arg(0), next); err != nil {
-			return err
-		}
-	}
 	diagnostics = validated.Diagnostics
 	if diagnostics == nil {
 		diagnostics = []diagnostic.Diagnostic{}
 	}
-	changes := []changeOutput{{Operation: "removed", ElementType: "statement", ID: removed.ID}}
-	for range removedDefeats {
-		changes = append(changes, changeOutput{Operation: "removed", ElementType: "defeat", ID: removed.ID})
+	changes := []changeOutput{{Operation: "removed", ElementType: "statement", ID: result.Counterpoint.ID}}
+	for range result.DefeatsRemoved {
+		changes = append(changes, changeOutput{Operation: "removed", ElementType: "defeat", ID: result.Counterpoint.ID})
 	}
-	changes = appendMetadataChange(changes, metadataChange)
+	changes = appendMetadataChange(changes, nextIDsMetadataChange(doc, next))
+	changes = appendProfileMigrationChange(changes, doc)
 	output := counterpointRemovalOutput{
 		SchemaVersion: outputSchemaVersion, Action: "remove-counterpoint", DryRun: *dryRun,
-		Profile: profile, Document: documentSummary(next), Counterpoint: removed,
-		DefeatsRemoved: removedDefeats, ComponentsBefore: beforeComponents,
+		Profile: profile, Document: documentSummary(next), Counterpoint: result.Counterpoint,
+		DefeatsRemoved: result.DefeatsRemoved, ComponentsBefore: beforeComponents,
 		ComponentsAfter: len(query.Components(next)), NewlyIsolated: newlyIsolated,
 		Changes: changes, Diagnostics: diagnostics,
 	}
 	if *jsonOutput {
 		return writeIndentedJSON(stdout, output)
 	}
-	fmt.Fprintf(stdout, "Removed counterpoint %s:%s\n", removed.ID, removed.Slug)
-	for _, defeat := range removedDefeats {
+	fmt.Fprintf(stdout, "Removed counterpoint %s:%s\n", result.Counterpoint.ID, result.Counterpoint.Slug)
+	for _, defeat := range result.DefeatsRemoved {
 		fmt.Fprintf(stdout, "Removed defeat %s\n", formatDefeat(defeat))
 	}
 	fmt.Fprintf(stdout, "components: %d -> %d\n", output.ComponentsBefore, output.ComponentsAfter)
@@ -447,15 +379,6 @@ func runRemoveCounterpoint(args []string, stdout, stderr io.Writer) error {
 		fmt.Fprintln(stdout, "dry-run: no file changes written")
 	}
 	return nil
-}
-
-func containsString(values []string, target string) bool {
-	for _, value := range values {
-		if value == target {
-			return true
-		}
-	}
-	return false
 }
 
 func writeUndermineUsage(w io.Writer) {

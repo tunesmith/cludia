@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package validation
 
 import (
@@ -12,7 +15,7 @@ import (
 type Profile string
 
 const (
-	ProfileWorkspace Profile = "workspace"
+	ProfileCludia    Profile = "cludia"
 	ProfileConcludia Profile = "concludia"
 )
 
@@ -27,7 +30,7 @@ func (r Result) OK() bool {
 
 func Validate(doc *argument.Document, profile Profile) Result {
 	result := Result{Profile: profile, Diagnostics: []diagnostic.Diagnostic{}}
-	if profile != ProfileWorkspace && profile != ProfileConcludia {
+	if profile != ProfileCludia && profile != ProfileConcludia {
 		result.error("profile_unknown", fmt.Sprintf("unknown validation profile %q", profile), "")
 		return result
 	}
@@ -166,6 +169,23 @@ func Validate(doc *argument.Document, profile Profile) Result {
 		}
 	}
 
+	for _, statement := range doc.Statements {
+		slug, ownerID := statement.Slug, statement.ID
+		if slug == "" {
+			continue
+		}
+		if exact, exists := statementByID[slug]; exists && exact.ID == ownerID {
+			continue
+		}
+		if ownerType, exists := allIDs[slug]; exists {
+			result.warning(
+				"statement_slug_shadows_id",
+				fmt.Sprintf("slug %q on statement %s is shadowed by a durable %s id; exact IDs take precedence", slug, ownerID, ownerType),
+				ownerID,
+			)
+		}
+	}
+
 	for _, support := range doc.DirectSupports {
 		if support.Connector != argument.ConnectorAND && support.Connector != argument.ConnectorOR {
 			result.error("direct_support_connector_invalid", fmt.Sprintf("invalid connector %q", support.Connector), support.Source+"->"+support.Target)
@@ -186,6 +206,16 @@ func Validate(doc *argument.Document, profile Profile) Result {
 			supportSources[support.Source] = true
 			addDirected(directed, "statement:"+support.Source, "statement:"+support.Target)
 			addUndirected(undirected, support.Source, support.Target)
+		}
+	}
+
+	for _, statement := range doc.Statements {
+		if incomingSupport[statement.ID] > 0 && statement.Truth != argument.TruthUnknown {
+			result.warning(
+				"nonleaf_authored_truth_ignored",
+				fmt.Sprintf("statement %s has incoming support; stored truth %s is ignored during evaluation and should be normalized to U", statement.ID, statement.Truth),
+				statement.ID,
+			)
 		}
 	}
 

@@ -1,7 +1,7 @@
 # Cludia
 
-`Cludia` is the permanent project and repository name, and `cludia` is the
-command-line binary. The workspace-profile identifier remains provisional.
+`Cludia` is the project and repository name, and `cludia` is the command-line
+binary. Version 1.0 uses `profile="cludia"` for its permissive inquiry profile.
 
 Cludia is a local, file-first reasoning workbench for growing disconnected
 observations into explicit arguments.
@@ -19,26 +19,37 @@ The central workflow is premise-up:
 7. Export the entire rooted structure around a mature conclusion as a
    Concludia argument.
 
-The first implementation is intentionally a Go CLI operating on a readable
+Cludia 1.0 is intentionally a Go CLI operating on a readable
 `.arg` file. An external LLM may use the JSON CLI during a conversation, but
 the tool does not call an LLM itself. A local web interface is planned only
 after conversational dogfooding identifies the right visual operations.
 
 ## Status
 
-This repository is the permanent project home. The Go CLI implements the v1
+This repository is the project home for Cludia v1.0.0. The Go CLI implements the v1
 file workflow: capture and editing, inspection and search, multi-premise
 derivation and repair, defeat authoring, lifecycle operations, validation, and
 rooted Concludia export. A terminal navigator adds deterministic Top, Statement
 Detail, and Derivation Ledger views over the same query layer, plus focused
-durable Top reordering. The project is pre-release and remains under active
-conversational dogfooding. Its
-`.arg` syntax and versioned JSON output remain compatibility-sensitive
-interfaces even before the first public release.
+durable Top reordering. The project remains under active conversational
+dogfooding after its first stable source release.
+
+The executable's exit-status, stdout/stderr, structured-failure, collection,
+and mutation-timing guarantees are documented in
+[docs/cli-json.md](docs/cli-json.md).
+
+Cludia 1.x guarantees file compatibility: it continues reading prior Cludia
+`.arg` files and supported ordinary Concludia `.arg` files without silent loss.
+Human CLI text, flags, and JSON response shapes may evolve during 1.x.
+Incompatible JSON changes receive a schema-version bump and release-note
+disclosure; older JSON schemas need not remain implemented. The current CLI
+response schema is 2, batch input schema is 2, and evaluation schema is 1.
 
 The principal decisions are:
 
 - CLI and data file before a visual interface.
+- Keep every durable mutation in clone-returning shared operations, with CLI
+  files limited to parsing, presentation, and persistence decisions.
 - Reuse Concludia's `.arg` syntax with a relaxed workspace validation profile.
 - Allow disconnected and isolated statements in a workspace.
 - Author only multi-premise `AND` inferences in the initial UX.
@@ -50,10 +61,15 @@ The principal decisions are:
 - Allocate canonical statement and junctor IDs monotonically, preserve deletion
   gaps, and compact them only through an explicit reviewed whole-document
   renumber.
+- Reidentify an existing `P` target with the next `L` ID when derivation
+  promotes it to a lemma, rewriting modeled references and reporting the
+  mapping.
 - Use statement sequence as one durable general order, with proof dependencies
   constraining Ledger presentation.
 - Keep abductive discovery in the human/LLM conversation while persisting only
   asserted entailment-style inferences.
+- Store truth only on leaf premises/counterpoints and calculate grounded
+  three-valued effective truth across support and defeat structure.
 - Do not add probabilistic scores, evidence weights, or Bayesian machinery.
 
 ## Illustrative session
@@ -61,6 +77,7 @@ The principal decisions are:
 ```bash
 cludia add case.arg --text "The footprints terminate at the garden wall."
 cludia list case.arg --state isolated --json
+cludia evaluate case.arg --json
 cludia derive case.arg \
   --source footprints-at-wall \
   --source no-returning-prints \
@@ -83,7 +100,9 @@ cludia case.arg
 ```
 
 The default Top view lists non-counterpoint statements with no outgoing support
-in document order, with longest support depth and `!` on challenged statements.
+in document order, with longest support depth. `!` means grounded counterpoints
+changed the statement's truth somewhere in its upstream derivation; rebutted or
+outcome-neutral counterpoints do not produce it.
 Its title shows the selected row as `current of total` for a quick sense of place.
 All statement text wraps without truncation. Enter follows the selected
 statement into exact justification, challenge, and downstream-use detail; `f`
@@ -94,22 +113,33 @@ Top. Valid external CLI or agent changes reload automatically; invalid contents
 leave the last valid in-memory view intact. A stale reorder is refused when an
 external change has altered the displayed Top adjacency.
 
-## Install from source
+## Installation
 
-Cludia currently requires Go 1.26.4 or newer. From a checkout:
+Install the current release with Homebrew:
 
 ```bash
-go test ./...
-go install ./cmd/cludia
+brew install tunesmith/tap/cludia
 cludia version
 ```
 
-`go install` writes to `GOBIN`, or to `$(go env GOPATH)/bin` when `GOBIN` is
-unset. That directory must be on `PATH`. An untagged development build reports
-its version as `dev`.
+Or install the tagged source with Go 1.26.4 or newer:
 
-Until a public release exists, clone the repository and install from the
-checkout rather than relying on `go install ...@latest`.
+```bash
+go install github.com/tunesmith/cludia/cmd/cludia@v1.0.0
+cludia version
+```
+
+From a source checkout:
+
+```bash
+go test ./...
+go build -o bin/cludia ./cmd/cludia
+bin/cludia version
+```
+
+`go install` writes to `GOBIN`, or to `$(go env GOPATH)/bin` when `GOBIN` is
+unset. That directory must be on `PATH`. Checked-in source, tagged Go installs,
+and the Homebrew formula all identify this release as `cludia v1.0.0`.
 
 ## Development
 
@@ -156,6 +186,7 @@ bin/cludia replace inquiry.arg L1 --with L2 \
 
 bin/cludia renumber inquiry.arg --dry-run --json
 bin/cludia renumber inquiry.arg --apply-token REVIEWED_TOKEN --json
+bin/cludia normalize-truth inquiry.arg --dry-run --json
 
 bin/cludia move-statement inquiry.arg L2 --before L1 --json
 
@@ -182,6 +213,7 @@ bin/cludia export inquiry.arg --root L1 --output conclusion.arg \
 bin/cludia list inquiry.arg --state isolated
 bin/cludia top inquiry.arg --challenged --limit 20 --offset 0 --json
 bin/cludia ledger inquiry.arg L1 --json
+bin/cludia ledger inquiry.arg L1 --inference J1 --json
 bin/cludia show inquiry.arg P1 --relations
 bin/cludia components inquiry.arg
 bin/cludia component inquiry.arg P1 --json
@@ -202,7 +234,9 @@ conflating their logical meanings.
 and text. Results preserve document order and report which fields matched.
 
 `top` lists non-counterpoint statements with no outgoing support in document
-order, including longest upstream support depth and challenge state. It accepts
+order, including longest upstream support depth and propagated counterpoint
+impact. Its `challenged` field and `!` marker mean that grounded defeats changed
+the statement's base propagated truth. It accepts
 `--challenged`, `--limit`, and `--offset` for ordered summary reads; these do not
 alter `root`, whose contract remains the complete rooted structure. `ledger`
 shows the complete support derivation to a selected statement in stable,
@@ -211,17 +245,40 @@ are delayed toward their first use and document order resolves equivalent
 choices. Their human output preserves full statement text and their versioned
 JSON is the shared read model for agents and the TUI.
 
+`ledger --inference J1` narrows only the selected root statement to that exact
+incoming junctor; each source still brings its complete upstream support. The
+operation is a read-only branch view, not a persisted preferred proof. An
+accepted undercut appears as `[undercut]`. If hidden root-level justifications
+change the root's overall truth, the truth cell receives a compact `*` and a
+footnote; the fixed-width truth column keeps statement and derivation columns
+aligned. The TUI continues to use the default complete ledger.
+
 `move-statement` moves one statement immediately before or after another in the
 single durable general order. It accepts IDs or slugs, changes no identity or
 relation, and validates and saves atomically. This order also influences search,
 components, rooted export, and later reviewed `renumber` mappings.
 
-`add-batch` atomically captures multiple statements from a versioned JSON input
-file. Each input item has a required unique caller `key` and statement `text`,
-plus optional `id`, `slug`, `truth`, and `kind`. The result preserves input order
-and maps every caller key to its complete assigned statement; any invalid item
-rejects the whole batch without writing or consuming IDs. Run `add-batch --help`
-to see the schema inline or `add-batch --example` to print minimal valid JSON.
+`add-batch` schema 2 atomically creates new statements, focused `AND`
+derivations, and typed defeats. New elements refer to one another by caller key;
+relations may also name pre-existing durable IDs. The relation collections may
+be empty for a statement-only transaction.
+The result returns every statement key with its final role-consistent statement,
+every derivation key with its generated junctor, and every created defeat. Any
+invalid field, reference, relation, cycle, or final graph rejects the complete
+transaction without writing or consuming IDs. Run `add-batch --help` to see the
+contract or `add-batch --example` to print a complete transaction.
+
+Schema 2 deliberately distinguishes `{"key":"finding"}` from
+`{"id":"P17"}`. Keys name new elements in the same transaction; IDs name
+elements that existed before it. Slugs and tentative generated IDs are not
+relation references. A new statement targeted by a derivation receives its
+final `L` ID directly rather than being created and immediately promoted from a
+temporary `P` ID.
+
+When a batch or `derive` creates an `AND` junctor with more than three sources,
+the successful receipt warns that intermediate lemmas may improve clarity.
+`add-source` gives the same advisory when it crosses from three to four. Large
+junctors remain valid, and normal workspace reads do not repeat the warning.
 
 Focused creation assigns role-appropriate canonical IDs from the exact next
 values stored in `cludia-next-ids`. Automatic IDs increase monotonically;
@@ -229,6 +286,16 @@ deletion leaves gaps, and failed mutations or dry runs consume nothing. An
 explicit ID is accepted only when it equals the relevant exact next value.
 Existing custom IDs remain readable and survive ordinary round trips, but new
 focused authoring does not create them.
+
+Exact durable IDs take precedence over mutable statement slugs in every
+unqualified reference. Imported slug/ID collisions remain readable with a
+warning; focused authoring refuses to create new collisions.
+
+When `derive --target` first justifies an existing premise, Cludia promotes it
+with the next `L` ID, retires its former `P` ID, and atomically rewrites modeled
+references. Structured output reports `previous_id` and `current_id`; external
+references remain outside the checked scope. Use `derive --target-text` to
+create a new lemma directly with an `L` ID.
 
 Focused inference repair uses `add-source`, `replace-source`, `remove-source`,
 and `remove-junctor`. Source editing applies only to `AND` junctors and must
@@ -243,6 +310,16 @@ junctor and target, and `counterpoint` for a counterpoint of a counterpoint.
 counterpoint, or derived statement. It selects a derived statement's sole
 incoming junctor but requires `--inference` when multiple justifications or
 legacy direct support make the choice ambiguous.
+
+A defeat is not a caution label. If its counterpoint is accepted by grounded
+evaluation, it changes effective truth: an undermine falsifies its premise and
+an undercut disables its exact inference edge. Use one only when accepting the
+counterpoint really has that consequence. Absence of direct proof, a request
+for caution, or residual uncertainty is not automatically a defeat; keep a
+mere qualification in conversation or an adjacent note, or capture it as an
+unattached truth-apt statement. `cludia guidance` exposes the same contract in
+human and structured form.
+
 `remove-counterpoint` is leaf-first, supports `--dry-run`, and refuses to remove
 a statement that still has dependent counterpoints or support relations.
 
@@ -291,21 +368,29 @@ overwrite an existing output file.
 Local dogfooding workspaces may live under the ignored `personal/` directory so
 private inquiry data is not committed accidentally.
 
-Tracked project dogfooding artifacts live under `dogfood/`. The initial pair is
-the Cludia reasoning workspace and its corresponding Dagim implementation plan.
+Tracked project dogfooding artifacts live under `dogfood/`, including the
+forward-looking Cludia discovery workspace and Ninth Room playtests.
 
 The `check` command is an alias for `validate`. A file declaring
-`meta profile="workspace"` selects the workspace profile by default; otherwise
-validation defaults to the Concludia profile. `--profile` overrides either
-choice.
+`meta profile="cludia"` selects the permissive Cludia profile by default;
+otherwise validation defaults to the Concludia profile. Legacy files declaring
+`profile="workspace"` remain readable and are rewritten to `profile="cludia"`
+on their next successful durable save. Reads and failed operations never
+rewrite them. `--profile` accepts `cludia` or `concludia`.
+
+New Cludia files omit graph artifact `meta version`. If that optional metadata
+is imported or explicitly authored, Cludia preserves it. It is a revision of
+the graph artifact used by Concludia—not Cludia's software version and not a
+version of the `.arg` syntax.
 
 ## Documents
 
 - [VISION.md](VISION.md) explains the product motivation and philosophy.
 - [SPEC.md](SPEC.md) defines the normative v1 behavior.
-- [ROADMAP.md](ROADMAP.md) sequences implementation and dogfooding.
+- [ROADMAP.md](ROADMAP.md) tracks forward-looking post-1.0 work.
+- [CHANGELOG.md](CHANGELOG.md) records release changes and compatibility notes.
 - [docs/arg-workspace-profile.md](docs/arg-workspace-profile.md) defines the
-  implemented `.arg` workspace profile.
+  implemented `.arg` Cludia profile.
 - [docs/concludia-interoperability.md](docs/concludia-interoperability.md)
   specifies rooted export and round-trip behavior.
 - [docs/conversational-workflow.md](docs/conversational-workflow.md) describes
@@ -313,6 +398,8 @@ choice.
 - [docs/prior-art.md](docs/prior-art.md) records relevant systems and lessons.
 - [docs/open-questions.md](docs/open-questions.md) tracks intentionally deferred
   choices.
+- [docs/releasing.md](docs/releasing.md) defines the release and Homebrew
+  publication procedure.
 - [docs/decisions/](docs/decisions/) contains architectural decision records.
 - [examples/](examples/) contains a disconnected workspace and its exported
   Concludia closure.
@@ -330,3 +417,15 @@ semantics.
 Cludia borrows Concludia's statements, junctors, logical-force discipline, and
 defeat model. Its workspace topology is more permissive: disconnected and
 unfinished structures are normal rather than import errors.
+
+## License
+
+Cludia is licensed under
+[GPL-3.0-or-later](LICENSE). The license covers the entire repository,
+including code, documentation, examples, dogfood reasoning, playtests, and the
+Ninth Room mystery content. Copyright 2026 KeenWorks.
+
+Compatibility with the `.arg` format and Concludia does not license Concludia
+source code or branding and does not imply that Concludia is part of this
+GPL-covered program. See [CONTRIBUTING.md](CONTRIBUTING.md) for the current
+contribution policy.

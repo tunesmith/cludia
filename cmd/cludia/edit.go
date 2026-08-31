@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package main
 
 import (
@@ -7,9 +10,8 @@ import (
 	"io"
 	"strings"
 
-	"github.com/tunesmith/cludia/internal/argfile"
+	"github.com/tunesmith/cludia/internal/argument"
 	"github.com/tunesmith/cludia/internal/diagnostic"
-	"github.com/tunesmith/cludia/internal/validation"
 )
 
 func runEdit(args []string, stdout, stderr io.Writer) error {
@@ -49,68 +51,46 @@ func runEdit(args []string, stdout, stderr io.Writer) error {
 		}
 		return errValidationFailed
 	}
-	statement, ok := doc.Statement(fs.Arg(1))
-	if !ok {
-		diagnostics := diagnosticError("statement_not_found", fmt.Sprintf("statement %q not found", fs.Arg(1)), fs.Arg(1))
-		if err := writeFailure(stdout, *jsonOutput, profile, diagnostics); err != nil {
-			return err
-		}
-		return errValidationFailed
-	}
-
-	next := doc.Clone()
-	edited, _ := next.Statement(statement.ID)
-	previous := *edited
+	options := argument.EditStatementOptions{Reference: fs.Arg(1)}
 	if text.set {
-		edited.Text = strings.TrimSpace(text.value)
+		value := strings.TrimSpace(text.value)
+		options.Text = &value
 	}
 	if truthName.set {
-		truth, ok := parseTruth(truthName.value)
-		if !ok {
-			diagnostics := diagnosticError("truth_invalid", fmt.Sprintf("invalid truth %q; expected T, F, or U", truthName.value), edited.ID)
-			if err := writeFailure(stdout, *jsonOutput, profile, diagnostics); err != nil {
-				return err
-			}
-			return errValidationFailed
-		}
-		edited.Truth = truth
+		truth, _ := parseTruth(truthName.value)
+		options.Truth = &truth
 	}
 	if kindName.set {
-		kind, ok := parseKind(kindName.value)
-		if !ok {
-			diagnostics := diagnosticError("kind_invalid", fmt.Sprintf("invalid kind %q; expected fact or value", kindName.value), edited.ID)
-			if err := writeFailure(stdout, *jsonOutput, profile, diagnostics); err != nil {
-				return err
-			}
-			return errValidationFailed
-		}
-		edited.Kind = kind
+		kind, _ := parseKind(kindName.value)
+		options.Kind = &kind
 	}
-	validated := validation.Validate(next, profile)
+	next, result, err := argument.EditStatement(doc, options)
+	if err != nil {
+		return writeArgumentMutationFailure(stdout, *jsonOutput, profile, err)
+	}
+	validated, err := validateAndPersistMutation(fs.Arg(0), next, profile, result.Changed)
+	if err != nil {
+		return err
+	}
 	if !validated.OK() {
 		if err := writeFailure(stdout, *jsonOutput, profile, validated.Diagnostics); err != nil {
 			return err
 		}
 		return errValidationFailed
 	}
-	changed := *edited != previous
-	if changed {
-		if err := argfile.SaveAtomic(fs.Arg(0), next); err != nil {
-			return err
-		}
-	}
 	diagnostics = validated.Diagnostics
 	if diagnostics == nil {
 		diagnostics = []diagnostic.Diagnostic{}
 	}
 	changes := []changeOutput{}
-	if changed {
-		changes = append(changes, changeOutput{Operation: "updated", ElementType: "statement", ID: edited.ID})
+	if result.Changed {
+		changes = append(changes, changeOutput{Operation: "updated", ElementType: "statement", ID: result.Current.ID})
+		changes = appendProfileMigrationChange(changes, doc)
 	}
 	output := mutationOutput{
 		SchemaVersion: outputSchemaVersion, Action: "edit", DryRun: false,
-		Profile: profile, Document: documentSummary(next), Statement: *edited,
-		PreviousStatement: &previous, Changes: changes, Diagnostics: diagnostics,
+		Profile: profile, Document: documentSummary(next), Statement: result.Current,
+		PreviousStatement: &result.Previous, Changes: changes, Diagnostics: diagnostics,
 	}
 	if text.set {
 		asserted := true
@@ -121,5 +101,5 @@ func runEdit(args []string, stdout, stderr io.Writer) error {
 
 func writeEditUsage(w io.Writer) {
 	fmt.Fprintln(w, "Usage: cludia edit [--json] FILE STATEMENT [--text TEXT --same-proposition] [--truth T|F|U] [--kind fact|value]")
-	fmt.Fprintln(w, "Change statement text, truth, or kind without changing its stable id or slug.")
+	fmt.Fprintln(w, "Change statement text or kind without changing its stable id or slug; truth may be assigned only to leaf premises and leaf counterpoints.")
 }

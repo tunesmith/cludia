@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 KeenWorks
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package main
 
 import (
@@ -13,7 +16,6 @@ import (
 	"github.com/tunesmith/cludia/internal/argfile"
 	"github.com/tunesmith/cludia/internal/argument"
 	"github.com/tunesmith/cludia/internal/query"
-	"github.com/tunesmith/cludia/internal/validation"
 )
 
 func TestMoveStatementJSONPersistsGeneralOrderWithoutChangingContent(t *testing.T) {
@@ -125,7 +127,7 @@ func TestMoveStatementStructuredFailuresDoNotWrite(t *testing.T) {
 func TestMovedGeneralOrderFeedsQueriesExportAndRenumberPlan(t *testing.T) {
 	doc := &argument.Document{
 		ID: "general-order", Title: "General Order", Metadata: []argument.Metadata{
-			{Key: "profile", Value: "workspace"},
+			{Key: "profile", Value: "cludia"},
 			{Key: argument.NextIDsMetadataKey, Value: "v1;P=4;L=2;C=1;CP=1;J=2"},
 		},
 		Statements: []argument.Statement{
@@ -171,7 +173,7 @@ func TestMovedGeneralOrderFeedsQueriesExportAndRenumberPlan(t *testing.T) {
 	if got, want := moveStatementIDs(rooted), []string{"P2", "P1", "L1"}; !reflect.DeepEqual(got, want) {
 		t.Fatalf("rooted order = %v, want %v", got, want)
 	}
-	plan, _, err := planRenumber(moved, validation.ProfileWorkspace, true)
+	_, plan, err := argument.RenumberDocument(moved)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -184,7 +186,7 @@ func statementMoveWorkspace(t *testing.T) string {
 	t.Helper()
 	doc := &argument.Document{
 		ID: "move", Title: "Move", Metadata: []argument.Metadata{
-			{Key: "profile", Value: "workspace"},
+			{Key: "profile", Value: "cludia"},
 			{Key: argument.NextIDsMetadataKey, Value: "v1;P=4;L=2;C=1;CP=2;J=2"},
 		},
 		Statements: []argument.Statement{
