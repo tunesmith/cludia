@@ -105,12 +105,14 @@ func (m Model) refreshFromDisk(check diskContents) Model {
 		return m.ensureSelectionVisible()
 	}
 	preferredTop := m.selectedTopID()
+	preferredSearch := m.selectedSearchID()
 	current := m.current
 	ledgerRoot := m.ledgerRoot
 	m.doc = doc
 	m.evaluation, _ = evaluation.Evaluate(doc)
 	m.diskVersion, m.seenDiskVersion, m.diskVersionKnown = check.version, check.version, true
 	m.refreshQueries(preferredTop)
+	m.restoreSearchSelection(preferredSearch)
 	if m.mode == modeDetail {
 		if _, ok := m.doc.Statement(current); ok {
 			m.current = current

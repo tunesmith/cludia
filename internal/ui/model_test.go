@@ -400,6 +400,32 @@ func TestNavigationStackRestoresCursorAndScroll(t *testing.T) {
 	}
 }
 
+func TestTopKeyPreservesReturnPositionThenJumpsToFirst(t *testing.T) {
+	for _, key := range []string{"enter", "f"} {
+		t.Run(key, func(t *testing.T) {
+			m := newModel("", pageTestDocument(), diskVersion{})
+			m.width, m.height = 100, 7
+			m = pressKey(m, "pgdown")
+			cursor, scroll := m.topCursor, m.topScroll
+			if cursor == 0 || scroll == 0 {
+				t.Fatal("expected a scrolled Top view")
+			}
+			m = pressKey(m, key)
+			if m.mode == modeTop {
+				t.Fatal("expected to leave Top")
+			}
+			m = pressKey(m, "t")
+			if m.mode != modeTop || m.topCursor != cursor || m.topScroll != scroll {
+				t.Fatalf("return lost Top position: mode=%v cursor=%d scroll=%d", m.mode, m.topCursor, m.topScroll)
+			}
+			m = pressKey(m, "t")
+			if m.topCursor != 0 || m.topScroll != 0 || !strings.Contains(m.View(), "TOP · 1 of") {
+				t.Fatalf("t did not reveal first statement: cursor=%d scroll=%d", m.topCursor, m.topScroll)
+			}
+		})
+	}
+}
+
 func TestTopKeyReturnsDirectlyToTopAndClearsHistory(t *testing.T) {
 	m := newModel("", testUIDocument(), diskVersion{})
 	m = m.openLedger("L2").ensureSelectionVisible()

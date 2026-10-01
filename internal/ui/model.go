@@ -18,6 +18,7 @@ const (
 	modeTop mode = iota
 	modeDetail
 	modeLedger
+	modeSearch
 )
 
 type messageKind int
@@ -29,6 +30,8 @@ const (
 )
 
 type screenState struct {
+	search       searchState
+	searchID     string
 	mode         mode
 	current      string
 	topCursor    int
@@ -42,6 +45,7 @@ type screenState struct {
 
 // Model is the Bubble Tea navigator with focused durable Top reordering.
 type Model struct {
+	search     searchState
 	path       string
 	doc        *argument.Document
 	evaluation evaluation.Result
@@ -111,10 +115,22 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m Model) updateKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	key := msg.String()
-	if key == "ctrl+c" || key == "q" {
+	if key == "ctrl+c" {
 		return m, tea.Quit
 	}
+	if m.mode == modeSearch {
+		return m.updateSearch(msg).ensureSelectionVisible(), nil
+	}
+	if key == "q" {
+		return m, tea.Quit
+	}
+	if key == "/" {
+		return m.openSearch().ensureSelectionVisible(), nil
+	}
 	if key == "t" {
+		if m.mode == modeTop {
+			m.topCursor, m.topScroll = 0, 0
+		}
 		return m.goTop().ensureSelectionVisible(), nil
 	}
 	var cmd tea.Cmd
@@ -253,6 +269,8 @@ func (m Model) back() Model {
 	state := m.history[len(m.history)-1]
 	m.history = m.history[:len(m.history)-1]
 	m.mode, m.current = state.mode, state.current
+	m.search = state.search
+	m.restoreSearchSelection(state.searchID)
 	m.topCursor, m.detailCursor, m.ledgerCursor = state.topCursor, state.detailCursor, state.ledgerCursor
 	m.ledgerRoot = state.ledgerRoot
 	m.topScroll, m.detailScroll, m.ledgerScroll = state.topScroll, state.detailScroll, state.ledgerScroll
@@ -280,6 +298,7 @@ func (m Model) back() Model {
 
 func (m Model) snapshot() screenState {
 	return screenState{
+		search: m.search, searchID: m.selectedSearchID(),
 		mode: m.mode, current: m.current, topCursor: m.topCursor,
 		detailCursor: m.detailCursor, ledgerCursor: m.ledgerCursor, ledgerRoot: m.ledgerRoot,
 		topScroll: m.topScroll, detailScroll: m.detailScroll, ledgerScroll: m.ledgerScroll,
@@ -300,6 +319,7 @@ func (m *Model) refreshQueries(preferredTopID string) {
 }
 
 func (m *Model) ensureSelections() {
+	m.search.cursor = clampCursor(m.search.cursor, len(m.searchMatches()))
 	m.topCursor = clampCursor(m.topCursor, len(m.topItems))
 	m.detailCursor = clampCursor(m.detailCursor, len(m.detailSelectableIDs()))
 	m.ledgerCursor = clampCursor(m.ledgerCursor, len(m.ledgerRows))
@@ -320,6 +340,10 @@ func (m Model) ensureSelectionVisible() Model {
 	var selectedStart, selectedEnd int
 	var scroll *int
 	switch m.mode {
+	case modeSearch:
+		lines, selectedStart, selectedEnd = m.renderedSearchBody()
+		m.search.scroll = scrollToReveal(m.search.scroll, len(lines), selectedStart, selectedEnd, m.searchBudget())
+		return m
 	case modeDetail:
 		lines, selectedStart, selectedEnd = m.renderedDetailBody()
 		scroll = &m.detailScroll

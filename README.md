@@ -27,7 +27,7 @@ after conversational dogfooding identifies the right visual operations.
 
 ## Status
 
-This repository is the project home for Cludia v1.0.1. The Go CLI implements the v1
+This repository is the project home for Cludia v1.1.0. The Go CLI implements the v1
 file workflow: capture and editing, inspection and search, multi-premise
 derivation and repair, defeat authoring, lifecycle operations, validation, and
 rooted Concludia export. A terminal navigator adds deterministic Top, Statement
@@ -116,9 +116,22 @@ statement into exact justification, challenge, and downstream-use detail; `f`
 opens the complete support ledger to that statement. `j/k` selects rows;
 capital `J/K` in Top moves the highlighted statement down/up in durable general
 document order. Escape returns to the previous view, and `t` jumps directly to
-Top. Valid external CLI or agent changes reload automatically; invalid contents
+Top while preserving your place; pressing `t` while already in Top selects the
+first statement and scrolls to the beginning. Valid external CLI or agent changes
+reload automatically; invalid contents
 leave the last valid in-memory view intact. A stale reorder is refused when an
 external change has altered the displayed Top adjacency.
+
+Press `/` from any navigation view to search all statements by ID, slug, or
+text, including premises and counterpoints absent from Top. Matches update as
+you type using case-insensitive substring search. An exact reference preselects
+its statement, with durable IDs taking precedence over slugs; other matches
+remain in document order. Use Up/Down or PgUp/PgDn to select a result and Enter
+to open its Statement Detail and relationships. Escape returns to the search
+with its query and selection intact; Escape again restores the originating view.
+While searching, printable keys (including `q`, `t`, and `j/k`) enter text.
+Left/Right and Home/End move the input cursor, Backspace/Delete edit the query,
+Ctrl+U clears it, and Ctrl+C quits.
 
 ## Installation
 
@@ -132,7 +145,7 @@ cludia version
 Or install the tagged source with Go 1.26.4 or newer:
 
 ```bash
-go install github.com/tunesmith/cludia/cmd/cludia@v1.0.1
+go install github.com/tunesmith/cludia/cmd/cludia@v1.1.0
 cludia version
 ```
 
@@ -146,7 +159,7 @@ bin/cludia version
 
 `go install` writes to `GOBIN`, or to `$(go env GOPATH)/bin` when `GOBIN` is
 unset. That directory must be on `PATH`. Checked-in source, tagged Go installs,
-and the Homebrew formula all identify this release as `cludia v1.0.1`.
+and the Homebrew formula all identify this release as `cludia v1.1.0`.
 
 ## Development
 
