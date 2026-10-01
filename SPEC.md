@@ -647,7 +647,13 @@ Parity means:
 
 The TUI MUST expose Top, Statement Detail, and Derivation Ledger views and
 automatically reload valid external file changes without replacing its last
-valid in-memory document with invalid contents. Capital `J` and `K` in Top MAY
+valid in-memory document with invalid contents. `/` MUST open live statement
+search using the shared case-insensitive ID, slug, and text substring query,
+including statements absent from Top. Exact references MUST preselect the
+statement through shared ID-before-slug resolution. Enter MUST open Statement
+Detail, and Escape MUST restore search state and then the originating view.
+Search is read-only and printable keys enter query text while it is active.
+Capital `J` and `K` in Top MAY
 move the highlighted statement through the shared durable statement-order
 operation. The TUI MUST refuse a stale move when external changes invalidate
 the displayed Top adjacency. Text wrapping MUST measure grapheme-aware terminal

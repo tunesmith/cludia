@@ -6,15 +6,15 @@ and a source-building formula in
 
 The application repository and Homebrew tap are released separately. Do not
 publish a tag until the application pull request is merged and all checks pass.
-The examples below use `v1.0.1`; substitute the intended version consistently.
+The examples below use `v1.1.0`; substitute the intended version consistently.
 
 ## 1. Prepare the release candidate
 
 Start from an up-to-date `main` and create a focused release branch:
 
 ```sh
-release_version=v1.0.1
-release_branch=codex/release-v1.0.1
+release_version=v1.1.0
+release_branch=codex/release-v1.1.0
 git switch main
 git pull --ff-only origin main
 git switch -c "$release_branch"

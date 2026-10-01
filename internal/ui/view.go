@@ -26,6 +26,8 @@ var (
 
 func (m Model) View() string {
 	switch m.mode {
+	case modeSearch:
+		return m.viewSearch()
 	case modeDetail:
 		return m.viewDetail()
 	case modeLedger:
@@ -43,24 +45,24 @@ func (m Model) viewTop() string {
 		position = clampCursor(m.topCursor, total) + 1
 	}
 	title := fmt.Sprintf("%s — TOP · %d of %d", m.doc.Title, position, total)
-	return m.frame(title, body, "j/k select  J/K reorder  Enter inspect  f derivation  q quit")
+	return m.frame(title, body, "j/k select  t first  J/K reorder  Enter inspect  f derivation  / search  q quit")
 }
 
 func (m Model) viewLedger() string {
 	lines, _, _ := m.renderedLedgerBody()
 	body := renderLineViewport(lines, m.ledgerScroll, m.viewportBudget())
-	return m.frame("DERIVATION TO "+m.ledgerRoot, body, "j/k move  Enter inspect  Esc back  t Top  q quit")
+	return m.frame("DERIVATION TO "+m.ledgerRoot, body, "j/k move  Enter inspect  Esc back  t Top  / search  q quit")
 }
 
 func (m Model) viewDetail() string {
 	statement, ok := m.doc.Statement(m.current)
 	if !ok {
-		return m.frame("STATEMENT", []string{mutedStyle.Render("statement missing")}, "Esc back  t Top  q quit")
+		return m.frame("STATEMENT", []string{mutedStyle.Render("statement missing")}, "Esc back  t Top  / search  q quit")
 	}
 	body, _, _ := m.renderedDetailBody()
-	footer := "j/k move  Enter follow  f derivation  Esc back  t Top  q quit"
+	footer := "j/k move  Enter follow  f derivation  Esc back  t Top  / search  q quit"
 	if statement.Role == "counterpoint" {
-		footer = "j/k move  Enter follow  Esc back  t Top  q quit"
+		footer = "j/k move  Enter follow  Esc back  t Top  / search  q quit"
 	}
 	return m.frame("STATEMENT DETAIL", renderLineViewport(body, m.detailScroll, m.viewportBudget()), footer)
 }

@@ -3,6 +3,7 @@
 - Status: Accepted
 - Date: 2026-08-26
 - Amended: 2026-08-31 for role-aware proof status
+- Amended: 2026-10-01 for interactive statement search
 - Partial supersession: ADR 0010 later adds focused durable Top reordering while
   retaining this ADR's navigation model and deferral of general TUI authoring.
 - Challenge-marker supersession: ADR 0014's grounded evaluation replaces this
@@ -31,8 +32,15 @@ The connected argument supporting this decision is
 
 - `cludia FILE` opens a read-only terminal navigator; named subcommands retain
   precedence.
-- The initial TUI contains only Top, Statement Detail, and Derivation Ledger
-  views.
+- The TUI contains Top, Statement Detail, Derivation Ledger, and statement
+  Search views.
+- `/` opens live case-insensitive substring search over all statement IDs,
+  slugs, and text using the same query as CLI search. Exact references preselect
+  their statement through the shared ID-before-slug resolver; result order
+  remains document order. Enter opens ordinary Statement Detail, and Escape
+  restores the search query, selection, and viewport before returning to the
+  originating view. Printable keys enter query text while search is active.
+  Search introduces no durable state or JSON contract change.
 - Top lists non-counterpoint statements with no outgoing support in document
   order, with longest support depth and a compact challenge marker.
 - Statement text is complete at usable widths and wraps by grapheme-aware
@@ -78,7 +86,7 @@ The connected argument supporting this decision is
 - A status value receives warning color under the exact same material grounded
   defeat condition as `!`. Selection style wins for a selected row; the marker
   preserves contestation in monochrome and while selected.
-- Search, isolated-only browsing, challenge-only browsing, copy/export, and all
+- Isolated-only browsing, challenge-only browsing, copy/export, and all
   TUI mutations remain deferred until the three-view navigator is dogfooded.
 
 ## Alternatives considered

@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.1.0 (2026-10-01)
+
+### Changed
+
+- The TUI now supports `/` search across statement IDs, slugs, and text, with
+  live results, exact-reference preselection, and Enter to inspect relationships.
+  Escape restores search results and then the originating view. Search reuses
+  the CLI query and does not change `.arg` or JSON schemas.
+- In the TUI, `t` selects the first statement and scrolls to the beginning when
+  already in Top. Returning to Top from Detail or Ledger still preserves your
+  place.
+
 ## 1.0.1 (2026-08-31)
 
 ### Changed
